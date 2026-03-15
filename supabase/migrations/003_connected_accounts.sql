@@ -1,0 +1,1 @@
+-- Ticket 2: connected_accounts table

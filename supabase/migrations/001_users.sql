@@ -1,0 +1,2 @@
+-- Ticket 2: users table
+-- Run: supabase db push

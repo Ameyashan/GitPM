@@ -1,0 +1,1 @@
+-- Ticket 2: projects table
