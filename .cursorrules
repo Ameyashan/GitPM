@@ -1,0 +1,116 @@
+# GitPM — Cursor Rules
+
+## Project Context
+GitPM is a portfolio platform for product managers who build with AI coding tools.
+Phase 1: profile + project consolidation + multi-platform verification (GitHub, Vercel, Lovable).
+Read ARCHITECTURE.md for full technical context before making changes.
+Read BUILD_TICKETS.md for the sequenced development plan.
+
+## Tech Stack (do not deviate)
+- Next.js 14 with App Router (NOT Pages Router)
+- TypeScript in strict mode — no `any` types, no `@ts-ignore`
+- Tailwind CSS + shadcn/ui for all UI components
+- Supabase for database, auth, and file storage
+- Vercel for hosting and serverless functions
+
+## Code Style & Conventions
+
+### TypeScript
+- Use `interface` for object shapes, `type` for unions and intersections
+- All function parameters and return types must be explicitly typed
+- Use Zod for runtime validation on all API route inputs
+- Export types from `types/` directory, never define inline in components
+- Prefer `const` over `let`. Never use `var`
+- Use early returns to reduce nesting
+
+### React & Next.js
+- Server components by default. Only use `"use client"` when the component needs:
+  - useState, useEffect, or other hooks
+  - Event handlers (onClick, onChange, onSubmit)
+  - Browser APIs
+- Never use `"use client"` on page.tsx files unless absolutely necessary — fetch data in server components and pass to client children
+- Use Next.js App Router conventions: `page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`
+- Use `next/image` for all images with explicit width/height
+- Use `next/link` for all internal navigation
+- Colocate components with their routes when they're only used there
+
+### Supabase
+- ALL Supabase queries go through helpers in `lib/supabase/`
+  - `lib/supabase/client.ts` — browser client (client components)
+  - `lib/supabase/server.ts` — server client (server components, API routes)
+  - `lib/supabase/admin.ts` — service role client (public reads, bypassing RLS)
+- Never instantiate Supabase client directly in components or API routes
+- Always use generated types from `types/database.ts` for query results
+- Write all schema changes as migrations in `supabase/migrations/`
+- RLS must be enabled on every table. No exceptions
+
+### API Routes
+- All API routes in `app/api/` directory
+- Use proper HTTP methods: GET for reads, POST for creates, PATCH for updates, DELETE for deletes
+- Always validate request body with Zod before processing
+- Return typed JSON responses with consistent shape:
+  ```ts
+  // Success
+  { data: T }
+  // Error
+  { error: string, code: string }
+  ```
+- Always check auth session at the top of protected routes
+- Handle errors with try/catch and return appropriate status codes
+
+### Styling
+- Use Tailwind utility classes. No custom CSS files unless absolutely necessary
+- Follow the design system in ARCHITECTURE.md:
+  - Primary: #0D1B2A (deep navy)
+  - Teal: #0A7558 (verification, success)
+  - Purple: #6C5CE7 (interactive elements)
+  - Dark surface: #1B2838
+  - Neutral surface: #F0F2F0
+  - Border: #C8CCC8 at 0.5px
+- Add these as Tailwind custom colors in `tailwind.config.ts`
+- Use shadcn/ui components as the base. Customize with Tailwind, don't override with raw CSS
+- Design direction: dark-tilting, minimal chrome, trust-forward (Linear/Vercel aesthetic)
+
+### File Naming
+- Components: PascalCase (`ProjectCard.tsx`)
+- Utilities/helpers: camelCase (`github.ts`, `thumbnails.ts`)
+- Types: camelCase files, PascalCase exports (`types/project.ts` → `export interface Project`)
+- API routes: `route.ts` (Next.js convention)
+- Migrations: sequential numbered prefix (`001_users.sql`)
+
+### OAuth & Security
+- GitHub OAuth token comes from Supabase Auth (stored automatically)
+- Vercel OAuth tokens stored in `connected_accounts` table, encrypted
+- Never expose OAuth tokens to the client. All external API calls happen server-side
+- Never log tokens or include them in error messages
+- Use environment variables for all secrets. Reference `.env.local.example`
+
+### Error Handling
+- Wrap all async operations in try/catch
+- Use toast notifications (sonner via shadcn) for user-facing errors
+- Log errors server-side with context (not just the error message)
+- Never show raw error messages to users
+- Provide loading states and skeletons for all async UI
+
+### Git Conventions
+- Commit messages: `type: description` (e.g., `feat: add project creation form`, `fix: RLS policy for public reads`)
+- Types: feat, fix, refactor, style, docs, test, chore
+- One logical change per commit
+
+## Things to NEVER Do
+- Never use Pages Router patterns (getServerSideProps, getStaticProps)
+- Never use `any` type
+- Never query Supabase directly in components (use lib/supabase helpers)
+- Never store secrets in code or commit .env files
+- Never disable RLS policies, even temporarily
+- Never use `dangerouslySetInnerHTML` unless sanitizing with DOMPurify
+- Never use inline styles. Use Tailwind classes
+- Never install packages without checking if shadcn/ui already provides the functionality
+- Never create API routes that don't validate input with Zod
+
+## When Unsure
+- Check ARCHITECTURE.md for system-level decisions
+- Check BUILD_TICKETS.md for what should/shouldn't be in scope
+- Prefer simplicity over cleverness
+- Ask before adding new dependencies
+- If a feature is listed under "What Phase 1 Does NOT Include" in ARCHITECTURE.md, do not build it
