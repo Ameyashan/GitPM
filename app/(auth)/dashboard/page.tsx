@@ -3,10 +3,11 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { buttonVariants } from "@/components/ui/button";
+import { DashboardProjectActions } from "@/components/dashboard/DashboardProjectActions";
 import { PlusCircle, ExternalLink, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export const metadata: Metadata = { title: "Dashboard" };
+export const metadata: Metadata = { title: "Dashboard — GitPM" };
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -31,7 +32,9 @@ export default async function DashboardPage() {
 
   const { data: projects } = await supabase
     .from("projects")
-    .select("id, name, slug, is_published, created_at")
+    .select(
+      "id, name, slug, is_published, thumbnail_url, live_url, display_order, created_at"
+    )
     .eq("user_id", user.id)
     .order("display_order", { ascending: true });
 
@@ -118,58 +121,9 @@ export default async function DashboardPage() {
             </Link>
           </div>
         ) : (
-          <div className="rounded-xl border border-gitpm-border/40 overflow-hidden">
-            <div className="px-4 py-3 border-b border-gitpm-border/30 bg-surface-dark/40">
-              <h2 className="text-sm font-medium text-white/60 uppercase tracking-widest">
-                Projects
-              </h2>
-            </div>
-            <ul className="divide-y divide-gitpm-border/20">
-              {projects.map((project) => (
-                <li
-                  key={project.id}
-                  className="flex items-center justify-between px-4 py-3 hover:bg-white/[0.02] transition-colors"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span
-                      className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${
-                        project.is_published ? "bg-teal" : "bg-white/20"
-                      }`}
-                    />
-                    <span className="text-sm text-white truncate">
-                      {project.name}
-                    </span>
-                    <span className="text-xs text-white/30 font-mono hidden sm:block">
-                      /{project.slug}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <span
-                      className={`text-xs px-2 py-0.5 rounded-full ${
-                        project.is_published
-                          ? "bg-teal/10 text-teal"
-                          : "bg-white/5 text-white/30"
-                      }`}
-                    >
-                      {project.is_published ? "Published" : "Draft"}
-                    </span>
-                    <Link
-                      href={`/dashboard/projects/${project.id}/edit`}
-                      className={cn(
-                        buttonVariants({ variant: "ghost", size: "sm" }),
-                        "text-white/40 hover:text-white h-7 px-2"
-                      )}
-                    >
-                      Edit
-                    </Link>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <DashboardProjectActions projects={projects} />
         )}
       </main>
     </div>
   );
 }
-
