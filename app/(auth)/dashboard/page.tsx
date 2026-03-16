@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
-import { Navigation } from "@/components/shared/Navigation";
 import { buttonVariants } from "@/components/ui/button";
 import { PlusCircle, ExternalLink, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -39,10 +38,8 @@ export default async function DashboardPage() {
   const publishedCount = projects?.filter((p) => p.is_published).length ?? 0;
 
   return (
-    <div className="min-h-screen bg-navy">
-      <Navigation />
-
-      <main className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-12">
+    <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-10 w-full">
+      <main>
         {/* Header */}
         <div className="mb-10 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div>
@@ -175,3 +172,4 @@ export default async function DashboardPage() {
     </div>
   );
 }
+

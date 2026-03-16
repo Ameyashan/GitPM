@@ -1,4 +1,4 @@
-// Product context sections — implemented in Ticket 4
+import { SectionLabel } from "@/components/shared/SectionLabel";
 import type { Project } from "@/types/project";
 
 interface ProductContextProps {
@@ -7,38 +7,40 @@ interface ProductContextProps {
 
 export function ProductContext({ project }: ProductContextProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       <section>
-        <h2 className="text-xs uppercase tracking-widest text-white/40 mb-2">
-          Problem
-        </h2>
-        <p className="text-white/80">{project.problem_statement}</p>
+        <SectionLabel>Problem Statement</SectionLabel>
+        <p className="text-white/80 leading-relaxed text-[15px]">
+          {project.problem_statement}
+        </p>
       </section>
 
       {project.target_user && (
         <section>
-          <h2 className="text-xs uppercase tracking-widest text-white/40 mb-2">
-            Target User
-          </h2>
-          <p className="text-white/80">{project.target_user}</p>
+          <SectionLabel>Target User</SectionLabel>
+          <p className="text-white/80 leading-relaxed text-[15px]">
+            {project.target_user}
+          </p>
         </section>
       )}
 
       {project.key_decisions && (
         <section>
-          <h2 className="text-xs uppercase tracking-widest text-white/40 mb-2">
-            Key Decisions
-          </h2>
-          <p className="text-white/80">{project.key_decisions}</p>
+          <SectionLabel>Key Decisions</SectionLabel>
+          <div className="border-l-2 border-purple/50 pl-4">
+            <p className="text-white/80 leading-relaxed text-[15px]">
+              {project.key_decisions}
+            </p>
+          </div>
         </section>
       )}
 
       {project.learnings && (
         <section>
-          <h2 className="text-xs uppercase tracking-widest text-white/40 mb-2">
-            Learnings
-          </h2>
-          <p className="text-white/80">{project.learnings}</p>
+          <SectionLabel>Learnings</SectionLabel>
+          <p className="text-white/80 leading-relaxed text-[15px]">
+            {project.learnings}
+          </p>
         </section>
       )}
     </div>

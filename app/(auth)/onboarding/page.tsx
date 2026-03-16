@@ -28,25 +28,23 @@ export default async function OnboardingPage() {
   }
 
   return (
-    <main className="min-h-screen bg-navy">
-      <div className="mx-auto max-w-xl px-4 py-16">
-        <div className="mb-10">
-          <p className="text-sm font-mono text-teal mb-2">Step 1 of 1</p>
-          <h1 className="text-3xl font-display font-bold text-white mb-2">
-            Set up your profile
-          </h1>
-          <p className="text-white/50 text-sm">
-            This is your public portfolio. Keep it sharp.
-          </p>
-        </div>
-
-        <OnboardingForm
-          initialUsername={profile?.username ?? ""}
-          initialDisplayName={profile?.display_name ?? ""}
-          initialGithubUsername={profile?.github_username ?? null}
-          initialAvatarUrl={profile?.avatar_url ?? null}
-        />
+    <div className="mx-auto max-w-xl px-4 py-16 w-full">
+      <div className="mb-10">
+        <p className="text-sm font-mono text-teal mb-2">Step 1 of 1</p>
+        <h1 className="text-3xl font-display font-bold text-white mb-2">
+          Set up your profile
+        </h1>
+        <p className="text-white/50 text-sm">
+          This is your public portfolio. Keep it sharp.
+        </p>
       </div>
-    </main>
+
+      <OnboardingForm
+        initialUsername={profile?.username ?? ""}
+        initialDisplayName={profile?.display_name ?? ""}
+        initialGithubUsername={profile?.github_username ?? null}
+        initialAvatarUrl={profile?.avatar_url ?? null}
+      />
+    </div>
   );
 }

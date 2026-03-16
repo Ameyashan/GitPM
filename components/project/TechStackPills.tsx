@@ -1,18 +1,36 @@
-// Tech stack pills — implemented in Ticket 5
+import { BadgePill } from "@/components/shared/BadgePill";
+import type { VerificationMethod } from "@/types/project";
+
 interface TechStackPillsProps {
-  stack: string[];
+  buildTools?: string[];
+  hosting?: string | null;
+  stack?: string[];
+  categories?: string[];
+  verificationMethod?: VerificationMethod | null;
 }
 
-export function TechStackPills({ stack }: TechStackPillsProps) {
+export function TechStackPills({
+  buildTools = [],
+  hosting,
+  stack = [],
+  categories = [],
+}: TechStackPillsProps) {
+  const hasAny =
+    buildTools.length > 0 || hosting || stack.length > 0 || categories.length > 0;
+
+  if (!hasAny) return null;
+
   return (
-    <div className="flex flex-wrap gap-1.5">
+    <div className="flex flex-wrap gap-2">
+      {buildTools.map((tool) => (
+        <BadgePill key={`tool-${tool}`} label={tool} variant="purple" />
+      ))}
+      {hosting && <BadgePill label={hosting} variant="teal" />}
       {stack.map((tech) => (
-        <span
-          key={tech}
-          className="rounded-md bg-surface-dark border border-gitpm-border/50 px-2.5 py-0.5 text-xs font-mono text-white/70"
-        >
-          {tech}
-        </span>
+        <BadgePill key={`stack-${tech}`} label={tech} variant="default" />
+      ))}
+      {categories.map((cat) => (
+        <BadgePill key={`cat-${cat}`} label={cat} variant="forest" />
       ))}
     </div>
   );

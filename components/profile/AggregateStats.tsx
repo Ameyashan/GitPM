@@ -1,5 +1,4 @@
-// Aggregate stats row — implemented in Ticket 8
-// Shows total projects, total commits, verified count
+import { StatCard } from "@/components/shared/StatCard";
 
 interface AggregateStatsProps {
   totalProjects: number;
@@ -13,25 +12,12 @@ export function AggregateStats({
   verifiedCount,
 }: AggregateStatsProps) {
   return (
-    <div className="flex gap-8">
-      <div>
-        <span className="text-2xl font-display font-bold text-white">
-          {totalProjects}
-        </span>
-        <p className="text-sm text-white/60">Projects</p>
-      </div>
-      <div>
-        <span className="text-2xl font-display font-bold text-white">
-          {totalCommits}
-        </span>
-        <p className="text-sm text-white/60">Commits</p>
-      </div>
-      <div>
-        <span className="text-2xl font-display font-bold text-teal">
-          {verifiedCount}
-        </span>
-        <p className="text-sm text-white/60">Verified</p>
-      </div>
+    <div className="flex items-center gap-8">
+      <StatCard value={totalProjects} label="Projects" />
+      <div className="h-8 w-px bg-gitpm-border/30" />
+      <StatCard value={totalCommits} label="Commits" />
+      <div className="h-8 w-px bg-gitpm-border/30" />
+      <StatCard value={verifiedCount} label="Verified" accent="teal" />
     </div>
   );
 }

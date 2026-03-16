@@ -97,8 +97,91 @@ Generate TypeScript types: `npx supabase gen types typescript`
 
 ---
 
-## Ticket 4: Project CRUD & Public Profile
-**Estimated time: Day 5-8**
+## Ticket 4: Design System & UI Foundation
+**Estimated time: Day 5-7**
+
+### What to build
+
+**Tailwind config with custom design tokens** in `tailwind.config.ts`:
+- Add all brand colors from ARCHITECTURE.md as custom Tailwind colors:
+  - `navy: #0D1B2A` (primary — headings, dark surfaces)
+  - `teal: #0A7558` (verification badges, success states)
+  - `purple: #6C5CE7` (build tool pills, interactive elements)
+  - `forest: #2D6A4F` (secondary badges, heatmap fills)
+  - `dark-surface: #1B2838` (card backgrounds in dark mode)
+  - `neutral-surface: #F0F2F0` (light mode card backgrounds)
+  - `border: #C8CCC8` (0.5px card edges, dividers)
+- Configure fonts: Inter (body), Inter Tight or Geist (headings/stats), Geist Mono (URLs, tech pills)
+- Load fonts via `next/font/google` or `next/font/local`
+
+**shadcn/ui theming:**
+- Install shadcn/ui and initialize with the dark-tilting palette
+- Override default shadcn theme variables to match GitPM's design tokens
+- Install these shadcn components upfront: Button, Card, Badge, Input, Textarea, Select, Dialog, Dropdown Menu, Toast (sonner), Tabs, Avatar, Skeleton, Separator
+
+**Reusable components** in `components/shared/`:
+- `Navigation.tsx` — top nav bar: GitPM logo (left), sign in/avatar+dropdown (right). Dark background (#0D1B2A). Responsive with mobile hamburger menu
+- `BadgePill.tsx` — configurable pill component with variants: `tool` (purple bg), `hosting` (teal bg), `stack` (gray bg), `category` (outline). Mono font for text
+- `VerifiedBadge.tsx` — "Verified Owner" badge: teal background, white text, checkmark icon. Two sizes: inline (for cards) and full (for detail pages)
+- `VideoEmbed.tsx` — accepts Loom or YouTube URL, parses to extract embed ID, renders responsive 16:9 iframe. Includes play button overlay variant for card thumbnails
+- `StatCard.tsx` — numeric stat with label below. Neutral surface background, no border, centered. Used in aggregate stats row
+- `SectionLabel.tsx` — uppercase, 12px, muted color label used as section headers (e.g., "PROBLEM STATEMENT", "KEY DECISIONS")
+
+**Profile components** in `components/profile/`:
+- `ProfileHeader.tsx` — avatar (72px circle) + name (22px bold) + headline (14px muted) + social link icons (GitHub, LinkedIn, website). Dark navy background
+- `AggregateStats.tsx` — horizontal row of StatCard components. Props: total projects, total commits, verified count
+- `ToolsUsed.tsx` — horizontal row of BadgePill components with usage counts (e.g., "Cursor ×4", "Lovable ×2")
+- `ProjectCard.tsx` — card component for the project grid:
+  - Thumbnail area (placeholder gradient if no image) with play button overlay if video exists
+  - Title + VerifiedBadge inline
+  - Description (2-line clamp via `line-clamp-2`)
+  - Pills row: build tool, hosting, tech stack (max 3 visible + "+N more")
+  - Meta row: commit count, build time, solo/collab icon
+  - Dark surface background, 0.5px border, hover state (subtle lift or border color change)
+- `ProjectGrid.tsx` — 2-column grid wrapper with responsive breakpoint (1-column on mobile)
+
+**Project detail components** in `components/project/`:
+- `ProjectHero.tsx` — full-width area: VideoEmbed if video exists, or screenshot gallery with navigation. 16:9 aspect ratio container
+- `TechStackPills.tsx` — row of BadgePill components for build tool (purple), hosting (teal), tech stack (gray), category (outline)
+- `ProjectStats.tsx` — horizontal row of StatCards: commits, build duration, solo/collaborative, users
+- `ProductContext.tsx` — renders problem statement, key decisions (with left accent line), target user, and learnings sections using SectionLabel
+
+**Dashboard components** in `components/dashboard/`:
+- `ProjectList.tsx` — list of user's projects with edit/delete/publish controls. Each row shows thumbnail, name, status badge (draft/published), and action buttons
+- `ConnectionCard.tsx` — card showing a connected platform (GitHub, Vercel) with status, username, and disconnect button
+
+**Layout shells:**
+- `app/(public)/layout.tsx` — public layout: dark header with nav, lighter content area below
+- `app/(auth)/layout.tsx` — authenticated layout: sidebar navigation (Dashboard, Projects, Connections, Settings) + main content area
+- Both layouts use Navigation.tsx
+
+**Storybook-style test page** (optional but recommended):
+- Create `app/(auth)/dashboard/components/page.tsx` — a temporary page that renders every component with sample data so you can visually verify them all before building real pages
+
+### Acceptance criteria
+- All design tokens are defined in `tailwind.config.ts` and accessible as Tailwind classes (e.g., `bg-navy`, `text-teal`, `border-border`)
+- Fonts load correctly: Inter for body, display font for headings, Geist Mono for technical text
+- shadcn/ui components render with the GitPM dark-tilting theme, not default shadcn styling
+- All shared components render correctly with sample/mock data
+- Profile components match the blueprint spec: dark header, card-based layout, pill metadata
+- ProjectCard has proper hover state, 2-line clamp, and responsive behavior
+- VideoEmbed correctly handles both Loom and YouTube URLs
+- Layouts render correctly: public pages have dark header + lighter content, dashboard has sidebar
+- Components look intentional and polished — closer to Linear/Vercel than generic shadcn defaults
+- Mobile responsive: navigation collapses, project grid goes single-column, profile header stacks
+
+### Key design references from blueprint
+- Design direction: "Dark-tilting palette. Public profiles render with a dark header/hero area (deep navy) with lighter content below. Cards use subtle dark surfaces with teal/green accents for verification and purple for interactive elements. The overall feel is closer to Linear or Raycast than to a typical SaaS landing page."
+- Trust-forward: verification badges and stats are prominent, not hidden
+- Scannable: card-based layout, pill-based metadata, aggregate stats at top
+- PM-centric: problem statement and key decisions displayed prominently
+- Minimal chrome: flat design, 0.5px borders, generous whitespace, no gradients
+- Demo-first: video play button is the largest interactive element on project cards
+
+---
+
+## Ticket 5: Project CRUD & Public Profile
+**Estimated time: Day 7-10**
 
 ### What to build
 
@@ -138,8 +221,8 @@ Generate TypeScript types: `npx supabase gen types typescript`
 
 ---
 
-## Ticket 5: GitHub API Integration
-**Estimated time: Day 8-10**
+## Ticket 6: GitHub API Integration
+**Estimated time: Day 10-12**
 
 ### What to build
 - `lib/github.ts` — GitHub API helper using stored OAuth token
@@ -162,8 +245,8 @@ Generate TypeScript types: `npx supabase gen types typescript`
 
 ---
 
-## Ticket 6: Vercel OAuth & Verification
-**Estimated time: Day 10-12**
+## Ticket 7: Vercel OAuth & Verification
+**Estimated time: Day 12-14**
 
 ### What to build
 - Register Vercel integration app (you'll need to do this manually in Vercel dashboard)
@@ -188,8 +271,8 @@ Generate TypeScript types: `npx supabase gen types typescript`
 
 ---
 
-## Ticket 7: Lovable Detection & Media Layer
-**Estimated time: Day 12-15**
+## Ticket 8: Lovable Detection & Media Layer
+**Estimated time: Day 14-17**
 
 ### What to build
 
@@ -227,8 +310,8 @@ Generate TypeScript types: `npx supabase gen types typescript`
 
 ---
 
-## Ticket 8: Profile Polish & Responsive Design
-**Estimated time: Day 15-18**
+## Ticket 9: Profile Polish & Responsive Design
+**Estimated time: Day 17-20**
 
 ### What to build
 
@@ -268,8 +351,8 @@ Generate TypeScript types: `npx supabase gen types typescript`
 
 ---
 
-## Ticket 9: Landing Page & Onboarding Flow
-**Estimated time: Day 18-20**
+## Ticket 10: Landing Page & Onboarding Flow
+**Estimated time: Day 20-22**
 
 ### What to build
 
@@ -302,8 +385,8 @@ Generate TypeScript types: `npx supabase gen types typescript`
 
 ---
 
-## Ticket 10: QA, Performance & Launch Prep
-**Estimated time: Day 20-22**
+## Ticket 11: QA, Performance & Launch Prep
+**Estimated time: Day 22-25**
 
 ### What to build
 

@@ -1,21 +1,20 @@
-// Tools used section — implemented in Ticket 8
-// Horizontal row of build tool chips with usage counts
+import { BadgePill } from "@/components/shared/BadgePill";
 
 interface ToolsUsedProps {
   tools: { name: string; count: number }[];
 }
 
 export function ToolsUsed({ tools }: ToolsUsedProps) {
+  if (tools.length === 0) return null;
+
   return (
     <div className="flex flex-wrap gap-2">
       {tools.map((tool) => (
-        <span
+        <BadgePill
           key={tool.name}
-          className="inline-flex items-center gap-1.5 rounded-full bg-surface-dark border border-gitpm-border/50 px-3 py-1 text-xs font-mono text-white/80"
-        >
-          {tool.name}
-          <span className="text-purple font-semibold">{tool.count}</span>
-        </span>
+          label={`${tool.name} ×${tool.count}`}
+          variant="purple"
+        />
       ))}
     </div>
   );
