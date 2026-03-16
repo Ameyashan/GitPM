@@ -1,6 +1,6 @@
 "use client";
 
-import { Github } from "lucide-react";
+import { Github, Loader2 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -9,6 +9,12 @@ interface ConnectionCardProps {
   isConnected: boolean;
   username?: string;
   connectedAt?: string;
+  /** URL to navigate to when clicking "Connect" (e.g. /api/auth/vercel/connect) */
+  connectHref?: string;
+  /** Called when the user confirms disconnect */
+  onDisconnect?: () => Promise<void>;
+  /** Shows a loading spinner on the Disconnect button */
+  isDisconnecting?: boolean;
 }
 
 function VercelIcon({ className }: { className?: string }) {
@@ -34,6 +40,9 @@ export function ConnectionCard({
   isConnected,
   username,
   connectedAt,
+  connectHref,
+  onDisconnect,
+  isDisconnecting = false,
 }: ConnectionCardProps) {
   const label = PROVIDER_LABELS[provider] ?? provider;
 
@@ -68,18 +77,27 @@ export function ConnectionCard({
             <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-teal/10 text-teal border border-teal/20">
               Connected
             </span>
-            <button
-              className={cn(
-                buttonVariants({ variant: "ghost", size: "sm" }),
-                "h-7 px-2 text-xs text-white/30 hover:text-destructive"
-              )}
-              aria-label={`Disconnect ${label}`}
-            >
-              Disconnect
-            </button>
+            {onDisconnect && (
+              <button
+                onClick={onDisconnect}
+                disabled={isDisconnecting}
+                className={cn(
+                  buttonVariants({ variant: "ghost", size: "sm" }),
+                  "h-7 px-2 text-xs text-white/30 hover:text-destructive disabled:opacity-40"
+                )}
+                aria-label={`Disconnect ${label}`}
+              >
+                {isDisconnecting ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  "Disconnect"
+                )}
+              </button>
+            )}
           </>
-        ) : (
-          <button
+        ) : connectHref ? (
+          <a
+            href={connectHref}
             className={cn(
               buttonVariants({ size: "sm" }),
               "h-7 px-3 text-xs bg-purple hover:bg-purple/90 text-white"
@@ -87,8 +105,8 @@ export function ConnectionCard({
             aria-label={`Connect ${label}`}
           >
             Connect
-          </button>
-        )}
+          </a>
+        ) : null}
       </div>
     </div>
   );

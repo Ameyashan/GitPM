@@ -37,3 +37,10 @@ export interface VercelTokenResponse {
   user_id: string;
   installation_id: string;
 }
+
+export interface VercelUser {
+  id: string;
+  username: string;
+  name: string;
+  email: string;
+}
