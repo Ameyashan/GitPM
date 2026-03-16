@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ChevronRight, ChevronLeft, Check, Loader2 } from "lucide-react";
+import { ChevronRight, ChevronLeft, Check, Loader2, Star, GitBranch, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,6 +19,7 @@ import {
   step4Schema,
 } from "@/lib/validators/project";
 import type { Project } from "@/types/project";
+import type { GitHubRepo } from "@/types/github";
 import { cn } from "@/lib/utils";
 
 type Step = 1 | 2 | 3 | 4;
@@ -91,7 +92,13 @@ export function ProjectForm({ mode, initialData }: ProjectFormProps) {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState<Step>(1);
   const [submitting, setSubmitting] = useState(false);
+  const [enriching, setEnriching] = useState(false);
   const [errors, setErrors] = useState<StepErrors>({});
+
+  // GitHub repo state — loaded when user reaches Step 2
+  const [repos, setRepos] = useState<GitHubRepo[]>([]);
+  const [loadingRepos, setLoadingRepos] = useState(false);
+  const [reposFetched, setReposFetched] = useState(false);
 
   const [formData, setFormData] = useState<FormData>({
     name: initialData?.name ?? "",
@@ -115,6 +122,24 @@ export function ProjectForm({ mode, initialData }: ProjectFormProps) {
     },
     []
   );
+
+  // Fetch repos when user reaches Step 2 (once)
+  useEffect(() => {
+    if (currentStep !== 2 || reposFetched) return;
+    setLoadingRepos(true);
+    fetch("/api/github/repos")
+      .then((r) => r.json())
+      .then((json: { data?: GitHubRepo[]; error?: string }) => {
+        if (json.data) setRepos(json.data);
+      })
+      .catch(() => {
+        // Non-fatal — user can still enter URL manually
+      })
+      .finally(() => {
+        setLoadingRepos(false);
+        setReposFetched(true);
+      });
+  }, [currentStep, reposFetched]);
 
   const toggleArrayItem = useCallback(
     (key: "build_tools" | "category_tags", item: string) => {
@@ -223,11 +248,26 @@ export function ProjectForm({ mode, initialData }: ProjectFormProps) {
         body: JSON.stringify(payload),
       });
 
-      const json = await res.json();
+      const json = (await res.json()) as { data?: { id: string }; error?: string };
 
       if (!res.ok) {
         toast.error(json.error ?? "Something went wrong");
         return;
+      }
+
+      const projectId = json.data?.id;
+
+      // Trigger GitHub enrichment in the background if a repo is linked
+      if (projectId && formData.github_repo_url) {
+        setSubmitting(false);
+        setEnriching(true);
+        try {
+          await fetch(`/api/projects/${projectId}/enrich`, { method: "POST" });
+        } catch (enrichErr) {
+          console.error("[ProjectForm] Enrichment failed (non-fatal):", enrichErr);
+        } finally {
+          setEnriching(false);
+        }
       }
 
       toast.success(
@@ -239,6 +279,7 @@ export function ProjectForm({ mode, initialData }: ProjectFormProps) {
       toast.error("Network error. Please try again.");
     } finally {
       setSubmitting(false);
+      setEnriching(false);
     }
   }
 
@@ -306,6 +347,8 @@ export function ProjectForm({ mode, initialData }: ProjectFormProps) {
             errors={errors}
             set={set}
             toggleArrayItem={toggleArrayItem}
+            repos={repos}
+            loadingRepos={loadingRepos}
           />
         )}
         {currentStep === 3 && (
@@ -339,11 +382,13 @@ export function ProjectForm({ mode, initialData }: ProjectFormProps) {
         ) : (
           <Button
             onClick={handleSubmit}
-            disabled={submitting}
+            disabled={submitting || enriching}
             className="bg-teal hover:bg-teal/90 text-white gap-2"
           >
-            {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-            {submitting
+            {(submitting || enriching) && <Loader2 className="h-4 w-4 animate-spin" />}
+            {enriching
+              ? "Fetching GitHub data…"
+              : submitting
               ? "Saving…"
               : mode === "create"
               ? "Create Project"
@@ -365,6 +410,8 @@ interface StepProps {
     key: "build_tools" | "category_tags",
     item: string
   ) => void;
+  repos?: GitHubRepo[];
+  loadingRepos?: boolean;
 }
 
 function Step1({ formData, errors, set, toggleArrayItem }: StepProps) {
@@ -485,7 +532,198 @@ function Step1({ formData, errors, set, toggleArrayItem }: StepProps) {
   );
 }
 
-function Step2({ formData, errors, set, toggleArrayItem }: StepProps) {
+function RepoCombobox({
+  repos,
+  loading,
+  value,
+  onChange,
+}: {
+  repos: GitHubRepo[];
+  loading: boolean;
+  value: string;
+  onChange: (url: string) => void;
+}) {
+  const [search, setSearch] = useState("");
+  const [open, setOpen] = useState(false);
+  const [manualMode, setManualMode] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Find selected repo from value URL
+  const selectedRepo = repos.find((r) => r.html_url === value) ?? null;
+
+  const filtered = repos.filter((r) => {
+    const q = search.toLowerCase();
+    return (
+      r.name.toLowerCase().includes(q) ||
+      r.full_name.toLowerCase().includes(q) ||
+      (r.description ?? "").toLowerCase().includes(q)
+    );
+  });
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  if (manualMode) {
+    return (
+      <div className="space-y-1.5">
+        <Input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="https://github.com/you/repo"
+          type="url"
+          className="bg-navy/40 border-gitpm-border/40 text-white placeholder:text-white/20 h-9 font-mono"
+        />
+        <button
+          type="button"
+          onClick={() => setManualMode(false)}
+          className="text-xs text-purple hover:text-purple/80 transition-colors"
+        >
+          ← Back to repo picker
+        </button>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center gap-2 h-9 px-3 rounded-lg border border-gitpm-border/40 bg-navy/40">
+        <Loader2 className="h-3.5 w-3.5 animate-spin text-white/40" />
+        <span className="text-sm text-white/40">Loading your repositories…</span>
+      </div>
+    );
+  }
+
+  if (repos.length === 0) {
+    return (
+      <div className="space-y-1.5">
+        <div className="flex items-center gap-2 h-9 px-3 rounded-lg border border-gitpm-border/30 bg-navy/20">
+          <span className="text-sm text-white/30">No repositories found</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => setManualMode(true)}
+          className="text-xs text-purple hover:text-purple/80 transition-colors"
+        >
+          Enter URL manually →
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2" ref={containerRef}>
+      {/* Selected repo preview */}
+      {selectedRepo && !open && (
+        <div className="flex items-start justify-between gap-3 rounded-lg border border-teal/30 bg-teal/5 px-3 py-2.5">
+          <div className="min-w-0">
+            <p className="text-sm font-mono text-white truncate">{selectedRepo.full_name}</p>
+            {selectedRepo.description && (
+              <p className="text-xs text-white/40 mt-0.5 line-clamp-1">{selectedRepo.description}</p>
+            )}
+            <div className="flex items-center gap-3 mt-1.5">
+              {selectedRepo.language && (
+                <span className="text-xs font-mono text-teal/80">{selectedRepo.language}</span>
+              )}
+              <span className="flex items-center gap-1 text-xs text-white/30">
+                <Star className="h-3 w-3" />
+                {selectedRepo.stargazers_count}
+              </span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              onChange("");
+              setSearch("");
+              setOpen(true);
+            }}
+            className="shrink-0 mt-0.5 text-white/30 hover:text-white/60 transition-colors"
+            aria-label="Clear selection"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* Search input */}
+      {(!selectedRepo || open) && (
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/30 pointer-events-none" />
+          <Input
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setOpen(true);
+            }}
+            onFocus={() => setOpen(true)}
+            placeholder="Search your repositories…"
+            className="bg-navy/40 border-gitpm-border/40 text-white placeholder:text-white/20 h-9 pl-9 font-mono text-sm"
+          />
+        </div>
+      )}
+
+      {/* Dropdown list */}
+      {open && (
+        <div className="relative z-10">
+          <div className="absolute top-0 left-0 right-0 rounded-lg border border-gitpm-border/40 bg-[#0f1923] shadow-xl max-h-56 overflow-y-auto">
+            {filtered.length === 0 ? (
+              <div className="px-3 py-4 text-sm text-white/30 text-center">
+                No repos match &ldquo;{search}&rdquo;
+              </div>
+            ) : (
+              filtered.map((r) => (
+                <button
+                  key={r.id}
+                  type="button"
+                  onClick={() => {
+                    onChange(r.html_url);
+                    setSearch("");
+                    setOpen(false);
+                  }}
+                  className="w-full flex items-center justify-between gap-3 px-3 py-2.5 text-left hover:bg-white/5 transition-colors border-b border-gitpm-border/20 last:border-0"
+                >
+                  <div className="min-w-0">
+                    <p className="text-sm font-mono text-white truncate">{r.full_name}</p>
+                    {r.description && (
+                      <p className="text-xs text-white/35 mt-0.5 line-clamp-1">{r.description}</p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2.5 shrink-0">
+                    {r.language && (
+                      <span className="text-xs font-mono text-white/40">{r.language}</span>
+                    )}
+                    <span className="flex items-center gap-1 text-xs text-white/25">
+                      <Star className="h-3 w-3" />
+                      {r.stargazers_count}
+                    </span>
+                  </div>
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
+      <button
+        type="button"
+        onClick={() => setManualMode(true)}
+        className="text-xs text-white/30 hover:text-white/50 transition-colors"
+      >
+        Don&apos;t see your repo? Enter URL manually →
+      </button>
+    </div>
+  );
+}
+
+function Step2({ formData, errors, set, toggleArrayItem, repos = [], loadingRepos = false }: StepProps) {
   return (
     <>
       <div className="space-y-2">
@@ -552,18 +790,25 @@ function Step2({ formData, errors, set, toggleArrayItem }: StepProps) {
 
       <div className="space-y-1.5">
         <Label className="text-white/70 text-xs font-mono uppercase tracking-wider">
-          GitHub Repo URL
+          GitHub Repository
           <span className="text-white/25 ml-1 normal-case font-sans tracking-normal">
-            (optional — auto-enriched in Ticket 6)
+            (optional)
           </span>
         </Label>
-        <Input
+        <RepoCombobox
+          repos={repos}
+          loading={loadingRepos}
           value={formData.github_repo_url}
-          onChange={(e) => set("github_repo_url", e.target.value)}
-          placeholder="https://github.com/you/repo"
-          type="url"
-          className="bg-navy/40 border-gitpm-border/40 text-white placeholder:text-white/20 h-9 font-mono"
+          onChange={(url) => set("github_repo_url", url)}
         />
+        {formData.github_repo_url && (
+          <div className="flex items-center gap-1.5 pt-0.5">
+            <GitBranch className="h-3 w-3 text-teal/60" />
+            <p className="text-xs text-white/35">
+              Commit count, tech stack, and collaborator info will be fetched when you save.
+            </p>
+          </div>
+        )}
       </div>
     </>
   );

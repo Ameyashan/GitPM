@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ProjectForm } from "@/components/dashboard/ProjectForm";
+import { RefreshGitHubButton } from "@/components/dashboard/RefreshGitHubButton";
 import type { Project } from "@/types/project";
 
 export const metadata: Metadata = { title: "Edit Project — GitPM" };
@@ -54,7 +55,12 @@ export default async function EditProjectPage({ params }: Props) {
         <h1 className="text-2xl font-display font-bold text-white">
           {project.name}
         </h1>
-        <p className="text-sm text-white/40 mt-1 font-mono">/{project.slug}</p>
+        <div className="flex items-center gap-4 mt-1">
+          <p className="text-sm text-white/40 font-mono">/{project.slug}</p>
+          {project.github_repo_url && (
+            <RefreshGitHubButton projectId={project.id} />
+          )}
+        </div>
       </div>
 
       <ProjectForm mode="edit" initialData={project} />
