@@ -3,7 +3,8 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ChevronRight, ChevronLeft, Check, Loader2, Star, GitBranch, Search, X } from "lucide-react";
+import { ChevronRight, ChevronLeft, Check, Loader2, Star, GitBranch, Search, X, Sparkles, ImagePlus, Trash2 } from "lucide-react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,7 +19,7 @@ import {
   step3Schema,
   step4Schema,
 } from "@/lib/validators/project";
-import type { Project } from "@/types/project";
+import type { Project, Screenshot } from "@/types/project";
 import type { GitHubRepo } from "@/types/github";
 import { cn } from "@/lib/utils";
 
@@ -100,6 +101,18 @@ export function ProjectForm({ mode, initialData }: ProjectFormProps) {
   const [loadingRepos, setLoadingRepos] = useState(false);
   const [reposFetched, setReposFetched] = useState(false);
 
+  // Lovable detection state — fetched alongside GitHub repos on Step 2
+  const [lovableRepos, setLovableRepos] = useState<GitHubRepo[]>([]);
+
+  // Screenshot state for Step 4
+  // In create mode: Files are staged and uploaded after project creation
+  // In edit mode: Screenshots are uploaded immediately and stored by reference
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [existingScreenshots, setExistingScreenshots] = useState<Screenshot[]>(
+    initialData?.id ? [] : []
+  );
+  const [uploadingScreenshots, setUploadingScreenshots] = useState(false);
+
   const [formData, setFormData] = useState<FormData>({
     name: initialData?.name ?? "",
     slug: initialData?.slug ?? "",
@@ -123,14 +136,24 @@ export function ProjectForm({ mode, initialData }: ProjectFormProps) {
     []
   );
 
-  // Fetch repos when user reaches Step 2 (once)
+  // Fetch repos and Lovable detections when user reaches Step 2 (once)
   useEffect(() => {
     if (currentStep !== 2 || reposFetched) return;
     setLoadingRepos(true);
-    fetch("/api/github/repos")
-      .then((r) => r.json())
-      .then((json: { data?: GitHubRepo[]; error?: string }) => {
-        if (json.data) setRepos(json.data);
+
+    Promise.allSettled([
+      fetch("/api/github/repos").then((r) => r.json()),
+      fetch("/api/github/detect-lovable").then((r) => r.json()),
+    ])
+      .then(([reposResult, lovableResult]) => {
+        if (reposResult.status === "fulfilled") {
+          const json = reposResult.value as { data?: GitHubRepo[] };
+          if (json.data) setRepos(json.data);
+        }
+        if (lovableResult.status === "fulfilled") {
+          const json = lovableResult.value as { data?: GitHubRepo[] };
+          if (json.data) setLovableRepos(json.data);
+        }
       })
       .catch(() => {
         // Non-fatal — user can still enter URL manually
@@ -140,6 +163,19 @@ export function ProjectForm({ mode, initialData }: ProjectFormProps) {
         setReposFetched(true);
       });
   }, [currentStep, reposFetched]);
+
+  // Fetch existing screenshots when editing
+  useEffect(() => {
+    if (mode !== "edit" || !initialData?.id) return;
+    fetch(`/api/projects/${initialData.id}/screenshots`)
+      .then((r) => r.json())
+      .then((json: { data?: Screenshot[] }) => {
+        if (json.data) setExistingScreenshots(json.data);
+      })
+      .catch(() => {
+        // Non-fatal
+      });
+  }, [mode, initialData?.id]);
 
   const toggleArrayItem = useCallback(
     (key: "build_tools" | "category_tags", item: string) => {
@@ -257,6 +293,26 @@ export function ProjectForm({ mode, initialData }: ProjectFormProps) {
 
       const projectId = json.data?.id;
 
+      // Upload staged screenshots (create mode only — edit mode uploads immediately)
+      if (projectId && pendingFiles.length > 0) {
+        setUploadingScreenshots(true);
+        for (const file of pendingFiles) {
+          const fd = new FormData();
+          fd.append("file", file);
+          fd.append("project_id", projectId);
+          try {
+            const uploadRes = await fetch("/api/upload", { method: "POST", body: fd });
+            if (!uploadRes.ok) {
+              const uploadJson = (await uploadRes.json()) as { error?: string };
+              console.warn("[ProjectForm] Screenshot upload non-fatal error:", uploadJson.error);
+            }
+          } catch (uploadErr) {
+            console.error("[ProjectForm] Screenshot upload failed (non-fatal):", uploadErr);
+          }
+        }
+        setUploadingScreenshots(false);
+      }
+
       // Trigger GitHub enrichment in the background if a repo is linked
       if (projectId && formData.github_repo_url) {
         setSubmitting(false);
@@ -349,13 +405,24 @@ export function ProjectForm({ mode, initialData }: ProjectFormProps) {
             toggleArrayItem={toggleArrayItem}
             repos={repos}
             loadingRepos={loadingRepos}
+            lovableRepos={lovableRepos}
           />
         )}
         {currentStep === 3 && (
           <Step3 formData={formData} errors={errors} set={set} />
         )}
         {currentStep === 4 && (
-          <Step4 formData={formData} errors={errors} set={set} />
+          <Step4
+            formData={formData}
+            errors={errors}
+            set={set}
+            mode={mode}
+            projectId={initialData?.id}
+            pendingFiles={pendingFiles}
+            setPendingFiles={setPendingFiles}
+            existingScreenshots={existingScreenshots}
+            setExistingScreenshots={setExistingScreenshots}
+          />
         )}
       </div>
 
@@ -382,11 +449,15 @@ export function ProjectForm({ mode, initialData }: ProjectFormProps) {
         ) : (
           <Button
             onClick={handleSubmit}
-            disabled={submitting || enriching}
+            disabled={submitting || enriching || uploadingScreenshots}
             className="bg-teal hover:bg-teal/90 text-white gap-2"
           >
-            {(submitting || enriching) && <Loader2 className="h-4 w-4 animate-spin" />}
-            {enriching
+            {(submitting || enriching || uploadingScreenshots) && (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            )}
+            {uploadingScreenshots
+              ? "Uploading screenshots…"
+              : enriching
               ? "Fetching GitHub data…"
               : submitting
               ? "Saving…"
@@ -412,6 +483,14 @@ interface StepProps {
   ) => void;
   repos?: GitHubRepo[];
   loadingRepos?: boolean;
+  lovableRepos?: GitHubRepo[];
+  // Step 4
+  mode?: "create" | "edit";
+  projectId?: string;
+  pendingFiles?: File[];
+  setPendingFiles?: React.Dispatch<React.SetStateAction<File[]>>;
+  existingScreenshots?: Screenshot[];
+  setExistingScreenshots?: React.Dispatch<React.SetStateAction<Screenshot[]>>;
 }
 
 function Step1({ formData, errors, set, toggleArrayItem }: StepProps) {
@@ -723,9 +802,56 @@ function RepoCombobox({
   );
 }
 
-function Step2({ formData, errors, set, toggleArrayItem, repos = [], loadingRepos = false }: StepProps) {
+function Step2({ formData, errors, set, toggleArrayItem, repos = [], loadingRepos = false, lovableRepos = [] }: StepProps) {
   return (
     <>
+      {/* Lovable detection callout */}
+      {lovableRepos.length > 0 && (
+        <div className="rounded-lg border border-purple/30 bg-purple/5 p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-purple shrink-0" />
+            <p className="text-sm font-medium text-white">
+              Detected {lovableRepos.length} Lovable project{lovableRepos.length > 1 ? "s" : ""}
+            </p>
+          </div>
+          <p className="text-xs text-white/40">
+            These repos were built with Lovable. Select one to auto-fill build tool, hosting, and repo link.
+          </p>
+          <div className="flex flex-col gap-2">
+            {lovableRepos.map((repo) => {
+              const isSelected = formData.github_repo_url === repo.html_url;
+              return (
+                <button
+                  key={repo.id}
+                  type="button"
+                  onClick={() => {
+                    set("github_repo_url", repo.html_url);
+                    if (!formData.build_tools.includes("lovable")) {
+                      toggleArrayItem?.("build_tools", "lovable");
+                    }
+                    set("hosting_platform", "lovable");
+                  }}
+                  className={cn(
+                    "flex items-start justify-between gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors",
+                    isSelected
+                      ? "border-purple/60 bg-purple/10"
+                      : "border-gitpm-border/30 bg-transparent hover:border-purple/30 hover:bg-purple/5"
+                  )}
+                >
+                  <div className="min-w-0">
+                    <p className="text-sm font-mono text-white truncate">{repo.full_name}</p>
+                    {repo.homepage && (
+                      <p className="text-xs font-mono text-purple/70 mt-0.5 truncate">{repo.homepage}</p>
+                    )}
+                  </div>
+                  {isSelected && <Check className="h-4 w-4 text-purple shrink-0 mt-0.5" />}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <div className="space-y-2">
         <Label className="text-white/70 text-xs font-mono uppercase tracking-wider">
           Build Tools <span className="text-red-400">*</span>
@@ -889,13 +1015,86 @@ function Step3({ formData, errors, set }: StepProps) {
   );
 }
 
-function Step4({ formData, errors, set }: StepProps) {
+function Step4({
+  formData,
+  errors,
+  set,
+  mode = "create",
+  projectId,
+  pendingFiles = [],
+  setPendingFiles,
+  existingScreenshots = [],
+  setExistingScreenshots,
+}: StepProps) {
   const videoPreviewUrl = formData.demo_video_url || null;
   const isValidVideoUrl =
     videoPreviewUrl &&
     (videoPreviewUrl.includes("loom.com") ||
       videoPreviewUrl.includes("youtube.com") ||
       videoPreviewUrl.includes("youtu.be"));
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const totalCount = existingScreenshots.length + pendingFiles.length;
+  const canAddMore = totalCount < 6;
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length) return;
+
+    const allowed = files.slice(0, 6 - totalCount);
+
+    if (mode === "edit" && projectId) {
+      // Edit mode: upload immediately
+      for (let i = 0; i < allowed.length; i++) {
+        const file = allowed[i];
+        setUploadingIndex(i);
+        const fd = new FormData();
+        fd.append("file", file);
+        fd.append("project_id", projectId);
+        try {
+          const res = await fetch("/api/upload", { method: "POST", body: fd });
+          const json = (await res.json()) as { data?: { id: string; image_url: string; display_order: number; project_id: string; created_at: string }; error?: string };
+          if (res.ok && json.data) {
+            setExistingScreenshots?.((prev) => [...prev, json.data!]);
+          } else {
+            toast.error(json.error ?? "Upload failed");
+          }
+        } catch {
+          toast.error("Upload failed. Please try again.");
+        }
+      }
+      setUploadingIndex(null);
+    } else {
+      // Create mode: stage for later
+      setPendingFiles?.((prev) => [...prev, ...allowed]);
+    }
+
+    // Reset file input so the same file can be re-selected
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  async function handleDeleteExisting(screenshotId: string) {
+    setDeletingId(screenshotId);
+    try {
+      const res = await fetch(`/api/screenshots/${screenshotId}`, { method: "DELETE" });
+      if (res.ok) {
+        setExistingScreenshots?.((prev) => prev.filter((s) => s.id !== screenshotId));
+      } else {
+        toast.error("Failed to delete screenshot");
+      }
+    } catch {
+      toast.error("Failed to delete screenshot");
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
+  function handleRemovePending(index: number) {
+    setPendingFiles?.((prev) => prev.filter((_, i) => i !== index));
+  }
 
   return (
     <>
@@ -922,12 +1121,104 @@ function Step4({ formData, errors, set }: StepProps) {
         )}
       </div>
 
-      <div className="rounded-lg border border-dashed border-gitpm-border/30 bg-navy/20 p-5 text-center space-y-2">
-        <p className="text-sm font-medium text-white/50">Screenshot Upload</p>
-        <p className="text-xs text-white/30 max-w-xs mx-auto">
-          Screenshot uploads (up to 6 images) are enabled in Ticket 8 when the
-          storage API route is wired up. For now, use a demo video URL above.
-        </p>
+      {/* Screenshot upload */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <Label className="text-white/70 text-xs font-mono uppercase tracking-wider">
+            Screenshots
+            <span className="text-white/25 ml-1 normal-case font-sans tracking-normal">
+              (up to 6)
+            </span>
+          </Label>
+          <span className="text-xs font-mono text-white/30">{totalCount}/6</span>
+        </div>
+
+        {/* Preview grid */}
+        {(existingScreenshots.length > 0 || pendingFiles.length > 0) && (
+          <div className="grid grid-cols-3 gap-2">
+            {existingScreenshots.map((screenshot) => (
+              <div key={screenshot.id} className="relative aspect-video rounded-lg overflow-hidden bg-navy/40 group">
+                <Image
+                  src={screenshot.image_url}
+                  alt="Screenshot"
+                  fill
+                  className="object-cover"
+                  sizes="200px"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleDeleteExisting(screenshot.id)}
+                  disabled={deletingId === screenshot.id}
+                  aria-label="Delete screenshot"
+                  className="absolute inset-0 flex items-center justify-center bg-navy/60 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  {deletingId === screenshot.id ? (
+                    <Loader2 className="h-5 w-5 text-white animate-spin" />
+                  ) : (
+                    <Trash2 className="h-5 w-5 text-red-400" />
+                  )}
+                </button>
+              </div>
+            ))}
+            {pendingFiles.map((file, i) => (
+              <div key={i} className="relative aspect-video rounded-lg overflow-hidden bg-navy/40 group">
+                <Image
+                  src={URL.createObjectURL(file)}
+                  alt={`Pending screenshot ${i + 1}`}
+                  fill
+                  className="object-cover"
+                  sizes="200px"
+                />
+                {uploadingIndex === i ? (
+                  <div className="absolute inset-0 flex items-center justify-center bg-navy/60">
+                    <Loader2 className="h-5 w-5 text-white animate-spin" />
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleRemovePending(i)}
+                    aria-label="Remove screenshot"
+                    className="absolute inset-0 flex items-center justify-center bg-navy/60 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="h-5 w-5 text-white" />
+                  </button>
+                )}
+                {mode === "create" && (
+                  <div className="absolute bottom-1 left-1 right-1 text-center">
+                    <span className="text-[10px] text-white/50 bg-navy/70 rounded px-1.5 py-0.5">
+                      Uploads on save
+                    </span>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Upload button */}
+        {canAddMore && (
+          <>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              multiple
+              className="sr-only"
+              onChange={handleFileChange}
+              id="screenshot-upload"
+            />
+            <label
+              htmlFor="screenshot-upload"
+              className="flex cursor-pointer flex-col items-center gap-2 rounded-lg border border-dashed border-gitpm-border/30 bg-navy/20 px-4 py-5 transition-colors hover:border-gitpm-border/50 hover:bg-navy/30"
+            >
+              <ImagePlus className="h-5 w-5 text-white/30" />
+              <span className="text-sm text-white/40">
+                Click to add screenshot{canAddMore && totalCount === 0 ? "s" : ""}
+              </span>
+              <span className="text-xs text-white/25">JPEG, PNG, WebP, GIF — max 5 MB each</span>
+            </label>
+          </>
+        )}
       </div>
     </>
   );

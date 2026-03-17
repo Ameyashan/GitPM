@@ -9,7 +9,7 @@ import { ProjectStats } from "@/components/project/ProjectStats";
 import { ProductContext } from "@/components/project/ProductContext";
 import { VerifiedBadge } from "@/components/project/VerifiedBadge";
 import { Separator } from "@/components/ui/separator";
-import type { Project, User, VerificationMethod } from "@/types/project";
+import type { Project, User, Screenshot, VerificationMethod } from "@/types/project";
 
 interface Props {
   params: Promise<{ username: string; "project-slug": string }>;
@@ -95,6 +95,15 @@ export default async function ProjectDetailPage({ params }: Props) {
     notFound();
   }
 
+  // Fetch screenshots ordered by display_order
+  const { data: screenshotRows } = await admin
+    .from("screenshots")
+    .select("id, project_id, image_url, display_order, created_at")
+    .eq("project_id", project.id)
+    .order("display_order", { ascending: true });
+
+  const screenshots = (screenshotRows ?? []) as Screenshot[];
+
   const hasStats = project.commit_count !== null || project.first_commit_at !== null;
 
   return (
@@ -111,7 +120,7 @@ export default async function ProjectDetailPage({ params }: Props) {
 
         {/* Hero */}
         <div className="mb-8">
-          <ProjectHero project={project} />
+          <ProjectHero project={project} screenshots={screenshots} />
         </div>
 
         {/* Title + verified */}

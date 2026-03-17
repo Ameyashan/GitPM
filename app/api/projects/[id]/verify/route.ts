@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { verifyProjectsAgainstDeployments } from "@/lib/vercel";
+import { getUserRepos } from "@/lib/github";
+import { matchesLovableDeployment } from "@/lib/lovable";
 import { decrypt } from "@/lib/crypto";
 
 interface Context {
@@ -14,20 +16,22 @@ export async function POST(_request: Request, { params }: Context) {
     const supabase = await createClient();
 
     const {
-      data: { user },
-    } = await supabase.auth.getUser();
+      data: { session },
+    } = await supabase.auth.getSession();
 
-    if (!user) {
+    if (!session) {
       return NextResponse.json(
         { error: "Unauthorized", code: "unauthorized" },
         { status: 401 }
       );
     }
 
+    const user = session.user;
+
     // Fetch the project and verify ownership
     const { data: project, error: projectError } = await supabase
       .from("projects")
-      .select("id, user_id, live_url")
+      .select("id, user_id, live_url, github_repo_url")
       .eq("id", id)
       .eq("user_id", user.id)
       .maybeSingle();
@@ -54,7 +58,56 @@ export async function POST(_request: Request, { params }: Context) {
       );
     }
 
-    // Look up user's Vercel connection
+    // --- Lovable verification path ---
+    // If the live URL is a *.lovable.app domain, try to verify via GitHub repos
+    // (no separate OAuth required — uses the token from sign-up)
+    if (project.live_url.includes(".lovable.app")) {
+      const githubToken = session.provider_token;
+
+      if (!githubToken) {
+        return NextResponse.json(
+          { error: "GitHub token unavailable — please sign in again", code: "no_github_token" },
+          { status: 400 }
+        );
+      }
+
+      const repos = await getUserRepos(githubToken);
+      const matchingRepo = repos.find((repo) =>
+        matchesLovableDeployment(repo, project.live_url!)
+      );
+
+      if (!matchingRepo) {
+        return NextResponse.json({
+          data: { verified: false },
+          message: "No Lovable GitHub repo found that matches this project's URL",
+        });
+      }
+
+      const { data: updated, error: updateError } = await supabase
+        .from("projects")
+        .update({
+          is_verified: true,
+          verification_method: "lovable_repo",
+          hosting_platform: "lovable",
+          github_repo_url: project.github_repo_url ?? matchingRepo.html_url,
+        })
+        .eq("id", project.id)
+        .eq("user_id", user.id)
+        .select()
+        .single();
+
+      if (updateError) {
+        console.error(`[POST /api/projects/${id}/verify] Lovable update error:`, updateError.message);
+        return NextResponse.json(
+          { error: "Failed to update verification status", code: "db_error" },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json({ data: { verified: true, method: "lovable_repo", project: updated } });
+    }
+
+    // --- Vercel verification path ---
     const { data: account, error: accountError } = await supabase
       .from("connected_accounts")
       .select("access_token")
@@ -81,12 +134,10 @@ export async function POST(_request: Request, { params }: Context) {
     const matches = await verifyProjectsAgainstDeployments(token, [project]);
 
     if (!matches.has(project.id)) {
-      return NextResponse.json(
-        {
-          data: { verified: false },
-          message: "No matching Vercel deployment found for this project's URL",
-        }
-      );
+      return NextResponse.json({
+        data: { verified: false },
+        message: "No matching Vercel deployment found for this project's URL",
+      });
     }
 
     const deployData = matches.get(project.id)!;
@@ -112,7 +163,7 @@ export async function POST(_request: Request, { params }: Context) {
       );
     }
 
-    return NextResponse.json({ data: { verified: true, project: updated } });
+    return NextResponse.json({ data: { verified: true, method: "vercel_oauth", project: updated } });
   } catch (err) {
     console.error("[POST /api/projects/[id]/verify] Unexpected error:", err);
     return NextResponse.json(
