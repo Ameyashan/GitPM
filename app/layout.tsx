@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Inter_Tight } from "next/font/google";
 import { Toaster } from "@/components/shared/Toaster";
+import { PostHogProvider } from "@/components/shared/PostHogProvider";
 import "./globals.css";
 
 const geistSans = localFont({
@@ -46,8 +47,10 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} ${interTight.variable} dark`}
     >
       <body className="bg-navy text-foreground antialiased font-sans">
-        {children}
-        <Toaster />
+        <PostHogProvider>
+          {children}
+          <Toaster />
+        </PostHogProvider>
       </body>
     </html>
   );
