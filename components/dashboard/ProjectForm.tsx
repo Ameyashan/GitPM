@@ -296,6 +296,7 @@ export function ProjectForm({ mode, initialData }: ProjectFormProps) {
       // Upload staged screenshots (create mode only — edit mode uploads immediately)
       if (projectId && pendingFiles.length > 0) {
         setUploadingScreenshots(true);
+        let anyUploadFailed = false;
         for (const file of pendingFiles) {
           const fd = new FormData();
           fd.append("file", file);
@@ -304,13 +305,18 @@ export function ProjectForm({ mode, initialData }: ProjectFormProps) {
             const uploadRes = await fetch("/api/upload", { method: "POST", body: fd });
             if (!uploadRes.ok) {
               const uploadJson = (await uploadRes.json()) as { error?: string };
-              console.warn("[ProjectForm] Screenshot upload non-fatal error:", uploadJson.error);
+              console.warn("[ProjectForm] Screenshot upload error:", uploadJson.error);
+              anyUploadFailed = true;
             }
           } catch (uploadErr) {
-            console.error("[ProjectForm] Screenshot upload failed (non-fatal):", uploadErr);
+            console.error("[ProjectForm] Screenshot upload failed:", uploadErr);
+            anyUploadFailed = true;
           }
         }
         setUploadingScreenshots(false);
+        if (anyUploadFailed) {
+          toast.error("Some screenshots failed to upload. Edit the project to try again.");
+        }
       }
 
       // Trigger GitHub enrichment in the background if a repo is linked

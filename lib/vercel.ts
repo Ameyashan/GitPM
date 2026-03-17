@@ -8,7 +8,7 @@ function vercelHeaders(token: string): HeadersInit {
 }
 
 export async function getVercelProjects(token: string): Promise<VercelProject[]> {
-  const res = await fetch(`${VERCEL_API}/v9/projects`, {
+  const res = await fetch(`${VERCEL_API}/v9/projects?limit=100`, {
     headers: vercelHeaders(token),
   });
   if (!res.ok) throw new Error(`Vercel API error: ${res.status}`);
@@ -25,13 +25,18 @@ export async function getVercelDeployments(token: string): Promise<VercelDeploym
   return json.deployments;
 }
 
-export async function getOAuthAuthorizeUrl(state: string): Promise<string> {
-  const params = new URLSearchParams({
-    client_id: process.env.VERCEL_CLIENT_ID!,
-    redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/vercel/callback`,
-    state,
-  });
-  return `https://vercel.com/oauth/authorize?${params.toString()}`;
+/**
+ * Returns the Vercel integration install URL.
+ *
+ * Vercel marketplace integrations (oac_ client IDs) do not support the
+ * /oauth/authorize endpoint until the integration is published and approved.
+ * For draft integrations, the install URL must be used instead. Vercel
+ * passes `code` and `state` back to your Configuration URL identically.
+ */
+export function getOAuthAuthorizeUrl(state: string): string {
+  const slug = process.env.VERCEL_INTEGRATION_SLUG!;
+  const params = new URLSearchParams({ state });
+  return `https://vercel.com/integrations/${slug}/new?${params.toString()}`;
 }
 
 /**

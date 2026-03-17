@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { getUserRepos } from "@/lib/github";
+import { getUserRepos, getGitHubToken } from "@/lib/github";
 
 export async function GET() {
   try {
@@ -17,11 +17,7 @@ export async function GET() {
       );
     }
 
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    const token = session?.provider_token;
+    const token = await getGitHubToken(supabase);
 
     if (!token) {
       return NextResponse.json(

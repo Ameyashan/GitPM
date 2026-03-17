@@ -16,6 +16,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { RefreshGitHubButton } from "@/components/dashboard/RefreshGitHubButton";
 import {
   Dialog,
   DialogContent,
@@ -35,15 +36,18 @@ interface ProjectRow {
   is_published: boolean;
   thumbnail_url: string | null;
   live_url: string;
+  github_repo_url: string | null;
   display_order: number;
 }
 
 interface DashboardProjectActionsProps {
   projects: ProjectRow[];
+  username: string;
 }
 
 export function DashboardProjectActions({
   projects: initialProjects,
+  username,
 }: DashboardProjectActionsProps) {
   const router = useRouter();
   const [projects, setProjects] = useState(initialProjects);
@@ -167,10 +171,14 @@ export function DashboardProjectActions({
           return (
             <li
               key={project.id}
-              className="flex items-center justify-between px-4 py-3 gap-4 hover:bg-white/[0.02] transition-colors"
+              onClick={() => router.push(`/${username}/${project.slug}`)}
+              className="flex items-center justify-between px-4 py-3 gap-4 hover:bg-white/[0.04] transition-colors cursor-pointer"
             >
               {/* Reorder buttons */}
-              <div className="flex flex-col gap-0.5 shrink-0">
+              <div
+                className="flex flex-col gap-0.5 shrink-0"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <button
                   type="button"
                   onClick={() => handleReorder(project.id, "up")}
@@ -213,11 +221,19 @@ export function DashboardProjectActions({
                   <p className="text-xs text-white/30 font-mono truncate">
                     /{project.slug}
                   </p>
+                  {project.github_repo_url && (
+                    <div className="mt-1" onClick={(e) => e.stopPropagation()}>
+                      <RefreshGitHubButton projectId={project.id} />
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* Status + actions */}
-              <div className="flex items-center gap-1 shrink-0">
+              <div
+                className="flex items-center gap-1 shrink-0"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <span
                   className={cn(
                     "text-[10px] font-mono px-2 py-0.5 rounded-full mr-1",

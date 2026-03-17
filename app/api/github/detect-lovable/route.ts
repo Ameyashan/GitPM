@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { getUserRepos } from "@/lib/github";
+import { getUserRepos, getGitHubToken } from "@/lib/github";
 import { filterLovableRepos } from "@/lib/lovable";
 
 export async function GET() {
@@ -8,17 +8,18 @@ export async function GET() {
     const supabase = await createClient();
 
     const {
-      data: { session },
-    } = await supabase.auth.getSession();
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    if (!session) {
+    if (!user) {
       return NextResponse.json(
         { error: "Unauthorized", code: "unauthorized" },
         { status: 401 }
       );
     }
 
-    const token = session.provider_token;
+    const token = await getGitHubToken(supabase);
+
     if (!token) {
       return NextResponse.json(
         { error: "GitHub token unavailable — please sign in again", code: "no_github_token" },

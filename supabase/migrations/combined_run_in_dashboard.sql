@@ -267,3 +267,14 @@ CREATE INDEX IF NOT EXISTS idx_connected_accounts_user_provider
 
 CREATE INDEX IF NOT EXISTS idx_screenshots_project_id
   ON public.screenshots (project_id, display_order);
+
+-- ============================================================
+-- Storage bucket: screenshots
+-- NOTE: Supabase Storage buckets cannot be created via SQL.
+-- After running this migration, go to:
+--   Supabase Dashboard → Storage → New bucket
+--   Name: screenshots
+--   Public bucket: YES (checked)
+-- The upload API route (/api/upload) will also auto-create this
+-- bucket on the first upload attempt if it doesn't exist yet.
+-- ============================================================

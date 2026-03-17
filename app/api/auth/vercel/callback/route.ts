@@ -15,6 +15,11 @@ export async function GET(request: Request) {
   const code = searchParams.get("code");
   const state = searchParams.get("state");
   const errorParam = searchParams.get("error");
+  // configurationId is sent by Vercel's integration install flow — not used but logged for debugging
+  const configurationId = searchParams.get("configurationId");
+  if (configurationId) {
+    console.info("[vercel/callback] Received configurationId:", configurationId);
+  }
 
   // User denied access on Vercel
   if (errorParam) {

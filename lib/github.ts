@@ -1,7 +1,11 @@
 // GitHub API helpers
-// Uses OAuth token from Supabase Auth session (provider_token)
+// Uses OAuth token from Supabase Auth session (provider_token),
+// with fallback to the encrypted token stored in connected_accounts.
 
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { GitHubCommit, GitHubLanguages, GitHubRepo, GitHubUser } from "@/types/github";
+import type { Database } from "@/types/database";
+import { decrypt } from "@/lib/crypto";
 
 const GITHUB_API = "https://api.github.com";
 
@@ -48,6 +52,46 @@ export class GitHubAuthError extends Error {
   constructor() {
     super("GitHub token is invalid or expired");
     this.name = "GitHubAuthError";
+  }
+}
+
+/**
+ * Resolves the GitHub OAuth token for the authenticated user.
+ * Tries session.provider_token first (available right after sign-in),
+ * then falls back to the encrypted token stored in connected_accounts
+ * (persisted at every sign-in to survive Supabase session refreshes).
+ * Returns null if no token is available.
+ */
+export async function getGitHubToken(
+  supabase: SupabaseClient<Database>
+): Promise<string | null> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (session?.provider_token) {
+    return session.provider_token;
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return null;
+
+  const { data: account } = await supabase
+    .from("connected_accounts")
+    .select("access_token")
+    .eq("user_id", user.id)
+    .eq("provider", "github")
+    .maybeSingle();
+
+  if (!account?.access_token) return null;
+
+  try {
+    return decrypt(account.access_token);
+  } catch {
+    return null;
   }
 }
 

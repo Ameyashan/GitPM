@@ -11,6 +11,13 @@ export interface VercelProject {
     org: string;
   };
   latestDeployments?: VercelDeployment[];
+  targets?: {
+    production?: {
+      id?: string;
+      url?: string;
+      alias?: string[];
+    };
+  };
 }
 
 export interface VercelDeployment {

@@ -1,3 +1,7 @@
+// Always fetch fresh data — project edits (build tools, screenshots, etc.)
+// must appear immediately without waiting for a cache revalidation cycle.
+export const dynamic = "force-dynamic";
+
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";

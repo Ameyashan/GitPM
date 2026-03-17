@@ -1,3 +1,7 @@
+// Always fetch fresh data — profile and project edits must be
+// visible immediately without waiting for a cache revalidation cycle.
+export const dynamic = "force-dynamic";
+
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { createAdminClient } from "@/lib/supabase/admin";

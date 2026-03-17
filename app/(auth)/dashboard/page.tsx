@@ -2,9 +2,9 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
-import { buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { DashboardProjectActions } from "@/components/dashboard/DashboardProjectActions";
-import { PlusCircle, ExternalLink, Layers, Sparkles } from "lucide-react";
+import { PlusCircle, ExternalLink, Layers, Sparkles, Triangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Dashboard — GitPM" };
@@ -38,10 +38,17 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   const { data: projects } = await supabase
     .from("projects")
     .select(
-      "id, name, slug, is_published, thumbnail_url, live_url, display_order, created_at"
+      "id, name, slug, is_published, thumbnail_url, live_url, github_repo_url, display_order, created_at"
     )
     .eq("user_id", user.id)
     .order("display_order", { ascending: true });
+
+  const { data: vercelAccount } = await supabase
+    .from("connected_accounts")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("provider", "vercel")
+    .maybeSingle();
 
   const publishedCount = projects?.filter((p) => p.is_published).length ?? 0;
 
@@ -93,16 +100,30 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             </h1>
             <p className="text-white/40 text-sm mt-1">{profile.headline}</p>
           </div>
-          <Link
-            href="/dashboard/projects/new"
-            className={cn(
-              buttonVariants(),
-              "bg-purple hover:bg-purple/90 text-white gap-2 self-start sm:self-auto"
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            {vercelAccount && (
+              <Link
+                href="/dashboard/projects/import"
+                className={cn(
+                  buttonVariants({ variant: "outline" }),
+                  "border-gitpm-border/40 text-white/60 hover:text-white gap-2"
+                )}
+              >
+                <Triangle className="h-4 w-4" />
+                Import from Vercel
+              </Link>
             )}
-          >
-            <PlusCircle className="h-4 w-4" />
-            Add project
-          </Link>
+            <Link
+              href="/dashboard/projects/new"
+              className={cn(
+                buttonVariants(),
+                "bg-purple hover:bg-purple/90 text-white gap-2"
+              )}
+            >
+              <PlusCircle className="h-4 w-4" />
+              Add project
+            </Link>
+          </div>
         </div>
 
         {/* Stats row */}
@@ -148,19 +169,33 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
               Add your first shipped project and start building your verified
               portfolio.
             </p>
-            <Link
-              href="/dashboard/projects/new"
-              className={cn(
-                buttonVariants(),
-                "bg-purple hover:bg-purple/90 text-white gap-2"
+            <div className="flex flex-col sm:flex-row items-center gap-2">
+              {vercelAccount && (
+                <Link
+                  href="/dashboard/projects/import"
+                  className={cn(
+                    buttonVariants({ variant: "outline" }),
+                    "border-gitpm-border/40 text-white/60 hover:text-white gap-2"
+                  )}
+                >
+                  <Triangle className="h-4 w-4" />
+                  Import from Vercel
+                </Link>
               )}
-            >
-              <PlusCircle className="h-4 w-4" />
-              Add your first project
-            </Link>
+              <Link
+                href="/dashboard/projects/new"
+                className={cn(
+                  buttonVariants(),
+                  "bg-purple hover:bg-purple/90 text-white gap-2"
+                )}
+              >
+                <PlusCircle className="h-4 w-4" />
+                Add your first project
+              </Link>
+            </div>
           </div>
         ) : (
-          <DashboardProjectActions projects={projects} />
+          <DashboardProjectActions projects={projects} username={profile.username ?? ""} />
         )}
       </main>
     </div>

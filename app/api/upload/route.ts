@@ -112,6 +112,26 @@ export async function POST(request: Request) {
     const buffer = new Uint8Array(arrayBuffer);
 
     const admin = createAdminClient();
+
+    // Ensure the screenshots bucket exists and is public.
+    // Supabase storage buckets are not created by SQL migrations, so we
+    // create it on first upload if it doesn't exist yet.
+    const { data: buckets } = await admin.storage.listBuckets();
+    const bucketExists = buckets?.some((b) => b.name === "screenshots");
+    if (!bucketExists) {
+      const { error: bucketError } = await admin.storage.createBucket(
+        "screenshots",
+        { public: true }
+      );
+      if (bucketError) {
+        console.error("[POST /api/upload] Bucket creation error:", bucketError.message);
+        return NextResponse.json(
+          { error: "Storage not configured", code: "bucket_error" },
+          { status: 500 }
+        );
+      }
+    }
+
     const { error: uploadError } = await admin.storage
       .from("screenshots")
       .upload(storagePath, buffer, {
