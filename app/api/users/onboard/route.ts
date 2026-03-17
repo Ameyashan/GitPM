@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { Resend } from "resend";
 import { createClient } from "@/lib/supabase/server";
 
 const onboardSchema = z.object({
@@ -89,6 +90,61 @@ export async function POST(request: Request): Promise<NextResponse> {
         { error: "Failed to save profile", code: "DB_ERROR" },
         { status: 500 }
       );
+    }
+
+    // Fire welcome email non-blocking — never fail the request if email errors
+    if (process.env.RESEND_API_KEY && user.email) {
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      const appUrl =
+        process.env.NEXT_PUBLIC_APP_URL ?? "https://gitpm.dev";
+      const profileUrl = `${appUrl}/${username}`;
+      const addProjectUrl = `${appUrl}/dashboard/projects/new`;
+
+      resend.emails
+        .send({
+          from: "GitPM <hello@gitpm.dev>",
+          to: user.email,
+          subject: `Welcome to GitPM, ${display_name}!`,
+          html: `
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /></head>
+<body style="margin:0;padding:0;background:#0D1B2A;font-family:system-ui,sans-serif;color:#ffffff;">
+  <div style="max-width:520px;margin:0 auto;padding:48px 32px;">
+    <p style="font-size:11px;font-family:monospace;color:#0A7558;letter-spacing:0.1em;text-transform:uppercase;margin:0 0 24px;">
+      GitPM
+    </p>
+    <h1 style="font-size:28px;font-weight:700;color:#ffffff;margin:0 0 12px;line-height:1.2;">
+      Welcome, ${display_name}!
+    </h1>
+    <p style="font-size:16px;color:rgba(255,255,255,0.5);margin:0 0 32px;line-height:1.6;">
+      Your profile is live. Now add your first project to start building
+      your verified portfolio.
+    </p>
+    <div style="margin:0 0 32px;">
+      <a href="${addProjectUrl}"
+         style="display:inline-block;background:#6C5CE7;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;padding:12px 28px;border-radius:8px;">
+        Add your first project
+      </a>
+    </div>
+    <p style="font-size:13px;color:rgba(255,255,255,0.3);margin:0 0 4px;">
+      Your public portfolio:
+    </p>
+    <a href="${profileUrl}"
+       style="font-family:monospace;font-size:13px;color:#6C5CE7;text-decoration:none;">
+      ${profileUrl}
+    </a>
+    <hr style="border:none;border-top:1px solid rgba(200,204,200,0.15);margin:32px 0;" />
+    <p style="font-size:12px;color:rgba(255,255,255,0.2);margin:0;">
+      You're receiving this because you signed up for GitPM.
+    </p>
+  </div>
+</body>
+</html>`,
+        })
+        .catch((err: unknown) =>
+          console.error("Welcome email failed:", err)
+        );
     }
 
     return NextResponse.json({ data: { username } }, { status: 200 });

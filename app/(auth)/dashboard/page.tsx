@@ -4,12 +4,17 @@ import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { buttonVariants } from "@/components/ui/button";
 import { DashboardProjectActions } from "@/components/dashboard/DashboardProjectActions";
-import { PlusCircle, ExternalLink, Layers } from "lucide-react";
+import { PlusCircle, ExternalLink, Layers, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Dashboard — GitPM" };
 
-export default async function DashboardPage() {
+interface DashboardPageProps {
+  searchParams: Promise<{ welcome?: string }>;
+}
+
+export default async function DashboardPage({ searchParams }: DashboardPageProps) {
+  const { welcome } = await searchParams;
   const supabase = await createClient();
 
   const {
@@ -40,9 +45,43 @@ export default async function DashboardPage() {
 
   const publishedCount = projects?.filter((p) => p.is_published).length ?? 0;
 
+  const isWelcome = welcome === "1";
+
   return (
     <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-10 w-full">
       <main>
+        {/* Welcome banner — shown once after onboarding */}
+        {isWelcome && (
+          <div className="mb-8 rounded-xl border border-teal/30 bg-teal/5 px-5 py-4 flex items-start gap-4">
+            <div className="h-9 w-9 rounded-full bg-teal/15 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <Sparkles className="h-4 w-4 text-teal" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-white font-semibold text-sm mb-0.5">
+                Welcome to GitPM, {profile.display_name?.split(" ")[0]}!
+              </p>
+              <p className="text-white/50 text-sm">
+                Your profile is live at{" "}
+                <span className="font-mono text-purple">
+                  gitpm.dev/{profile.username}
+                </span>
+                . Add your first project to start building your verified
+                portfolio.
+              </p>
+            </div>
+            <Link
+              href="/dashboard/projects/new"
+              className={cn(
+                buttonVariants({ size: "sm" }),
+                "bg-teal hover:bg-teal/90 text-white flex-shrink-0 self-center gap-1.5"
+              )}
+            >
+              <PlusCircle className="h-3.5 w-3.5" />
+              Add project
+            </Link>
+          </div>
+        )}
+
         {/* Header */}
         <div className="mb-10 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div>

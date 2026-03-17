@@ -117,7 +117,7 @@ export function OnboardingForm({
       }
 
       toast.success("Profile saved! Welcome to GitPM.");
-      router.push("/dashboard");
+      router.push("/dashboard?welcome=1");
       router.refresh();
     } catch {
       toast.error("Network error. Please try again.");
