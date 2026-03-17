@@ -37,10 +37,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: `${displayName} — GitPM`,
       description,
-      images: user.avatar_url ? [{ url: user.avatar_url }] : [],
     },
     twitter: {
-      card: "summary",
+      card: "summary_large_image",
       title: `${displayName} — GitPM`,
       description,
     },

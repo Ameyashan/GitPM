@@ -12,17 +12,23 @@ interface ProjectCardProps {
   username: string;
 }
 
-const MAX_STACK_PILLS = 2;
+const MAX_VISIBLE_PILLS = 3;
+
+interface PillData {
+  label: string;
+  variant: "purple" | "teal" | "default";
+}
 
 export function ProjectCard({ project, username }: ProjectCardProps) {
-  const visibleStack = project.tech_stack.slice(0, MAX_STACK_PILLS);
-  const overflowCount =
-    project.tech_stack.length +
-    project.build_tools.length +
-    (project.hosting_platform ? 1 : 0) -
-    MAX_STACK_PILLS -
-    project.build_tools.length -
-    (project.hosting_platform ? 1 : 0);
+  const allPills: PillData[] = [
+    ...project.build_tools.map((t) => ({ label: t, variant: "purple" as const })),
+    ...(project.hosting_platform
+      ? [{ label: project.hosting_platform, variant: "teal" as const }]
+      : []),
+    ...project.tech_stack.map((t) => ({ label: t, variant: "default" as const })),
+  ];
+  const visiblePills = allPills.slice(0, MAX_VISIBLE_PILLS);
+  const overflowCount = Math.max(0, allPills.length - MAX_VISIBLE_PILLS);
 
   const hasVideo = Boolean(project.demo_video_url);
   const hasThumbnail = Boolean(project.thumbnail_url);
@@ -72,14 +78,8 @@ export function ProjectCard({ project, username }: ProjectCardProps) {
 
         {/* Pills row */}
         <div className="flex flex-wrap gap-1.5">
-          {project.build_tools.map((tool) => (
-            <BadgePill key={tool} label={tool} variant="purple" />
-          ))}
-          {project.hosting_platform && (
-            <BadgePill label={project.hosting_platform} variant="teal" />
-          )}
-          {visibleStack.map((tech) => (
-            <BadgePill key={tech} label={tech} variant="default" />
+          {visiblePills.map((pill, i) => (
+            <BadgePill key={`${pill.variant}-${i}`} label={pill.label} variant={pill.variant} />
           ))}
           {overflowCount > 0 && (
             <span className="inline-flex items-center rounded-full bg-surface-dark border border-gitpm-border/40 px-2 py-0.5 text-[10px] font-mono text-white/40">

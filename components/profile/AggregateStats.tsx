@@ -12,11 +12,11 @@ export function AggregateStats({
   verifiedCount,
 }: AggregateStatsProps) {
   return (
-    <div className="flex items-center gap-8">
+    <div className="grid grid-cols-3 sm:flex sm:items-center sm:gap-8 gap-2">
       <StatCard value={totalProjects} label="Projects" />
-      <div className="h-8 w-px bg-gitpm-border/30" />
+      <div className="hidden sm:block h-8 w-px bg-gitpm-border/30 shrink-0" />
       <StatCard value={totalCommits} label="Commits" />
-      <div className="h-8 w-px bg-gitpm-border/30" />
+      <div className="hidden sm:block h-8 w-px bg-gitpm-border/30 shrink-0" />
       <StatCard value={verifiedCount} label="Verified" accent="teal" />
     </div>
   );

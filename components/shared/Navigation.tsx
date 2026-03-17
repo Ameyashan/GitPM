@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -13,9 +13,37 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Github, LogOut, LayoutDashboard, User } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
+  Github,
+  LogOut,
+  LayoutDashboard,
+  User,
+  Menu,
+  FolderOpen,
+  Plug,
+  Settings,
+} from "lucide-react";
 import type { Tables } from "@/types/database";
 import { cn } from "@/lib/utils";
+
+interface MobileNavItem {
+  label: string;
+  href: string;
+  icon: React.ElementType;
+}
+
+const MOBILE_NAV_ITEMS: MobileNavItem[] = [
+  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Projects", href: "/dashboard/projects/new", icon: FolderOpen },
+  { label: "Connections", href: "/dashboard/connections", icon: Plug },
+  { label: "Settings", href: "/dashboard/settings", icon: Settings },
+];
 
 interface NavUser {
   id: string;
@@ -29,8 +57,15 @@ interface NavUser {
 export function Navigation() {
   const [navUser, setNavUser] = useState<NavUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
   const supabase = createClient();
+
+  function isMobileNavActive(href: string): boolean {
+    if (href === "/dashboard") return pathname === "/dashboard";
+    return pathname.startsWith(href);
+  }
 
   useEffect(() => {
     async function loadUser() {
@@ -86,14 +121,27 @@ export function Navigation() {
   }
 
   return (
+    <>
     <nav className="border-b border-gitpm-border/50 bg-navy sticky top-0 z-50">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
-        <Link
-          href="/"
-          className="font-display font-bold text-white tracking-tight hover:text-white/80 transition-colors"
-        >
-          GitPM
-        </Link>
+        <div className="flex items-center gap-3">
+          {/* Mobile hamburger — only shown for authenticated dashboard users */}
+          {navUser && (
+            <button
+              className="md:hidden flex items-center justify-center h-8 w-8 rounded-md text-white/60 hover:text-white hover:bg-white/8 transition-colors"
+              aria-label="Open navigation menu"
+              onClick={() => setMobileMenuOpen(true)}
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+          )}
+          <Link
+            href="/"
+            className="font-display font-bold text-white tracking-tight hover:text-white/80 transition-colors"
+          >
+            GitPM
+          </Link>
+        </div>
 
         <div className="flex items-center gap-3">
           {loading ? (
@@ -179,5 +227,44 @@ export function Navigation() {
         </div>
       </div>
     </nav>
+
+    {/* Mobile navigation drawer — only rendered when authenticated */}
+    {navUser && (
+      <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+        <SheetContent
+          side="left"
+          className="w-64 bg-navy border-gitpm-border/20 p-0"
+        >
+          <SheetHeader className="px-4 py-5 border-b border-gitpm-border/20">
+            <SheetTitle className="font-display font-bold text-white text-left">
+              GitPM
+            </SheetTitle>
+          </SheetHeader>
+          <nav className="flex flex-col gap-0.5 px-3 py-4">
+            {MOBILE_NAV_ITEMS.map((item) => {
+              const Icon = item.icon;
+              const active = isMobileNavActive(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={cn(
+                    "flex items-center gap-2.5 rounded-md px-3 py-2.5 text-sm transition-colors",
+                    active
+                      ? "bg-white/8 text-white font-medium"
+                      : "text-white/50 hover:text-white/80 hover:bg-white/5"
+                  )}
+                >
+                  <Icon className="h-4 w-4 shrink-0" />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+        </SheetContent>
+      </Sheet>
+    )}
+    </>
   );
 }
