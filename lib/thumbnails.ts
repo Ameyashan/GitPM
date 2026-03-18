@@ -9,6 +9,30 @@ export interface ThumbnailResult {
   generatedAt: string;
 }
 
+async function ensureThumbnailBucket(
+  adminClient: SupabaseClient<Database>
+): Promise<void> {
+  const { data: buckets, error: listError } = await adminClient.storage.listBuckets();
+
+  if (listError) {
+    throw new Error(`Failed to list storage buckets: ${listError.message}`);
+  }
+
+  const bucketExists = buckets.some((bucket) => bucket.name === "thumbnails");
+  if (bucketExists) {
+    return;
+  }
+
+  const { error: createError } = await adminClient.storage.createBucket(
+    "thumbnails",
+    { public: true }
+  );
+
+  if (createError) {
+    throw new Error(`Failed to create thumbnails bucket: ${createError.message}`);
+  }
+}
+
 /**
  * Screenshots a live URL using headless Chromium and uploads the result to
  * Supabase Storage under the `thumbnails` bucket at path `{projectId}.jpg`.
@@ -58,6 +82,8 @@ export async function generateThumbnail(
 
   const storagePath = `${projectId}.jpg`;
 
+  await ensureThumbnailBucket(adminClient);
+
   const { error: uploadError } = await adminClient.storage
     .from("thumbnails")
     .upload(storagePath, screenshotBuffer, {
@@ -77,4 +103,23 @@ export async function generateThumbnail(
     url: publicUrl,
     generatedAt: new Date().toISOString(),
   };
+}
+
+export async function generateAndStoreProjectThumbnail(
+  projectId: string,
+  liveUrl: string,
+  adminClient: SupabaseClient<Database>
+): Promise<string> {
+  const result = await generateThumbnail(liveUrl, projectId, adminClient);
+
+  const { error: updateError } = await adminClient
+    .from("projects")
+    .update({ thumbnail_url: result.url })
+    .eq("id", projectId);
+
+  if (updateError) {
+    throw new Error(`Failed to save thumbnail URL: ${updateError.message}`);
+  }
+
+  return result.url;
 }

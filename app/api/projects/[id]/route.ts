@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { generateAndStoreProjectThumbnail } from "@/lib/thumbnails";
 import { projectUpdateSchema } from "@/lib/validators/project";
 
 interface Context {
@@ -13,7 +15,7 @@ async function getOwnedProject(
 ) {
   const { data, error } = await supabase
     .from("projects")
-    .select("id, user_id")
+    .select("id, user_id, is_published, live_url, thumbnail_url")
     .eq("id", projectId)
     .eq("user_id", userId)
     .maybeSingle();
@@ -160,7 +162,30 @@ export async function PATCH(request: Request, { params }: Context) {
       );
     }
 
-    return NextResponse.json({ data: project });
+    let projectWithThumbnail = project;
+
+    if (project.is_published && !project.thumbnail_url) {
+      try {
+        const admin = createAdminClient();
+        const thumbnailUrl = await generateAndStoreProjectThumbnail(
+          project.id,
+          project.live_url,
+          admin
+        );
+
+        projectWithThumbnail = {
+          ...project,
+          thumbnail_url: thumbnailUrl,
+        };
+      } catch (thumbnailError) {
+        console.error(
+          `[PATCH /api/projects/${id}] Thumbnail generation failed:`,
+          thumbnailError
+        );
+      }
+    }
+
+    return NextResponse.json({ data: projectWithThumbnail });
   } catch (err) {
     console.error("[PATCH /api/projects/[id]] Unexpected error:", err);
     return NextResponse.json(
