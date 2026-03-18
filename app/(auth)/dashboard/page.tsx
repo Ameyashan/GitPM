@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { DashboardProjectActions } from "@/components/dashboard/DashboardProjectActions";
-import { PlusCircle, ExternalLink, Layers, Sparkles, Triangle } from "lucide-react";
+import { PlusCircle, ExternalLink, Layers, Sparkles, Triangle, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Dashboard — GitPM" };
@@ -48,6 +48,13 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     .select("id")
     .eq("user_id", user.id)
     .eq("provider", "vercel")
+    .maybeSingle();
+
+  const { data: githubAccount } = await supabase
+    .from("connected_accounts")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("provider", "github")
     .maybeSingle();
 
   const publishedCount = projects?.filter((p) => p.is_published).length ?? 0;
@@ -100,7 +107,19 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             </h1>
             <p className="text-white/40 text-sm mt-1">{profile.headline}</p>
           </div>
-          <div className="flex items-center gap-2 self-start sm:self-auto">
+          <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+            {githubAccount && (
+              <Link
+                href="/dashboard/projects/import-lovable"
+                className={cn(
+                  buttonVariants({ variant: "outline" }),
+                  "border-gitpm-border/40 text-white/60 hover:text-white gap-2"
+                )}
+              >
+                <Heart className="h-4 w-4" />
+                Import from Lovable
+              </Link>
+            )}
             {vercelAccount && (
               <Link
                 href="/dashboard/projects/import"
@@ -169,7 +188,19 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
               Add your first shipped project and start building your verified
               portfolio.
             </p>
-            <div className="flex flex-col sm:flex-row items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-center gap-2 flex-wrap justify-center">
+              {githubAccount && (
+                <Link
+                  href="/dashboard/projects/import-lovable"
+                  className={cn(
+                    buttonVariants({ variant: "outline" }),
+                    "border-gitpm-border/40 text-white/60 hover:text-white gap-2"
+                  )}
+                >
+                  <Heart className="h-4 w-4" />
+                  Import from Lovable
+                </Link>
+              )}
               {vercelAccount && (
                 <Link
                   href="/dashboard/projects/import"

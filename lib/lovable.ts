@@ -12,7 +12,9 @@ const LOVABLE_PATTERNS = {
 export function isLovableRepo(repo: GitHubRepo): boolean {
   return (
     repo.name.startsWith(LOVABLE_PATTERNS.repoNamePrefix) ||
-    (repo.homepage?.includes(LOVABLE_PATTERNS.deploymentDomain) ?? false)
+    (repo.homepage?.includes(LOVABLE_PATTERNS.deploymentDomain) ?? false) ||
+    (repo.topics?.includes("lovable") ?? false) ||
+    (repo.description?.toLowerCase().includes("lovable") ?? false)
   );
 }
 

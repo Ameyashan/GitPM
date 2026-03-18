@@ -110,6 +110,7 @@ export function Navigation() {
       provider: "github",
       options: {
         redirectTo: `${window.location.origin}/api/auth/callback`,
+        scopes: "read:user repo",
       },
     });
   }

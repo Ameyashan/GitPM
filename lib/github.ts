@@ -130,6 +130,37 @@ export async function getUserRepos(token: string): Promise<GitHubRepo[]> {
   return res.json() as Promise<GitHubRepo[]>;
 }
 
+/**
+ * Uses GitHub's commit search API to find repos that have commits by the
+ * Lovable bot ("lovable-dev[bot]" / committer-name "Lovable").
+ * Returns a Set of full repo names ("owner/repo") for O(1) lookup.
+ * Non-fatal — returns an empty set on any API error.
+ */
+export async function getLovableCommitRepos(
+  token: string,
+  username: string
+): Promise<Set<string>> {
+  try {
+    // Search by committer-name catches both "Lovable" and "lovable-dev[bot]" display names.
+    // We scope to the authenticated user's repos with user: qualifier.
+    const query = encodeURIComponent(`committer-name:Lovable user:${username}`);
+    const res = await fetch(
+      `${GITHUB_API}/search/commits?q=${query}&per_page=100`,
+      { headers: githubHeaders(token) }
+    );
+
+    if (!res.ok) return new Set();
+
+    const data = (await res.json()) as {
+      items: Array<{ repository: { full_name: string } }>;
+    };
+
+    return new Set(data.items.map((item) => item.repository.full_name));
+  } catch {
+    return new Set();
+  }
+}
+
 export async function getRepoCommits(
   token: string,
   owner: string,
