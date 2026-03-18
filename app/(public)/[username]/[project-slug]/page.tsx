@@ -23,9 +23,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { username, "project-slug": slug } = await params;
   const admin = createAdminClient();
 
+  const { data: ownerMeta } = await admin
+    .from("users")
+    .select("id, display_name")
+    .eq("username", username)
+    .maybeSingle();
+
+  const owner = ownerMeta as { id: string; display_name: string | null } | null;
+
+  if (!owner) {
+    return { title: "Project not found — GitPM" };
+  }
+
   const { data: projectMeta } = await admin
     .from("projects")
-    .select("name, description, thumbnail_url, user_id")
+    .select("name, description, thumbnail_url")
+    .eq("user_id", owner.id)
     .eq("slug", slug)
     .eq("is_published", true)
     .maybeSingle();
@@ -34,21 +47,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     name: string;
     description: string;
     thumbnail_url: string | null;
-    user_id: string;
   } | null;
 
   if (!meta) {
     return { title: "Project not found — GitPM" };
   }
-
-  const { data: userMeta } = await admin
-    .from("users")
-    .select("display_name")
-    .eq("id", meta.user_id)
-    .maybeSingle();
-
-  const author = userMeta as { display_name: string | null } | null;
-  const authorName = author?.display_name ?? username;
+  const authorName = owner.display_name ?? username;
   const title = `${meta.name} by ${authorName} — GitPM`;
   const description =
     meta.description || `${meta.name} — a project by ${authorName} on GitPM`;
@@ -73,9 +77,22 @@ export default async function ProjectDetailPage({ params }: Props) {
   const { username, "project-slug": slug } = await params;
   const admin = createAdminClient();
 
+  const { data: ownerRow } = await admin
+    .from("users")
+    .select("id, username, display_name, avatar_url")
+    .eq("username", username)
+    .maybeSingle();
+
+  const owner = ownerRow as Pick<User, "id" | "username" | "display_name" | "avatar_url"> | null;
+
+  if (!owner) {
+    notFound();
+  }
+
   const { data: projectRow } = await admin
     .from("projects")
     .select("*")
+    .eq("user_id", owner.id)
     .eq("slug", slug)
     .eq("is_published", true)
     .maybeSingle();
@@ -83,19 +100,6 @@ export default async function ProjectDetailPage({ params }: Props) {
   const project = projectRow as Project | null;
 
   if (!project) {
-    notFound();
-  }
-
-  // Verify the username in the URL matches the project owner
-  const { data: ownerRow } = await admin
-    .from("users")
-    .select("username, display_name, avatar_url")
-    .eq("id", project.user_id)
-    .maybeSingle();
-
-  const owner = ownerRow as Pick<User, "username" | "display_name" | "avatar_url"> | null;
-
-  if (!owner || owner.username !== username) {
     notFound();
   }
 
