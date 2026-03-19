@@ -78,9 +78,9 @@ export default withSentryConfig(nextConfig, {
   // Requires SENTRY_AUTH_TOKEN to be set in the Vercel environment
   silent: !process.env.CI,
 
-  // Disable source map upload locally (only upload in CI/Vercel)
+  // Only upload source maps when the auth token is actually present
   sourcemaps: {
-    disable: process.env.NODE_ENV !== "production",
+    disable: !process.env.SENTRY_AUTH_TOKEN,
   },
 
   // Tree-shake Sentry logger statements
