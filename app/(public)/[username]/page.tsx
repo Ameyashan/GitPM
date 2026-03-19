@@ -7,9 +7,9 @@ import type { Metadata } from "next";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { AggregateStats } from "@/components/profile/AggregateStats";
+import { TierCard } from "@/components/profile/TierCard";
 import { ToolsUsed } from "@/components/profile/ToolsUsed";
 import { ProjectGrid } from "@/components/profile/ProjectGrid";
-import { SectionLabel } from "@/components/shared/SectionLabel";
 import type { User, Project } from "@/types/project";
 
 interface Props {
@@ -106,43 +106,88 @@ export default async function PublicProfilePage({ params }: Props) {
       ? "yesterday"
       : `${daysSinceUpdate} days ago`;
 
+  const memberSince = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    year: "numeric",
+  }).format(new Date(user.created_at));
+
   return (
-    <main className="min-h-screen bg-navy">
-      {/* Dark hero header */}
-      <div className="bg-navy border-b border-gitpm-border/20">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+    <main className="min-h-screen bg-page-bg">
+      {/* ─── Profile Hero (dark navy) ─── */}
+      <div className="bg-navy">
+        <div
+          className="mx-auto max-w-[880px] px-10 pt-9 pb-12 max-md:px-5 max-md:pt-7 max-md:pb-10"
+        >
           <ProfileHeader user={user} />
-
-          <div className="mt-8 space-y-4">
-            <AggregateStats
-              totalProjects={publishedProjects.length}
-              totalCommits={totalCommits}
-              verifiedCount={verifiedCount}
-            />
-
-            {toolsUsed.length > 0 && (
-              <div className="space-y-2">
-                <SectionLabel>Built with</SectionLabel>
-                <ToolsUsed tools={toolsUsed} />
-              </div>
-            )}
-          </div>
         </div>
       </div>
 
-      {/* Content area */}
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-10">
-        {publishedProjects.length > 0 && (
-          <div className="mb-6">
-            <SectionLabel>Projects</SectionLabel>
-          </div>
-        )}
-        <ProjectGrid projects={publishedProjects} username={username} />
+      {/* ─── Content area (pmain) ─── */}
+      <div className="mx-auto max-w-[880px] px-10 max-md:px-5">
+        {/* Floating stats bar — overlaps hero via negative margin */}
+        <AggregateStats
+          totalProjects={publishedProjects.length}
+          totalCommits={totalCommits}
+          verifiedCount={verifiedCount}
+        />
 
-        <p className="mt-10 text-center text-xs text-white/20 font-mono">
-          Profile last updated {lastUpdatedLabel}
-        </p>
+        {/* Tier card */}
+        <TierCard verifiedCount={verifiedCount} />
+
+        {/* Tools section */}
+        {toolsUsed.length > 0 && (
+          <>
+            <SectionHead label="Tools used" />
+            <ToolsUsed tools={toolsUsed} />
+          </>
+        )}
+
+        {/* Projects section */}
+        <SectionHead
+          label="Projects"
+          right={
+            publishedProjects.length > 0
+              ? `${publishedProjects.length} project${publishedProjects.length !== 1 ? "s" : ""}`
+              : undefined
+          }
+        />
+        <ProjectGrid projects={publishedProjects} user={user} />
+
+        {/* Footer */}
+        <footer
+          className="text-center py-5 text-[12px] text-text-muted"
+          style={{ borderTop: "0.5px solid var(--border-light)" }}
+        >
+          Profile last updated {lastUpdatedLabel} · Member since {memberSince}
+        </footer>
       </div>
     </main>
+  );
+}
+
+// ─── Inline section head component ───────────────────────────────────────────
+
+function SectionHead({
+  label,
+  right,
+}: {
+  label: string;
+  right?: string;
+}) {
+  return (
+    <div className="flex items-center gap-3 mt-7 mb-[14px]">
+      <span
+        className="text-[12px] font-medium text-text-muted uppercase whitespace-nowrap"
+        style={{ letterSpacing: "0.07em" }}
+      >
+        {label}
+      </span>
+      <div className="flex-1 h-[0.5px] bg-gitpm-border-light" />
+      {right && (
+        <span className="text-[12px] text-text-muted whitespace-nowrap">
+          {right}
+        </span>
+      )}
+    </div>
   );
 }

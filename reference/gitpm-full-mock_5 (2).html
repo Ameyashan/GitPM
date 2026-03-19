@@ -1,0 +1,1344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GitPM — The portfolio platform for PMs who build</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&family=JetBrains+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #0D1B2A;
+  --navy-mid: #152238;
+  --navy-light: #1E3150;
+  --dark-surface: #1B2838;
+  --teal: #0A7558;
+  --teal-light: #0F9B72;
+  --teal-bg: #0A75581a;
+  --purple: #6C5CE7;
+  --purple-light: #8B7EF0;
+  --purple-bg: #6C5CE71a;
+  --forest: #2D6A4F;
+  --forest-bg: #2D6A4F1a;
+  --surface-light: #EDECEA;
+  --surface-card: #FFFFFF;
+  --border: #C8C5BE;
+  --border-light: #DDD9D3;
+  --text-primary: #0D1B2A;
+  --text-secondary: #555B6E;
+  --text-muted: #8A8F9C;
+  --text-inverse: #E8ECF0;
+  --text-inverse-muted: #9BA8B9;
+  --white: #FFFFFF;
+  --page-bg: #F5F3EE;
+  --font-body: 'DM Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-serif: 'Instrument Serif', Georgia, serif;
+  --radius: 10px;
+  --radius-lg: 14px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: var(--font-body); color: var(--text-primary); background: var(--page-bg); -webkit-font-smoothing: antialiased; }
+.page { display: none; }
+.page.active { display: block; }
+
+/* =============== NAV =============== */
+.nav { background: var(--navy); padding: 0 40px; height: 52px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.nav-logo { font-family: var(--font-mono); font-size: 14px; font-weight: 400; color: var(--white); letter-spacing: -0.2px; cursor: pointer; }
+.nav-logo span { color: var(--teal-light); }
+.nav-right { display: flex; align-items: center; gap: 20px; }
+.nav-link { font-size: 13px; color: var(--text-inverse-muted); text-decoration: none; cursor: pointer; transition: color 0.15s; }
+.nav-link:hover { color: var(--white); }
+.nav-btn { font-size: 12px; color: var(--navy); background: var(--white); border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-family: var(--font-body); font-weight: 500; transition: opacity 0.15s; }
+.nav-btn:hover { opacity: 0.9; }
+.nav-btn-ghost { background: transparent; color: var(--white); border: 0.5px solid rgba(255,255,255,0.2); }
+.nav-btn-ghost:hover { border-color: rgba(255,255,255,0.5); opacity: 1; }
+
+/* =============== LANDING PAGE =============== */
+.landing-hero { background: var(--navy); min-height: 80vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 80px 40px 140px; position: relative; overflow: hidden; }
+.landing-hero::before { content: ''; position: absolute; width: 900px; height: 900px; border-radius: 50%; background: radial-gradient(circle, rgba(10,117,88,0.08) 0%, transparent 60%); top: -400px; right: -200px; pointer-events: none; }
+.landing-hero::after { content: ''; position: absolute; width: 700px; height: 700px; border-radius: 50%; background: radial-gradient(circle, rgba(108,92,231,0.06) 0%, transparent 60%); bottom: -300px; left: -200px; pointer-events: none; }
+.landing-content { position: relative; z-index: 1; max-width: 680px; }
+.landing-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; border-radius: 20px; border: 0.5px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); font-size: 12px; color: var(--teal-light); margin-bottom: 36px; letter-spacing: 0.02em; }
+.landing-badge .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--teal-light); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+.landing-h1 { font-family: var(--font-body); font-size: 54px; font-weight: 300; color: var(--white); line-height: 1.08; letter-spacing: -1.5px; margin-bottom: 20px; }
+.landing-h1 strong { font-weight: 500; }
+.landing-h1 em { font-family: var(--font-serif); font-style: italic; color: var(--teal-light); font-weight: 400; }
+.landing-sub { font-size: 17px; color: var(--text-inverse-muted); line-height: 1.65; max-width: 480px; margin: 0 auto 36px; font-weight: 300; }
+.landing-cta { display: inline-flex; align-items: center; gap: 8px; background: var(--white); color: var(--navy); border: none; padding: 13px 28px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: var(--font-body); transition: all 0.2s; letter-spacing: -0.1px; }
+.landing-cta:hover { transform: translateY(-1px); box-shadow: 0 8px 30px rgba(255,255,255,0.1); }
+.landing-cta svg { width: 16px; height: 16px; }
+.landing-secondary { display: inline-block; margin-top: 14px; font-size: 13px; color: var(--text-inverse-muted); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; transition: color 0.15s; }
+.landing-secondary:hover { color: var(--white); }
+
+/* Features */
+.features { padding: 80px 40px; max-width: 960px; margin: 0 auto; }
+.features-head { text-align: center; margin-bottom: 56px; }
+.features-head h2 { font-size: 32px; font-weight: 500; letter-spacing: -0.5px; margin-bottom: 10px; }
+.features-head p { font-size: 16px; color: var(--text-secondary); max-width: 480px; margin: 0 auto; }
+.features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.fcard { padding: 24px; border: 0.5px solid var(--border-light); border-radius: var(--radius); transition: border-color 0.2s; position: relative; }
+.fcard:hover { border-color: var(--border); }
+.fcard-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
+.fcard-icon svg { width: 16px; height: 16px; }
+.fcard h3 { font-size: 14px; font-weight: 500; margin-bottom: 5px; letter-spacing: -0.1px; }
+.fcard p { font-size: 13px; color: var(--text-secondary); line-height: 1.55; }
+
+/* Example profiles */
+.examples { padding: 60px 40px 80px; background: var(--surface-light); }
+.examples-inner { max-width: 960px; margin: 0 auto; }
+.examples h2 { font-size: 24px; font-weight: 500; letter-spacing: -0.3px; margin-bottom: 8px; }
+.examples-sub { font-size: 14px; color: var(--text-secondary); margin-bottom: 32px; }
+.example-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.ecard { background: var(--white); border-radius: var(--radius-lg); border: 0.5px solid var(--border-light); padding: 20px; cursor: pointer; transition: border-color 0.2s, transform 0.2s; }
+.ecard:hover { border-color: var(--border); transform: translateY(-2px); }
+.ecard-top { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.ecard-avatar { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 500; color: var(--white); flex-shrink: 0; }
+.ecard-name { font-size: 14px; font-weight: 500; }
+.ecard-role { font-size: 12px; color: var(--text-muted); }
+.ecard-stats { display: flex; gap: 16px; font-size: 12px; color: var(--text-secondary); margin-bottom: 12px; font-family: var(--font-mono); }
+.ecard-tools { display: flex; gap: 4px; flex-wrap: wrap; }
+.ecard-tools .pill { font-size: 10px; padding: 2px 8px; }
+
+/* CTA banner */
+.cta-banner { background: var(--navy); padding: 60px 40px; text-align: center; }
+.cta-banner h2 { font-family: var(--font-serif); font-size: 36px; color: var(--white); margin-bottom: 12px; font-weight: 400; }
+.cta-banner p { font-size: 15px; color: var(--text-inverse-muted); margin-bottom: 28px; }
+
+/* Footer */
+.site-footer { padding: 24px 40px; text-align: center; font-size: 12px; color: var(--text-muted); border-top: 0.5px solid var(--border-light); }
+
+/* =============== PROFILE PAGE (reused from before) =============== */
+.profile-hero { background: var(--navy); padding: 36px 40px 48px; }
+.profile-hero-inner { max-width: 880px; margin: 0 auto; display: flex; gap: 20px; align-items: flex-start; }
+.avatar { width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, var(--purple) 0%, var(--teal) 100%); display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 500; color: var(--white); flex-shrink: 0; border: 1.5px solid rgba(255,255,255,0.1); }
+.profile-info { flex: 1; }
+.profile-name { font-size: 24px; font-weight: 500; color: var(--white); letter-spacing: -0.5px; }
+.profile-headline { font-size: 14px; color: var(--text-inverse-muted); margin-top: 4px; line-height: 1.55; max-width: 520px; font-weight: 300; }
+.profile-socials { display: flex; gap: 16px; margin-top: 14px; }
+.social { font-size: 12px; color: var(--text-inverse-muted); text-decoration: none; display: flex; align-items: center; gap: 5px; transition: color 0.15s; font-family: var(--font-mono); cursor: pointer; }
+.social:hover { color: var(--teal-light); }
+.social svg { width: 14px; height: 14px; opacity: 0.7; }
+.pmain { max-width: 880px; margin: 0 auto; padding: 0 40px; }
+.stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: var(--border-light); border-radius: var(--radius-lg); overflow: hidden; margin-top: -28px; position: relative; z-index: 10; box-shadow: 0 1px 3px rgba(13,27,42,0.08); }
+.stat { background: var(--white); padding: 16px 12px; text-align: center; }
+.stat-val { font-size: 22px; font-weight: 500; letter-spacing: -0.5px; font-family: var(--font-mono); }
+.stat-label { font-size: 10px; color: var(--text-muted); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.07em; font-weight: 500; }
+.tier-card { display: flex; align-items: center; gap: 14px; padding: 14px 18px; border: 0.5px solid var(--border-light); border-radius: var(--radius); margin-top: 20px; background: var(--white); }
+.tier-icon { width: 34px; height: 34px; border-radius: 50%; background: var(--teal-bg); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.tier-icon svg { width: 16px; height: 16px; color: var(--teal); }
+.tier-name { font-size: 14px; font-weight: 500; }
+.tier-desc { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+.tier-heatmap { margin-left: auto; text-align: right; }
+.heatmap-label { font-size: 10px; color: var(--text-muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500; }
+.heatmap-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 2px; }
+.hday { width: 9px; height: 9px; border-radius: 2px; }
+.h0{background:var(--surface-light);}.h1{background:#B7DFCA;}.h2{background:#5DCAA5;}.h3{background:#1D9E75;}.h4{background:var(--teal);}
+.section-head { display: flex; align-items: center; gap: 12px; margin-top: 28px; margin-bottom: 14px; }
+.section-title { font-size: 12px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em; white-space: nowrap; }
+.section-head::after { content: ''; flex: 1; height: 0.5px; background: var(--border-light); }
+.tools-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.tool-chip { display: flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 6px; border: 0.5px solid var(--border-light); font-size: 12px; color: var(--text-secondary); background: var(--white); }
+.tool-count { font-size: 10px; color: var(--text-muted); background: var(--surface-light); padding: 1px 6px; border-radius: 4px; font-family: var(--font-mono); }
+.project-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px; padding-bottom: 48px; }
+.pcard { background: var(--white); border: 0.5px solid var(--border-light); border-radius: var(--radius-lg); overflow: hidden; cursor: pointer; transition: border-color 0.2s, transform 0.15s; }
+.pcard:hover { border-color: var(--border); transform: translateY(-1px); }
+.pcard-hero { height: 120px; background: var(--dark-surface); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+.pcard-hero-mesh { position: absolute; inset: 0; opacity: 0.15; }
+.pcard-hero-mesh div { position: absolute; border-radius: 50%; filter: blur(30px); }
+.pcard-hero-mesh .m1 { width: 120px; height: 120px; background: var(--teal); top: -20px; right: 20px; }
+.pcard-hero-mesh .m2 { width: 80px; height: 80px; background: var(--purple); bottom: -10px; left: 30px; }
+.pcard-hero-mesh .m3 { width: 60px; height: 60px; background: var(--forest); top: 30px; left: 50%; }
+.pcard-wireframe { position: relative; z-index: 1; width: 80%; height: 90px; border-radius: 6px; border: 0.5px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.04); display: grid; grid-template-columns: 1fr 2fr; gap: 4px; padding: 8px; }
+.pcard-wireframe div { background: rgba(255,255,255,0.06); border-radius: 3px; }
+.play-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,0.92); display: flex; align-items: center; justify-content: center; z-index: 2; box-shadow: 0 1px 8px rgba(0,0,0,0.2); transition: transform 0.15s, opacity 0.15s; opacity: 0.85; }
+.pcard:hover .play-btn { transform: translate(-50%,-50%) scale(1.05); opacity: 1; }
+.play-arrow { width: 0; height: 0; border-left: 10px solid var(--navy); border-top: 6px solid transparent; border-bottom: 6px solid transparent; margin-left: 2px; }
+.no-video .play-btn { display: none; }
+.pcard-body { padding: 14px 16px 16px; }
+.pcard-title-row { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
+.pcard-title { font-size: 15px; font-weight: 500; letter-spacing: -0.2px; }
+.verified-inline { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; padding: 2px 8px; border-radius: 4px; background: var(--teal-bg); color: var(--teal); font-weight: 500; white-space: nowrap; }
+.verified-inline svg { width: 10px; height: 10px; }
+.pcard-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.45; margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.pcard-pills { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 14px; }
+.pill { font-size: 11px; padding: 3px 10px; border-radius: 4px; font-weight: 500; }
+.pill-tool { background: var(--purple-bg); color: var(--purple); }
+.pill-host { background: var(--teal-bg); color: var(--teal); }
+.pill-stack { background: var(--surface-light); color: var(--text-secondary); }
+.pill-cat { border: 0.5px solid var(--border); color: var(--text-muted); background: transparent; }
+.pcard-meta { display: flex; gap: 14px; font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); align-items: center; }
+.meta-dot { width: 6px; height: 6px; border-radius: 50%; }
+.dot-high{background:var(--teal);}.dot-med{background:#EF9F27;}.dot-low{background:var(--text-muted);}
+.pcard-conf { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+.page-footer { text-align: center; padding: 20px; font-size: 12px; color: var(--text-muted); border-top: 0.5px solid var(--border-light); }
+
+/* =============== DETAIL OVERLAY =============== */
+.overlay { display: none; position: fixed; inset: 0; background: rgba(13,27,42,0.5); z-index: 200; overflow-y: auto; backdrop-filter: blur(4px); }
+.overlay.active { display: flex; justify-content: center; padding: 32px 20px; }
+.detail-card { background: var(--white); border-radius: 12px; max-width: 700px; width: 100%; overflow: hidden; position: relative; animation: slideUp 0.2s ease-out; }
+@keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+.detail-close { position: absolute; top: 14px; right: 14px; z-index: 10; width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.85); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
+.detail-close:hover { background: var(--white); }
+.detail-close svg { width: 14px; height: 14px; color: var(--text-secondary); }
+.detail-hero { height: 240px; background: var(--dark-surface); position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.detail-hero .play-btn { width: 52px; height: 52px; opacity: 1; }
+.detail-hero .play-arrow { border-left-width: 14px; border-top-width: 8px; border-bottom-width: 8px; margin-left: 3px; }
+.detail-body { padding: 24px 28px 32px; }
+.detail-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+.detail-title { font-size: 20px; font-weight: 500; letter-spacing: -0.4px; }
+.verified-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; padding: 4px 10px; border-radius: 5px; background: var(--teal-bg); color: var(--teal); font-weight: 500; white-space: nowrap; flex-shrink: 0; }
+.verified-badge svg { width: 12px; height: 12px; }
+.detail-desc { font-size: 14px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 14px; }
+.detail-url { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--teal); text-decoration: none; font-family: var(--font-mono); margin-bottom: 16px; padding: 5px 10px; background: var(--teal-bg); border-radius: 5px; transition: background 0.15s; }
+.detail-url:hover { background: #0A755820; }
+.detail-url svg { width: 11px; height: 11px; }
+.detail-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px; }
+.detail-pills .pill { font-size: 12px; padding: 4px 12px; }
+.detail-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
+.dstat { background: var(--surface-light); border-radius: var(--radius); padding: 14px; text-align: center; }
+.dstat-val { font-size: 20px; font-weight: 500; letter-spacing: -0.3px; }
+.dstat-label { font-size: 11px; color: var(--text-muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.04em; }
+.conf-bar { display: flex; align-items: center; gap: 14px; padding: 14px 18px; background: var(--surface-light); border-radius: var(--radius); margin-bottom: 24px; }
+.conf-label { font-size: 13px; color: var(--text-secondary); white-space: nowrap; }
+.conf-track { flex: 1; height: 6px; background: var(--border-light); border-radius: 3px; overflow: hidden; }
+.conf-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--teal) 0%, var(--teal-light) 100%); }
+.conf-score { font-size: 16px; font-weight: 500; color: var(--teal); font-family: var(--font-mono); }
+.detail-divider { border: none; border-top: 0.5px solid var(--border-light); margin: 24px 0; }
+.section-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em; font-weight: 500; margin-bottom: 8px; }
+.detail-prose { font-size: 14px; color: var(--text-primary); line-height: 1.65; margin-bottom: 20px; }
+.decision-item { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 8px; padding-left: 12px; border-left: 1.5px solid var(--border); }
+.detail-ctas { display: flex; gap: 10px; margin-top: 28px; }
+.btn-primary { background: var(--navy); color: var(--white); border: none; padding: 11px 24px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: var(--font-body); }
+.btn-secondary { background: transparent; color: var(--text-primary); border: 0.5px solid var(--border); padding: 11px 24px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: var(--font-body); }
+.detail-author { display: flex; align-items: center; gap: 12px; padding: 16px 32px; border-top: 0.5px solid var(--border-light); background: var(--surface-card); }
+.author-avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--purple) 0%, var(--teal) 100%); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; color: var(--white); }
+.author-name { font-size: 13px; font-weight: 500; }
+.author-role { font-size: 12px; color: var(--text-muted); }
+.sparkline { display: flex; gap: 2px; align-items: flex-end; height: 22px; margin-left: auto; }
+.sbar { width: 3px; border-radius: 1px; background: var(--teal); opacity: 0.7; }
+
+/* =============== DASHBOARD =============== */
+.dash-layout { display: grid; grid-template-columns: 220px minmax(0, 1fr); min-height: calc(100vh - 56px); }
+.dash-sidebar { background: var(--surface-card); border-right: 0.5px solid var(--border-light); padding: 24px 0; display: flex; flex-direction: column; }
+.dash-sidebar-item { display: flex; align-items: center; gap: 10px; padding: 10px 24px; font-size: 14px; color: var(--text-secondary); cursor: pointer; transition: all 0.1s; }
+.dash-sidebar-item:hover { color: var(--text-primary); background: var(--surface-light); }
+.dash-sidebar-item.active { color: var(--text-primary); font-weight: 500; background: var(--surface-light); border-right: 2px solid var(--teal); }
+.dash-sidebar-item svg { width: 16px; height: 16px; opacity: 0.6; }
+.dash-main { padding: 32px 40px; max-width: 880px; margin: 0 auto; }
+.dash-h1 { font-size: 22px; font-weight: 500; letter-spacing: -0.3px; margin-bottom: 4px; }
+.dash-sub { font-size: 14px; color: var(--text-secondary); margin-bottom: 28px; }
+.dash-section { margin-bottom: 32px; }
+.dash-section-title { font-size: 12px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 0.5px solid var(--border-light); }
+
+/* Dashboard project list */
+.dpl-item { display: flex; align-items: center; gap: 16px; padding: 14px 18px; border: 0.5px solid var(--border-light); border-radius: var(--radius); margin-bottom: 8px; transition: border-color 0.15s; }
+.dpl-item:hover { border-color: var(--border); }
+.dpl-thumb { width: 56px; height: 38px; border-radius: 5px; background: var(--dark-surface); flex-shrink: 0; position: relative; overflow: hidden; }
+.dpl-thumb div { position: absolute; border-radius: 50%; filter: blur(10px); opacity: 0.2; }
+.dpl-thumb .t1 { width: 30px; height: 30px; background: var(--teal); top: -8px; right: -4px; }
+.dpl-thumb .t2 { width: 20px; height: 20px; background: var(--purple); bottom: -6px; left: 4px; }
+.dpl-info { flex: 1; min-width: 0; }
+.dpl-name { font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+.dpl-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; font-family: var(--font-mono); }
+.dpl-status { font-size: 11px; padding: 3px 10px; border-radius: 4px; font-weight: 500; }
+.dpl-published { background: var(--teal-bg); color: var(--teal); }
+.dpl-draft { background: var(--surface-light); color: var(--text-muted); }
+.dpl-actions { display: flex; gap: 6px; }
+.dpl-actions button { background: transparent; border: 0.5px solid var(--border-light); border-radius: 6px; padding: 6px 12px; font-size: 12px; color: var(--text-secondary); cursor: pointer; font-family: var(--font-body); transition: all 0.15s; }
+.dpl-actions button:hover { border-color: var(--border); color: var(--text-primary); }
+.dash-add-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 14px; border: 1px dashed var(--border); border-radius: var(--radius); font-size: 14px; color: var(--text-muted); cursor: pointer; background: transparent; font-family: var(--font-body); transition: all 0.15s; margin-top: 4px; }
+.dash-add-btn:hover { border-color: var(--teal); color: var(--teal); background: var(--teal-bg); }
+
+/* Connection cards */
+.conn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.conn-card { padding: 18px; border: 0.5px solid var(--border-light); border-radius: var(--radius); }
+.conn-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.conn-name { font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+.conn-name svg { width: 18px; height: 18px; }
+.conn-status { font-size: 11px; padding: 3px 10px; border-radius: 4px; }
+.conn-connected { background: var(--teal-bg); color: var(--teal); font-weight: 500; }
+.conn-disconnected { background: var(--surface-light); color: var(--text-muted); }
+.conn-user { font-size: 12px; color: var(--text-secondary); font-family: var(--font-mono); }
+.conn-btn { margin-top: 12px; font-size: 12px; padding: 7px 14px; border-radius: 6px; cursor: pointer; font-family: var(--font-body); font-weight: 500; border: none; }
+.conn-btn-disconnect { background: var(--surface-light); color: var(--text-secondary); }
+.conn-btn-connect { background: var(--navy); color: var(--white); }
+
+/* Flow pages (import/add) */
+/* Old flow/stepper/form CSS removed — replaced by unified flow below */
+
+/* =============== UNIFIED ADD PROJECT FLOW =============== */
+.uflow-overlay { display:none; position:fixed; inset:0; z-index:300; background:rgba(13,27,42,0.6); backdrop-filter:blur(6px); overflow-y:auto; }
+.uflow-overlay.active { display:flex; justify-content:center; align-items:flex-start; padding:24px 20px 60px; }
+.uflow-modal { background:var(--white); border-radius:16px; width:100%; max-width:680px; overflow:hidden; position:relative; animation:modalIn 0.25s cubic-bezier(0.16,1,0.3,1); box-shadow:0 24px 80px rgba(13,27,42,0.25), 0 0 0 0.5px rgba(13,27,42,0.08); }
+@keyframes modalIn { from { opacity:0; transform:translateY(16px) scale(0.98); } to { opacity:1; transform:translateY(0) scale(1); } }
+.uflow-header { display:flex; align-items:center; justify-content:space-between; padding:20px 28px 0; }
+.uflow-title { font-size:18px; font-weight:500; letter-spacing:-0.3px; }
+.uflow-close { width:28px; height:28px; border-radius:6px; border:none; background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--text-muted); transition:all 0.15s; }
+.uflow-close:hover { background:var(--surface-light); color:var(--text-primary); }
+.uflow-close svg { width:16px; height:16px; }
+.uflow-phase { padding:0 28px; margin-top:6px; margin-bottom:20px; }
+.uflow-phase-text { font-size:12px; color:var(--text-muted); }
+.uflow-phase-bar { height:2px; background:var(--border-light); border-radius:1px; margin-top:10px; overflow:hidden; }
+.uflow-phase-fill { height:100%; background:var(--teal); border-radius:1px; transition:width 0.4s cubic-bezier(0.16,1,0.3,1); }
+.uflow-source-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; padding:0 28px 24px; }
+.uflow-source { padding:16px 14px; border:0.5px solid var(--border-light); border-radius:10px; cursor:pointer; transition:all 0.15s; text-align:center; position:relative; }
+.uflow-source:hover { border-color:var(--border); background:var(--surface-card); }
+.uflow-source.selected { border-color:var(--purple); background:var(--purple-bg); }
+.uflow-source-icon { width:36px; height:36px; border-radius:9px; display:flex; align-items:center; justify-content:center; margin:0 auto 10px; }
+.uflow-source-name { font-size:13px; font-weight:500; margin-bottom:2px; }
+.uflow-source-desc { font-size:11px; color:var(--text-muted); line-height:1.4; }
+.uflow-source-badge { position:absolute; top:8px; right:8px; font-size:9px; padding:2px 6px; border-radius:3px; font-weight:500; font-family:var(--font-mono); }
+.source-connected { background:var(--teal-bg); color:var(--teal); }
+.source-auto { background:var(--purple-bg); color:var(--purple); }
+.uflow-import { display:none; padding:0 28px 24px; }
+.uflow-import.active { display:block; }
+.uflow-import-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.uflow-import-label { font-family:var(--font-mono); font-size:11px; color:var(--text-muted); letter-spacing:0.04em; display:flex; align-items:center; gap:6px; }
+.uflow-import-label .cnt { color:var(--teal); font-weight:500; }
+.uflow-import-back { font-size:12px; color:var(--text-muted); cursor:pointer; display:flex; align-items:center; gap:4px; background:none; border:none; font-family:var(--font-body); transition:color 0.15s; }
+.uflow-import-back:hover { color:var(--text-primary); }
+.uflow-icard { border:0.5px solid var(--border-light); border-radius:10px; margin-bottom:8px; overflow:hidden; transition:border-color 0.15s; cursor:pointer; }
+.uflow-icard:hover { border-color:var(--border); }
+.uflow-icard.selected { border-color:var(--purple); border-width:1.5px; }
+.uflow-icard-main { display:flex; align-items:center; gap:14px; padding:14px 16px; }
+.uflow-icard-icon { width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.uflow-icard-info { flex:1; min-width:0; }
+.uflow-icard-name { font-size:14px; font-weight:500; display:flex; align-items:center; gap:8px; }
+.uflow-icard-meta { font-size:11px; color:var(--text-muted); font-family:var(--font-mono); margin-top:2px; display:flex; align-items:center; gap:8px; }
+.uflow-icard-meta svg { width:10px; height:10px; opacity:0.4; flex-shrink:0; }
+.uflow-icard-action { flex-shrink:0; }
+.icard-radio { width:18px; height:18px; border-radius:50%; border:1.5px solid var(--border); display:flex; align-items:center; justify-content:center; transition:all 0.15s; }
+.uflow-icard-preview { display:none; padding:0 16px 14px; }
+.uflow-icard.selected .uflow-icard-preview { display:block; }
+.uflow-preview-row { display:flex; gap:5px; flex-wrap:wrap; margin-top:6px; }
+.uflow-preview-chip { font-size:10px; padding:3px 7px; border-radius:4px; display:inline-flex; align-items:center; gap:3px; }
+.uflow-preview-chip svg { width:10px; height:10px; }
+.uflow-preview-filled { background:var(--teal-bg); color:var(--teal); }
+.uflow-preview-pending { background:var(--surface-light); color:var(--text-muted); border:0.5px dashed var(--border); }
+.uflow-icard-ingitpm { opacity:0.45; pointer-events:none; }
+.lovable-detect { display:flex; align-items:center; gap:8px; padding:10px 14px; border-radius:8px; background:var(--purple-bg); margin-bottom:12px; font-size:12px; color:var(--purple); }
+.lovable-detect svg { width:14px; height:14px; flex-shrink:0; }
+.uflow-form { display:none; padding:0 28px 28px; }
+.uflow-form.active { display:block; }
+.uform-section { margin-bottom:20px; }
+.uform-section-head { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+.uform-section-num { width:22px; height:22px; border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:500; font-family:var(--font-mono); flex-shrink:0; }
+.uform-section-label { font-size:13px; font-weight:500; }
+.uform-section-body { padding-left:32px; }
+.uform-autofill { display:inline-flex; align-items:center; gap:3px; font-size:10px; color:var(--teal); font-family:var(--font-mono); font-weight:500; padding:2px 7px; border-radius:3px; background:var(--teal-bg); }
+.uform-autofill svg { width:10px; height:10px; }
+.uf-label { font-size:12px; font-weight:500; color:var(--text-secondary); margin-bottom:5px; display:flex; align-items:center; gap:6px; }
+.uf-label .req { color:#E24B4A; font-size:10px; }
+.uf-label .opt { font-size:10px; color:var(--text-muted); font-weight:400; }
+.uf-input { width:100%; padding:9px 12px; background:var(--white); border:0.5px solid var(--border-light); border-radius:7px; font-size:13px; color:var(--text-primary); font-family:var(--font-body); outline:none; transition:border-color 0.15s; margin-bottom:12px; }
+.uf-input:focus { border-color:var(--purple); box-shadow:0 0 0 3px var(--purple-bg); }
+.uf-input::placeholder { color:var(--text-muted); opacity:0.45; }
+.uf-input.autofilled { background:linear-gradient(135deg, #0A755808, #0A755804); border-color:var(--teal); }
+textarea.uf-input { resize:vertical; min-height:60px; line-height:1.5; }
+.uf-slug-wrap { display:flex; align-items:center; gap:0; margin-bottom:12px; }
+.uf-slug-prefix { padding:9px 10px; background:var(--surface-light); border:0.5px solid var(--border-light); border-right:none; border-radius:7px 0 0 7px; font-size:11px; color:var(--text-muted); font-family:var(--font-mono); white-space:nowrap; }
+.uf-slug-input { flex:1; border-radius:0 7px 7px 0; margin-bottom:0; }
+.uf-chips { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:12px; }
+.uf-chip { padding:5px 12px; border-radius:5px; border:0.5px solid var(--border-light); font-size:11px; color:var(--text-secondary); cursor:pointer; transition:all 0.12s; background:var(--white); font-family:var(--font-body); }
+.uf-chip:hover { border-color:var(--border); }
+.uf-chip.sel-purple { background:var(--purple); border-color:var(--purple); color:var(--white); }
+.uf-chip.sel-teal { background:var(--teal); border-color:var(--teal); color:var(--white); }
+.uf-upload { border:1px dashed var(--border); border-radius:8px; padding:20px; text-align:center; cursor:pointer; transition:border-color 0.15s; background:var(--surface-light); }
+.uf-upload:hover { border-color:var(--text-muted); }
+.uflow-footer { display:flex; align-items:center; justify-content:space-between; padding:16px 28px; border-top:0.5px solid var(--border-light); background:var(--surface-card); }
+.uflow-footer-info { font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:5px; }
+.uflow-back-btn { font-size:12px; color:var(--text-muted); cursor:pointer; display:flex; align-items:center; gap:4px; background:none; border:none; font-family:var(--font-body); transition:color 0.15s; }
+.uflow-back-btn:hover { color:var(--text-primary); }
+.uflow-next-btn { padding:9px 22px; border:none; border-radius:7px; font-size:13px; font-weight:500; cursor:pointer; font-family:var(--font-body); display:flex; align-items:center; gap:5px; transition:opacity 0.15s; background:var(--purple); color:var(--white); }
+.uflow-next-btn:hover { opacity:0.88; }
+.uflow-next-btn.teal { background:var(--teal); }
+
+/* Keep old import card styles for dashboard only */
+
+@media (max-width: 768px) {
+  .nav { padding: 0 20px; }
+  .landing-h1 { font-size: 36px; }
+  .features-grid, .example-cards { grid-template-columns: 1fr; }
+  .profile-hero { padding: 28px 20px 40px; }
+  .pmain { padding: 0 20px; }
+  .stats-row { grid-template-columns: repeat(3, 1fr); }
+  .project-grid { grid-template-columns: 1fr; }
+  .dash-layout { grid-template-columns: 1fr; }
+  .dash-sidebar { display: none; }
+  .tier-heatmap { display: none; }
+  .conn-grid { grid-template-columns: 1fr; }
+  .uflow-overlay.active { padding:0; align-items:stretch; }
+  .uflow-modal { border-radius:0; max-width:100%; min-height:100vh; }
+  .uflow-source-grid { grid-template-columns: 1fr; }
+  .uflow-header, .uflow-phase, .uflow-import, .uflow-form, .uflow-footer { padding-left:20px; padding-right:20px; }
+  .uform-section-body { padding-left:0; }
+}
+</style>
+</head>
+<body>
+
+<!-- =============== LANDING PAGE =============== -->
+<div class="page active" id="page-landing">
+  <nav class="nav">
+    <div class="nav-logo" onclick="showPage('landing')">git<span>pm</span>.dev</div>
+    <div class="nav-right">
+      <span class="nav-link" onclick="showPage('profile')">Example profile</span>
+      <button class="nav-btn" onclick="showPage('dashboard')">Sign in with GitHub</button>
+    </div>
+  </nav>
+
+  <!-- HERO: Outcome-driven headline, single CTA, visual proof -->
+  <section class="landing-hero">
+    <div class="landing-content">
+      <div class="landing-badge"><div class="dot"></div> Now in beta</div>
+      <h1 class="landing-h1">One link to prove<br>you can <em>ship</em></h1>
+      <p class="landing-sub">GitPM gives product managers a verified portfolio. Connect Vercel, Lovable, or GitHub. Show hiring managers the projects you actually built.</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <button class="landing-cta" onclick="showPage('dashboard')">
+          <svg viewBox="0 0 16 16" fill="currentColor" style="width:18px;height:18px"><path d="M8 1C4.13 1 1 4.13 1 8c0 3.1 2 5.7 4.8 6.6.35.07.48-.15.48-.34v-1.2c-1.96.43-2.37-.94-2.37-.94-.32-.82-.78-1.04-.78-1.04-.64-.43.05-.42.05-.42.7.05 1.07.72 1.07.72.63 1.07 1.64.76 2.04.58.06-.45.24-.76.44-.94-1.56-.18-3.2-.78-3.2-3.48 0-.77.28-1.4.72-1.89-.07-.18-.31-.9.07-1.87 0 0 .59-.19 1.92.72a6.6 6.6 0 013.5 0c1.33-.91 1.92-.72 1.92-.72.38.97.14 1.69.07 1.87.45.49.72 1.12.72 1.89 0 2.71-1.65 3.3-3.22 3.48.25.22.48.65.48 1.31v1.94c0 .19.13.41.48.34C13 13.7 15 11.1 15 8c0-3.87-3.13-7-7-7z"/></svg>
+          Start building your profile
+        </button>
+        <button class="landing-cta" onclick="showPage('profile')" style="background:transparent;color:var(--white);border:0.5px solid rgba(255,255,255,0.25);box-shadow:none">See a live profile</button>
+      </div>
+      <p style="font-size:12px;color:var(--text-inverse-muted);margin-top:16px;opacity:0.7">Free forever. No credit card. Takes 3 minutes.</p>
+    </div>
+  </section>
+
+  <!-- PRODUCT SCREENSHOT -->
+  <section style="padding:0 40px;margin-top:-70px;position:relative;z-index:10;max-width:900px;margin-left:auto;margin-right:auto">
+    <div style="background:var(--dark-surface);border-radius:12px;border:0.5px solid rgba(255,255,255,0.06);overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,0.4)" onclick="showPage('profile')" class="product-preview">
+      <div style="padding:8px 14px;display:flex;align-items:center;gap:6px;border-bottom:0.5px solid rgba(255,255,255,0.05);background:rgba(0,0,0,0.15)">
+        <div style="width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.15)"></div>
+        <div style="width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.15)"></div>
+        <div style="width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.15)"></div>
+        <span style="font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,0.35);margin-left:12px">gitpm.dev/ameyag</span>
+      </div>
+      <div style="padding:24px 28px;display:flex;gap:20px;align-items:flex-start">
+        <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--teal));display:flex;align-items:center;justify-content:center;font-size:18px;color:white;font-weight:500;flex-shrink:0">AG</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:18px;font-weight:500;color:var(--white)">Ameya Gupta</div>
+          <div style="font-size:13px;color:var(--text-inverse-muted);margin-top:2px">Senior PM at Stripe</div>
+          <div style="display:flex;gap:16px;margin-top:12px">
+            <div style="text-align:center"><div style="font-size:18px;font-weight:500;color:var(--white)">6</div><div style="font-size:10px;color:var(--text-inverse-muted);text-transform:uppercase;letter-spacing:0.05em">Projects</div></div>
+            <div style="text-align:center"><div style="font-size:18px;font-weight:500;color:var(--white)">347</div><div style="font-size:10px;color:var(--text-inverse-muted);text-transform:uppercase;letter-spacing:0.05em">Commits</div></div>
+            <div style="text-align:center"><div style="font-size:18px;font-weight:500;color:var(--teal-light)">5</div><div style="font-size:10px;color:var(--text-inverse-muted);text-transform:uppercase;letter-spacing:0.05em">Verified</div></div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;width:280px;flex-shrink:0">
+          <div style="background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 12px">
+            <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px"><div style="font-size:12px;font-weight:500;color:var(--white)">Metric Pulse</div><svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="#0F9B72" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div style="font-size:10px;color:var(--text-inverse-muted)">87 commits &middot; 18d</div>
+            <div style="display:flex;gap:3px;margin-top:6px"><span style="font-size:9px;padding:2px 6px;border-radius:3px;background:rgba(108,92,231,0.15);color:var(--purple-light)">Cursor</span><span style="font-size:9px;padding:2px 6px;border-radius:3px;background:rgba(10,117,88,0.15);color:var(--teal-light)">Vercel</span></div>
+          </div>
+          <div style="background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 12px">
+            <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px"><div style="font-size:12px;font-weight:500;color:var(--white)">ShipLog</div><svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="#0F9B72" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div style="font-size:10px;color:var(--text-inverse-muted)">104 commits &middot; 24d</div>
+            <div style="display:flex;gap:3px;margin-top:6px"><span style="font-size:9px;padding:2px 6px;border-radius:3px;background:rgba(108,92,231,0.15);color:var(--purple-light)">Cursor</span><span style="font-size:9px;padding:2px 6px;border-radius:3px;background:rgba(10,117,88,0.15);color:var(--teal-light)">Vercel</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <style>.product-preview{cursor:pointer;transition:transform 0.3s,box-shadow 0.3s}.product-preview:hover{transform:translateY(-4px);box-shadow:0 24px 70px rgba(0,0,0,0.35)}</style>
+  </section>
+
+  <!-- SOCIAL PROOF STRIP -->
+  <section style="padding:48px 40px 0;text-align:center">
+    <p style="font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;font-weight:500;margin-bottom:16px">PMs building with</p>
+    <div style="display:flex;align-items:center;justify-content:center;gap:32px;flex-wrap:wrap;opacity:0.5">
+      <span style="font-family:var(--font-mono);font-size:14px;font-weight:500;color:var(--text-secondary)">Cursor</span>
+      <span style="font-family:var(--font-mono);font-size:14px;font-weight:500;color:var(--text-secondary)">Lovable</span>
+      <span style="font-family:var(--font-mono);font-size:14px;font-weight:500;color:var(--text-secondary)">v0</span>
+      <span style="font-family:var(--font-mono);font-size:14px;font-weight:500;color:var(--text-secondary)">Bolt</span>
+      <span style="font-family:var(--font-mono);font-size:14px;font-weight:500;color:var(--text-secondary)">Replit</span>
+      <span style="font-family:var(--font-mono);font-size:14px;font-weight:500;color:var(--text-secondary)">Vercel</span>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section style="padding:72px 40px;max-width:900px;margin:0 auto">
+    <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:40px">
+      <span style="font-size:12px;color:var(--teal);text-transform:uppercase;letter-spacing:0.08em;font-weight:500;white-space:nowrap">How it works</span>
+      <div style="flex:1;height:0.5px;background:var(--border-light)"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:40px">
+      <div>
+        <div style="font-family:var(--font-mono);font-size:12px;color:var(--teal);margin-bottom:12px">01</div>
+        <h3 style="font-size:16px;font-weight:500;margin-bottom:6px;letter-spacing:-0.2px">Sign up with GitHub</h3>
+        <p style="font-size:14px;color:var(--text-secondary);line-height:1.6">One click. We pull your repos, avatar, and profile. No forms to fill.</p>
+      </div>
+      <div>
+        <div style="font-family:var(--font-mono);font-size:12px;color:var(--teal);margin-bottom:12px">02</div>
+        <h3 style="font-size:16px;font-weight:500;margin-bottom:6px;letter-spacing:-0.2px">Add your projects</h3>
+        <p style="font-size:14px;color:var(--text-secondary);line-height:1.6">Import from Vercel or Lovable, or paste any URL. We auto-detect the tech stack and commit history.</p>
+      </div>
+      <div>
+        <div style="font-family:var(--font-mono);font-size:12px;color:var(--teal);margin-bottom:12px">03</div>
+        <h3 style="font-size:16px;font-weight:500;margin-bottom:6px;letter-spacing:-0.2px">Get verified</h3>
+        <p style="font-size:14px;color:var(--text-secondary);line-height:1.6">Connect your deployment platform. We confirm ownership and your profile earns a trust badge.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section style="padding:0 40px 72px;max-width:900px;margin:0 auto">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border-light);border-radius:var(--radius-lg);overflow:hidden">
+      <div style="padding:32px;background:var(--white)">
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--teal);margin-bottom:12px">VERIFICATION</div>
+        <h3 style="font-size:17px;font-weight:500;margin-bottom:6px;letter-spacing:-0.2px">Prove you built it</h3>
+        <p style="font-size:13px;color:var(--text-secondary);line-height:1.6">OAuth-verified deployment ownership. Commit history. A confidence score hiring managers can trust.</p>
+      </div>
+      <div style="padding:32px;background:var(--white)">
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--purple);margin-bottom:12px">CONSOLIDATION</div>
+        <h3 style="font-size:17px;font-weight:500;margin-bottom:6px;letter-spacing:-0.2px">One URL for everything</h3>
+        <p style="font-size:13px;color:var(--text-secondary);line-height:1.6">Projects on Vercel, Lovable, GitHub Pages? Stop sharing 5 links. One profile, auto-detected metadata.</p>
+      </div>
+      <div style="padding:32px;background:var(--white)">
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--forest);margin-bottom:12px">PRODUCT THINKING</div>
+        <h3 style="font-size:17px;font-weight:500;margin-bottom:6px;letter-spacing:-0.2px">Show the why, not just the what</h3>
+        <p style="font-size:13px;color:var(--text-secondary);line-height:1.6">Problem statements, key decisions, target users. The product thinking is what separates a PM from a developer.</p>
+      </div>
+      <div style="padding:32px;background:var(--white)">
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--navy);margin-bottom:12px">DEMO-FIRST</div>
+        <h3 style="font-size:17px;font-weight:500;margin-bottom:6px;letter-spacing:-0.2px">A 2-min video beats any resume</h3>
+        <p style="font-size:13px;color:var(--text-secondary);line-height:1.6">Embed Loom or YouTube walkthroughs. Let hiring managers watch your build before the interview starts.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SOCIAL PROOF: Example profiles -->
+  <section style="padding:56px 40px 64px;background:var(--surface-light)">
+    <div style="max-width:900px;margin:0 auto">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:24px">
+        <div>
+          <h2 style="font-size:24px;font-weight:500;letter-spacing:-0.3px">PMs already building on GitPM</h2>
+          <p style="font-size:14px;color:var(--text-secondary);margin-top:4px">Early builders who are shaping the platform.</p>
+        </div>
+        <span style="font-size:13px;color:var(--teal);cursor:pointer" onclick="showPage('profile')">Browse all profiles</span>
+      </div>
+      <div class="example-cards">
+        <div class="ecard" onclick="showPage('profile')">
+          <div class="ecard-top">
+            <div class="ecard-avatar" style="background:linear-gradient(135deg,var(--purple),var(--teal))">AG</div>
+            <div><div class="ecard-name">Ameya Gupta</div><div class="ecard-role">Senior PM at Stripe</div></div>
+          </div>
+          <div class="ecard-stats"><span>6 projects</span><span>347 commits</span><span style="color:var(--teal)">5 verified</span></div>
+          <div class="ecard-tools"><span class="pill pill-tool">Cursor</span><span class="pill pill-tool">Lovable</span><span class="pill pill-stack">Next.js</span></div>
+        </div>
+        <div class="ecard">
+          <div class="ecard-top">
+            <div class="ecard-avatar" style="background:linear-gradient(135deg,var(--teal),var(--forest))">SK</div>
+            <div><div class="ecard-name">Sarah Kim</div><div class="ecard-role">PM at Figma</div></div>
+          </div>
+          <div class="ecard-stats"><span>4 projects</span><span>201 commits</span><span style="color:var(--teal)">3 verified</span></div>
+          <div class="ecard-tools"><span class="pill pill-tool">Lovable</span><span class="pill pill-tool">v0</span><span class="pill pill-stack">React</span></div>
+        </div>
+        <div class="ecard">
+          <div class="ecard-top">
+            <div class="ecard-avatar" style="background:linear-gradient(135deg,var(--forest),var(--purple))">JR</div>
+            <div><div class="ecard-name">James Rivera</div><div class="ecard-role">Aspiring PM, career switcher</div></div>
+          </div>
+          <div class="ecard-stats"><span>2 projects</span><span>78 commits</span><span style="color:var(--teal)">2 verified</span></div>
+          <div class="ecard-tools"><span class="pill pill-tool">Cursor</span><span class="pill pill-tool">Bolt</span><span class="pill pill-stack">Svelte</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BOTTOM CTA -->
+  <section style="background:var(--navy);padding:72px 40px;text-align:center">
+    <p style="font-family:var(--font-mono);font-size:11px;color:var(--teal-light);letter-spacing:0.08em;margin-bottom:16px">FREE FOREVER FOR PMS</p>
+    <h2 style="font-size:36px;font-weight:300;color:var(--white);margin-bottom:8px;letter-spacing:-0.8px">Your builds deserve a profile</h2>
+    <p style="font-size:15px;color:var(--text-inverse-muted);margin-bottom:32px;font-weight:300">Join the PMs who are proving they can ship.</p>
+    <button class="landing-cta" onclick="showPage('dashboard')">
+      <svg viewBox="0 0 16 16" fill="currentColor" style="width:16px;height:16px"><path d="M8 1C4.13 1 1 4.13 1 8c0 3.1 2 5.7 4.8 6.6.35.07.48-.15.48-.34v-1.2c-1.96.43-2.37-.94-2.37-.94-.32-.82-.78-1.04-.78-1.04-.64-.43.05-.42.05-.42.7.05 1.07.72 1.07.72.63 1.07 1.64.76 2.04.58.06-.45.24-.76.44-.94-1.56-.18-3.2-.78-3.2-3.48 0-.77.28-1.4.72-1.89-.07-.18-.31-.9.07-1.87 0 0 .59-.19 1.92.72a6.6 6.6 0 013.5 0c1.33-.91 1.92-.72 1.92-.72.38.97.14 1.69.07 1.87.45.49.72 1.12.72 1.89 0 2.71-1.65 3.3-3.22 3.48.25.22.48.65.48 1.31v1.94c0 .19.13.41.48.34C13 13.7 15 11.1 15 8c0-3.87-3.13-7-7-7z"/></svg>
+      Get started with GitHub
+    </button>
+  </section>
+  <div class="site-footer">GitPM &middot; The portfolio platform for PMs who build &middot; 2026</div>
+</div>
+
+<!-- =============== PROFILE PAGE =============== -->
+<div class="page" id="page-profile">
+  <nav class="nav">
+    <div class="nav-logo" onclick="showPage('landing')">git<span>pm</span>.dev</div>
+    <div class="nav-right">
+      <span class="nav-link" onclick="showPage('landing')">Home</span>
+      <button class="nav-btn" onclick="showPage('dashboard')">Dashboard</button>
+    </div>
+  </nav>
+  <section class="profile-hero">
+    <div class="profile-hero-inner">
+      <div class="avatar">AG</div>
+      <div class="profile-info">
+        <h1 class="profile-name">Ameya Gupta</h1>
+        <p class="profile-headline">Senior PM at Stripe. I build things to understand them. Exploring the intersection of product thinking and AI-assisted coding.</p>
+        <div class="profile-socials">
+          <a class="social"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1C4.13 1 1 4.13 1 8c0 3.1 2 5.7 4.8 6.6.35.07.48-.15.48-.34v-1.2c-1.96.43-2.37-.94-2.37-.94-.32-.82-.78-1.04-.78-1.04-.64-.43.05-.42.05-.42.7.05 1.07.72 1.07.72.63 1.07 1.64.76 2.04.58.06-.45.24-.76.44-.94-1.56-.18-3.2-.78-3.2-3.48 0-.77.28-1.4.72-1.89-.07-.18-.31-.9.07-1.87 0 0 .59-.19 1.92.72a6.6 6.6 0 013.5 0c1.33-.91 1.92-.72 1.92-.72.38.97.14 1.69.07 1.87.45.49.72 1.12.72 1.89 0 2.71-1.65 3.3-3.22 3.48.25.22.48.65.48 1.31v1.94c0 .19.13.41.48.34C13 13.7 15 11.1 15 8c0-3.87-3.13-7-7-7z"/></svg>github.com/ameyag</a>
+          <a class="social"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.6 2.4H2.4C1.6 2.4 1 3 1 3.8v8.4c0 .8.6 1.4 1.4 1.4h11.2c.8 0 1.4-.6 1.4-1.4V3.8c0-.8-.6-1.4-1.4-1.4zM5 12.2H3V6.6h2v5.6zM4 5.8a1.2 1.2 0 110-2.4 1.2 1.2 0 010 2.4zm9 6.4h-2V9.4c0-.7 0-1.5-1-1.5s-1.1.7-1.1 1.5v2.8H7V6.6h1.9v.8c.3-.5.9-1 1.9-1 2 0 2.3 1.3 2.3 3v2.8z"/></svg>linkedin.com/in/ameyag</a>
+        </div>
+      </div>
+    </div>
+  </section>
+  <div class="pmain">
+    <div class="stats-row">
+      <div class="stat"><div class="stat-val">6</div><div class="stat-label">Projects</div></div>
+      <div class="stat"><div class="stat-val">347</div><div class="stat-label">Commits</div></div>
+      <div class="stat"><div class="stat-val">5</div><div class="stat-label">Verified</div></div>
+      <div class="stat"><div class="stat-val">78</div><div class="stat-label">Avg score</div></div>
+      <div class="stat"><div class="stat-val">412</div><div class="stat-label">Users</div></div>
+    </div>
+    <div class="tier-card">
+      <div class="tier-icon"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 2l2.4 4.8L18 7.6l-4 3.9.9 5.5L10 14.4 5.1 17l.9-5.5-4-3.9 5.6-.8L10 2z"/></svg></div>
+      <div><div class="tier-name">Verified builder</div><div class="tier-desc">5+ verified projects with avg confidence above 70</div></div>
+      <div class="tier-heatmap">
+        <div class="heatmap-label">Build activity (12wk)</div>
+        <div class="heatmap-grid" id="heatmap"></div>
+      </div>
+    </div>
+    <div class="section-head"><span class="section-title">Tools used</span></div>
+    <div class="tools-row">
+      <div class="tool-chip">Cursor <span class="tool-count">4</span></div>
+      <div class="tool-chip">Lovable <span class="tool-count">2</span></div>
+      <div class="tool-chip">v0 <span class="tool-count">1</span></div>
+      <div class="tool-chip">Vercel <span class="tool-count">5</span></div>
+      <div class="tool-chip">Next.js <span class="tool-count">4</span></div>
+      <div class="tool-chip">Supabase <span class="tool-count">3</span></div>
+      <div class="tool-chip">Tailwind <span class="tool-count">5</span></div>
+    </div>
+    <div class="section-head"><span class="section-title">Projects</span><span style="font-size:12px;color:var(--text-muted)">6 projects</span></div>
+    <div class="project-grid" id="project-grid"></div>
+    <div class="page-footer">Profile last updated 3 days ago &middot; Member since Nov 2025</div>
+  </div>
+</div>
+
+<!-- =============== DASHBOARD =============== -->
+<div class="page" id="page-dashboard">
+  <nav class="nav">
+    <div class="nav-logo" onclick="showPage('landing')">git<span>pm</span>.dev</div>
+    <div class="nav-right">
+      <span class="nav-link" onclick="showPage('profile')" style="display:flex;align-items:center;gap:5px">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 14l3.5-3.5M5.5 10.5L14 2M14 2h-4M14 2v4"/></svg>
+        View public profile
+      </span>
+      <button class="nav-btn-ghost nav-btn" onclick="showPage('landing')">Sign out</button>
+    </div>
+  </nav>
+  <div class="dash-layout">
+    <aside class="dash-sidebar">
+      <div style="padding:0 20px 20px;border-bottom:0.5px solid var(--border-light);margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--teal));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;color:white;flex-shrink:0">AG</div>
+          <div><div style="font-size:14px;font-weight:500">Ameya Gupta</div><div style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono)">gitpm.dev/ameyag</div></div>
+        </div>
+      </div>
+      <div class="dash-sidebar-item active" onclick="showDashTab(this,'dash-projects')">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+        Projects
+      </div>
+      <div class="dash-sidebar-item" onclick="showDashTab(this,'dash-connections')">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5.5 3a2.5 2.5 0 100 5 2.5 2.5 0 000-5zM10.5 8a2.5 2.5 0 100 5 2.5 2.5 0 000-5zM7.5 5.5l1 3"/></svg>
+        Connections
+      </div>
+      <div class="dash-sidebar-item" onclick="showDashTab(this,'dash-settings')">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.41-1.41"/></svg>
+        Settings
+      </div>
+      <div style="flex:1"></div>
+      <div style="padding:12px 16px;margin:12px 12px 0;border-radius:var(--radius);background:var(--teal-bg);cursor:pointer" onclick="showPage('profile')">
+        <div style="font-size:12px;font-weight:500;color:var(--teal);display:flex;align-items:center;gap:6px">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 14l3.5-3.5M5.5 10.5L14 2M14 2h-4M14 2v4"/></svg>
+          View public profile
+        </div>
+        <div style="font-size:11px;color:var(--teal);opacity:0.7;margin-top:2px;font-family:var(--font-mono)">gitpm.dev/ameyag</div>
+      </div>
+    </aside>
+    <main class="dash-main">
+      <!-- Projects tab -->
+      <div id="dash-projects" class="dash-tab">
+        <!-- Welcome banner -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;background:linear-gradient(135deg,var(--navy) 0%,var(--navy-light) 100%);border-radius:var(--radius-lg);margin-bottom:24px">
+          <div>
+            <div style="font-size:18px;font-weight:500;color:var(--white)">Welcome back, Ameya</div>
+            <div style="font-size:13px;color:var(--text-inverse-muted);margin-top:3px">You have 6 projects and 5 are verified. Your profile has been viewed 48 times this week.</div>
+          </div>
+          <button class="btn-primary" onclick="showPage('profile')" style="background:var(--white);color:var(--navy);white-space:nowrap;display:flex;align-items:center;gap:6px;flex-shrink:0">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 14l3.5-3.5M5.5 10.5L14 2M14 2h-4M14 2v4"/></svg>
+            View public profile
+          </button>
+        </div>
+
+        <!-- Quick stats -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:28px">
+          <div style="padding:16px;background:var(--surface-light);border-radius:var(--radius);text-align:center">
+            <div style="font-size:22px;font-weight:500">6</div><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-top:2px">Projects</div>
+          </div>
+          <div style="padding:16px;background:var(--surface-light);border-radius:var(--radius);text-align:center">
+            <div style="font-size:22px;font-weight:500">347</div><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-top:2px">Commits</div>
+          </div>
+          <div style="padding:16px;background:var(--surface-light);border-radius:var(--radius);text-align:center">
+            <div style="font-size:22px;font-weight:500;color:var(--teal)">5</div><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-top:2px">Verified</div>
+          </div>
+          <div style="padding:16px;background:var(--surface-light);border-radius:var(--radius);text-align:center">
+            <div style="font-size:22px;font-weight:500">48</div><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-top:2px">Views (7d)</div>
+          </div>
+        </div>
+
+        <!-- Project list -->
+        <div class="dash-section-title">Your projects</div>
+        <div id="dash-project-list"></div>
+        <button class="dash-add-btn" onclick="openUnifiedFlow()">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3v10M3 8h10"/></svg>
+          Add project
+        </button>
+      </div>
+      <!-- Connections tab -->
+      <div id="dash-connections" class="dash-tab" style="display:none">
+        <h1 class="dash-h1">Connected accounts</h1>
+        <p class="dash-sub">Connect your deployment platforms to verify project ownership and auto-populate project data.</p>
+        <div class="conn-grid">
+          <div class="conn-card">
+            <div class="conn-top">
+              <div class="conn-name"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1C4.13 1 1 4.13 1 8c0 3.1 2 5.7 4.8 6.6.35.07.48-.15.48-.34v-1.2c-1.96.43-2.37-.94-2.37-.94-.32-.82-.78-1.04-.78-1.04-.64-.43.05-.42.05-.42.7.05 1.07.72 1.07.72.63 1.07 1.64.76 2.04.58.06-.45.24-.76.44-.94-1.56-.18-3.2-.78-3.2-3.48 0-.77.28-1.4.72-1.89-.07-.18-.31-.9.07-1.87 0 0 .59-.19 1.92.72a6.6 6.6 0 013.5 0c1.33-.91 1.92-.72 1.92-.72.38.97.14 1.69.07 1.87.45.49.72 1.12.72 1.89 0 2.71-1.65 3.3-3.22 3.48.25.22.48.65.48 1.31v1.94c0 .19.13.41.48.34C13 13.7 15 11.1 15 8c0-3.87-3.13-7-7-7z"/></svg> GitHub</div>
+              <span class="conn-status conn-connected">Connected</span>
+            </div>
+            <div class="conn-user">@ameyag &middot; 23 repos</div>
+            <button class="conn-btn conn-btn-disconnect">Disconnect</button>
+          </div>
+          <div class="conn-card">
+            <div class="conn-top">
+              <div class="conn-name"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1l7 12.1H1L8 1z"/></svg> Vercel</div>
+              <span class="conn-status conn-connected">Connected</span>
+            </div>
+            <div class="conn-user">ameya-gupta &middot; 8 deployments</div>
+            <button class="conn-btn conn-btn-disconnect">Disconnect</button>
+          </div>
+          <div class="conn-card">
+            <div class="conn-top">
+              <div class="conn-name"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a6 6 0 100 12A6 6 0 008 2zm0 1.5a4.5 4.5 0 11-.01 9.01A4.5 4.5 0 018 3.5z"/><circle cx="8" cy="8" r="2"/></svg> Lovable</div>
+              <span class="conn-status conn-connected">2 projects detected</span>
+            </div>
+            <div class="conn-user">Auto-detected via GitHub repos</div>
+            <button class="conn-btn conn-btn-connect" style="background:var(--teal);color:white">Re-scan repos</button>
+          </div>
+          <div class="conn-card" style="opacity:0.6">
+            <div class="conn-top">
+              <div class="conn-name"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 3.5A1.5 1.5 0 013.5 2h9A1.5 1.5 0 0114 3.5v9a1.5 1.5 0 01-1.5 1.5h-9A1.5 1.5 0 012 12.5v-9zM3.5 3a.5.5 0 00-.5.5V5h10V3.5a.5.5 0 00-.5-.5h-9z"/></svg> Netlify</div>
+              <span class="conn-status conn-disconnected">Coming soon</span>
+            </div>
+            <div class="conn-user" style="color:var(--text-muted)">Phase 2</div>
+            <button class="conn-btn conn-btn-connect" disabled style="opacity:0.4;cursor:not-allowed">Connect</button>
+          </div>
+        </div>
+      </div>
+      <!-- Settings tab -->
+      <div id="dash-settings" class="dash-tab" style="display:none">
+        <h1 class="dash-h1">Profile settings</h1>
+        <p class="dash-sub">Update your public profile information.</p>
+        <div style="display:grid;gap:16px;max-width:480px">
+          <div><label style="font-size:13px;font-weight:500;display:block;margin-bottom:4px">Username</label><div style="display:flex;align-items:center;gap:0;border:0.5px solid var(--border-light);border-radius:8px;overflow:hidden"><span style="padding:9px 12px;background:var(--surface-light);font-size:13px;color:var(--text-muted);font-family:var(--font-mono);border-right:0.5px solid var(--border-light)">gitpm.dev/</span><input value="ameyag" style="border:none;padding:9px 12px;font-size:14px;font-family:var(--font-body);outline:none;flex:1;background:transparent;color:var(--text-primary)"></div></div>
+          <div><label style="font-size:13px;font-weight:500;display:block;margin-bottom:4px">Display name</label><input value="Ameya Gupta" style="width:100%;border:0.5px solid var(--border-light);border-radius:8px;padding:9px 12px;font-size:14px;font-family:var(--font-body);outline:none;color:var(--text-primary)"></div>
+          <div><label style="font-size:13px;font-weight:500;display:block;margin-bottom:4px">Headline</label><input value="Senior PM at Stripe. I build things to understand them." style="width:100%;border:0.5px solid var(--border-light);border-radius:8px;padding:9px 12px;font-size:14px;font-family:var(--font-body);outline:none;color:var(--text-primary)"></div>
+          <div><label style="font-size:13px;font-weight:500;display:block;margin-bottom:4px">Bio</label><textarea rows="3" style="width:100%;border:0.5px solid var(--border-light);border-radius:8px;padding:9px 12px;font-size:14px;font-family:var(--font-body);outline:none;resize:vertical;color:var(--text-primary)">Exploring the intersection of product thinking and AI-assisted coding. Previously at Google. Building in public.</textarea></div>
+          <div><label style="font-size:13px;font-weight:500;display:block;margin-bottom:4px">LinkedIn URL</label><input value="https://linkedin.com/in/ameyag" style="width:100%;border:0.5px solid var(--border-light);border-radius:8px;padding:9px 12px;font-size:13px;font-family:var(--font-mono);outline:none;color:var(--text-primary)"></div>
+          <button class="btn-primary" style="width:fit-content;margin-top:8px">Save changes</button>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- =============== REDESIGNED: UNIFIED ADD PROJECT MODAL =============== -->
+<div class="uflow-overlay" id="uflow" onclick="if(event.target===this)closeUnifiedFlow()">
+  <div class="uflow-modal" onclick="event.stopPropagation()">
+    <!-- Header -->
+    <div class="uflow-header">
+      <div class="uflow-title" id="uflow-title">Add project</div>
+      <button class="uflow-close" onclick="closeUnifiedFlow()"><svg viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+    </div>
+    <!-- Progress -->
+    <div class="uflow-phase">
+      <div class="uflow-phase-text" id="uflow-phase-text">Choose a source</div>
+      <div class="uflow-phase-bar"><div class="uflow-phase-fill" id="uflow-phase-fill" style="width:33%"></div></div>
+    </div>
+
+    <!-- PHASE 1: Source Picker -->
+    <div id="uflow-p1">
+      <div class="uflow-source-grid">
+        <div class="uflow-source" onclick="selectSource('vercel')" id="src-vercel">
+          <div class="uflow-source-badge source-connected">Connected</div>
+          <div class="uflow-source-icon" style="background:var(--navy)"><svg viewBox="0 0 16 16" fill="var(--white)" width="18" height="18"><path d="M8 1l7 12.1H1L8 1z"/></svg></div>
+          <div class="uflow-source-name">Vercel</div>
+          <div class="uflow-source-desc">Import a deployment with auto-verification</div>
+        </div>
+        <div class="uflow-source" onclick="selectSource('lovable')" id="src-lovable">
+          <div class="uflow-source-badge source-auto">Auto-detect</div>
+          <div class="uflow-source-icon" style="background:var(--purple)"><svg viewBox="0 0 16 16" fill="var(--white)" width="18" height="18"><circle cx="8" cy="8" r="5.5" fill="none" stroke="var(--white)" stroke-width="1.5"/><circle cx="8" cy="8" r="2" fill="var(--white)"/></svg></div>
+          <div class="uflow-source-name">Lovable</div>
+          <div class="uflow-source-desc">Detected from your GitHub repos</div>
+        </div>
+        <div class="uflow-source" onclick="selectSource('manual')" id="src-manual">
+          <div class="uflow-source-icon" style="background:var(--surface-light);border:0.5px solid var(--border-light)"><svg viewBox="0 0 16 16" fill="none" stroke="var(--text-secondary)" stroke-width="1.5" width="18" height="18"><path d="M8 3v10M3 8h10"/></svg></div>
+          <div class="uflow-source-name">Manual</div>
+          <div class="uflow-source-desc">Paste any URL and fill in details</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 2: Import List (Vercel) -->
+    <div class="uflow-import" id="uflow-p2-vercel">
+      <div class="uflow-import-header">
+        <button class="uflow-import-back" onclick="ufGoToPhase(1)"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 3L5 8l5 5"/></svg> All sources</button>
+        <div class="uflow-import-label">Connected as <strong style="color:var(--text-primary);font-weight:500">ameyashanbhag-5241</strong></div>
+      </div>
+      <div class="uflow-import-label" style="margin-bottom:10px"><span class="cnt">4</span> AVAILABLE TO IMPORT</div>
+
+      <div class="uflow-icard" onclick="selectImportCard(this, 0)">
+        <div class="uflow-icard-main">
+          <div class="uflow-icard-icon" style="background:var(--navy)"><svg viewBox="0 0 16 16" fill="var(--white)" width="16" height="16"><path d="M8 2l6 10.3H2L8 2z"/></svg></div>
+          <div class="uflow-icard-info">
+            <div class="uflow-icard-name">git-pm</div>
+            <div class="uflow-icard-meta"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 14l3.5-3.5M5.5 10.5L14 2M14 2h-4M14 2v4"/></svg> www.gitpm.dev &middot; Ameyashan/GitPM</div>
+          </div>
+          <div class="uflow-icard-action"><div class="icard-radio"></div></div>
+        </div>
+        <div class="uflow-icard-preview">
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">We'll auto-fill:</div>
+          <div class="uflow-preview-row">
+            <span class="uflow-preview-chip uflow-preview-filled"><svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> URL &amp; hosting</span>
+            <span class="uflow-preview-chip uflow-preview-filled"><svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> 87 commits</span>
+            <span class="uflow-preview-chip uflow-preview-filled"><svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Tech stack</span>
+            <span class="uflow-preview-chip uflow-preview-filled"><svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Verified badge</span>
+            <span class="uflow-preview-chip uflow-preview-pending">You add: PM context</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="uflow-icard" onclick="selectImportCard(this, 1)">
+        <div class="uflow-icard-main">
+          <div class="uflow-icard-icon" style="background:var(--navy)"><svg viewBox="0 0 16 16" fill="var(--white)" width="16" height="16"><path d="M8 2l6 10.3H2L8 2z"/></svg></div>
+          <div class="uflow-icard-info">
+            <div class="uflow-icard-name">kubera-3ffr</div>
+            <div class="uflow-icard-meta"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 14l3.5-3.5M5.5 10.5L14 2M14 2h-4M14 2v4"/></svg> kubera-3ffr.vercel.app &middot; Ameyashan/Kubera</div>
+          </div>
+          <div class="uflow-icard-action"><div class="icard-radio"></div></div>
+        </div>
+        <div class="uflow-icard-preview">
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">We'll auto-fill:</div>
+          <div class="uflow-preview-row">
+            <span class="uflow-preview-chip uflow-preview-filled"><svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> URL &amp; hosting</span>
+            <span class="uflow-preview-chip uflow-preview-filled"><svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> 42 commits</span>
+            <span class="uflow-preview-chip uflow-preview-filled"><svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Verified badge</span>
+            <span class="uflow-preview-chip uflow-preview-pending">You add: PM context</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="uflow-icard" onclick="selectImportCard(this, 2)">
+        <div class="uflow-icard-main">
+          <div class="uflow-icard-icon" style="background:var(--navy)"><svg viewBox="0 0 16 16" fill="var(--white)" width="16" height="16"><path d="M8 2l6 10.3H2L8 2z"/></svg></div>
+          <div class="uflow-icard-info">
+            <div class="uflow-icard-name">stock-gram-y1h4</div>
+            <div class="uflow-icard-meta"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 14l3.5-3.5M5.5 10.5L14 2M14 2h-4M14 2v4"/></svg> www.stockstoryai.com &middot; Ameyashan/StockGram</div>
+          </div>
+          <div class="uflow-icard-action"><div class="icard-radio"></div></div>
+        </div>
+        <div class="uflow-icard-preview">
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">We'll auto-fill:</div>
+          <div class="uflow-preview-row">
+            <span class="uflow-preview-chip uflow-preview-filled"><svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> URL &amp; hosting</span>
+            <span class="uflow-preview-chip uflow-preview-filled"><svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Verified badge</span>
+            <span class="uflow-preview-chip uflow-preview-pending">You add: PM context</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="uflow-icard uflow-icard-ingitpm">
+        <div class="uflow-icard-main">
+          <div class="uflow-icard-icon" style="background:var(--surface-light)"><svg viewBox="0 0 16 16" fill="var(--text-muted)" width="16" height="16"><path d="M8 2l6 10.3H2L8 2z"/></svg></div>
+          <div class="uflow-icard-info">
+            <div class="uflow-icard-name">mydigest-web <span style="font-size:10px;padding:2px 6px;border-radius:3px;background:var(--teal-bg);color:var(--teal);font-weight:500;margin-left:4px">Already in GitPM</span></div>
+            <div class="uflow-icard-meta"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 14l3.5-3.5M5.5 10.5L14 2M14 2h-4M14 2v4"/></svg> www.mydigest.fyi</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 2: Import List (Lovable) -->
+    <div class="uflow-import" id="uflow-p2-lovable">
+      <div class="uflow-import-header">
+        <button class="uflow-import-back" onclick="ufGoToPhase(1)"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 3L5 8l5 5"/></svg> All sources</button>
+        <div class="uflow-import-label">Scanning repos for <strong style="color:var(--text-primary);font-weight:500">@Ameyashan</strong></div>
+      </div>
+      <div class="lovable-detect">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="5.5"/><circle cx="8" cy="8" r="2" fill="currentColor"/></svg>
+        Auto-detected 1 Lovable repo from your 23 GitHub repositories
+      </div>
+      <div class="uflow-icard" onclick="selectImportCard(this, 0)" style="border-color:var(--purple)">
+        <div class="uflow-icard-main">
+          <div class="uflow-icard-icon" style="background:var(--purple)"><svg viewBox="0 0 16 16" fill="var(--white)" width="16" height="16"><circle cx="8" cy="8" r="5.5" fill="none" stroke="var(--white)" stroke-width="1.5"/><circle cx="8" cy="8" r="2" fill="var(--white)"/></svg></div>
+          <div class="uflow-icard-info">
+            <div class="uflow-icard-name">peer-connect-hub-37 <span style="font-size:10px;padding:2px 6px;border-radius:3px;background:var(--surface-light);color:var(--text-muted);border:0.5px solid var(--border-light)">Private</span></div>
+            <div class="uflow-icard-meta">Ameyashan/peer-connect-hub-37 &middot; Vite + React</div>
+          </div>
+          <div class="uflow-icard-action"><div class="icard-radio"></div></div>
+        </div>
+        <div class="uflow-icard-preview">
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">We'll auto-fill:</div>
+          <div class="uflow-preview-row">
+            <span class="uflow-preview-chip uflow-preview-filled"><svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Tech stack</span>
+            <span class="uflow-preview-chip uflow-preview-filled"><svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Hosting</span>
+            <span class="uflow-preview-chip uflow-preview-filled"><svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Commits</span>
+            <span class="uflow-preview-chip uflow-preview-filled"><svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Verified badge</span>
+            <span class="uflow-preview-chip uflow-preview-pending">You add: PM context</span>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;padding:12px 0;font-size:12px;color:var(--text-muted);cursor:pointer">Don't see your project? Browse all 29 other repos &rarr;</div>
+    </div>
+
+    <!-- PHASE 3: Single-page form (not stepped) -->
+    <div class="uflow-form" id="uflow-p3">
+      <!-- Section 1: Basics -->
+      <div class="uform-section">
+        <div class="uform-section-head">
+          <div class="uform-section-num" style="background:var(--purple-bg);color:var(--purple)">1</div>
+          <span class="uform-section-label">Basics</span>
+          <span id="af-basics"></span>
+        </div>
+        <div class="uform-section-body">
+          <div class="uf-label">Project name <span class="req">*</span></div>
+          <input class="uf-input" id="uf-name" placeholder="My Awesome Project">
+          <div class="uf-label">URL slug</div>
+          <div class="uf-slug-wrap"><span class="uf-slug-prefix">gitpm.dev/ameyag/</span><input class="uf-input uf-slug-input" id="uf-slug" placeholder="my-awesome-project"></div>
+          <div class="uf-label">Live URL <span class="req">*</span></div>
+          <input class="uf-input" id="uf-url" placeholder="https://myproject.vercel.app">
+          <div class="uf-label">Description <span class="opt">(optional)</span></div>
+          <textarea class="uf-input" placeholder="A one-line summary of what this project does." rows="2"></textarea>
+          <div class="uf-label">Categories <span class="opt">(optional)</span></div>
+          <div class="uf-chips" id="uf-cats"></div>
+        </div>
+      </div>
+      <!-- Section 2: Build Details -->
+      <div class="uform-section">
+        <div class="uform-section-head">
+          <div class="uform-section-num" style="background:var(--teal-bg);color:var(--teal)">2</div>
+          <span class="uform-section-label">Build details</span>
+          <span id="af-build"></span>
+        </div>
+        <div class="uform-section-body">
+          <div class="uf-label">Build tools <span class="req">*</span></div>
+          <div class="uf-chips" id="uf-tools"></div>
+          <div class="uf-label">Hosting platform</div>
+          <div class="uf-chips" id="uf-hosts"></div>
+          <div class="uf-label">GitHub repository <span class="opt">(optional)</span></div>
+          <input class="uf-input" id="uf-repo" placeholder="Search or paste a repo URL...">
+        </div>
+      </div>
+      <!-- Section 3: Product Context -->
+      <div class="uform-section">
+        <div class="uform-section-head">
+          <div class="uform-section-num" style="background:var(--forest-bg);color:var(--forest)">3</div>
+          <span class="uform-section-label">Product context</span>
+          <span style="font-size:10px;padding:2px 7px;border-radius:3px;background:#D976061a;color:#D97706;font-weight:500;margin-left:4px">What sets you apart</span>
+        </div>
+        <div class="uform-section-body">
+          <div class="uf-label">Problem statement <span class="req">*</span></div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;font-style:italic;opacity:0.7">What problem does this solve? Who has this problem?</div>
+          <textarea class="uf-input" placeholder="I noticed that PMs who build with AI tools had no way to showcase their work..." rows="3"></textarea>
+          <div class="uf-label">Target user <span class="opt">(optional)</span></div>
+          <textarea class="uf-input" placeholder="Product managers at B2B SaaS companies..." rows="2"></textarea>
+          <div class="uf-label">Key decisions <span class="opt">(optional)</span></div>
+          <textarea class="uf-input" placeholder="Chose Supabase over Firebase for its PostgreSQL foundation..." rows="2"></textarea>
+          <div class="uf-label">Learnings <span class="opt">(optional)</span></div>
+          <textarea class="uf-input" placeholder="What surprised you? What would you do differently?" rows="2"></textarea>
+        </div>
+      </div>
+      <!-- Section 4: Media -->
+      <div class="uform-section" style="margin-bottom:8px">
+        <div class="uform-section-head">
+          <div class="uform-section-num" style="background:var(--surface-light);color:var(--text-muted)">4</div>
+          <span class="uform-section-label">Media</span>
+        </div>
+        <div class="uform-section-body">
+          <div class="uf-label">Demo video <span class="opt">(Loom or YouTube)</span></div>
+          <input class="uf-input" placeholder="https://www.loom.com/share/... or https://youtu.be/...">
+          <div class="uf-label">Screenshots <span class="opt">(up to 6)</span></div>
+          <div class="uf-upload"><div style="color:var(--text-muted);margin-bottom:4px;opacity:0.4"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="15" cy="9" r="2"/></svg></div><div style="font-size:12px;color:var(--text-secondary)">Click to add screenshots</div><div style="font-size:10px;color:var(--text-muted);margin-top:2px;opacity:0.6">JPEG, PNG, WebP — max 5 MB</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="uflow-footer" id="uflow-footer">
+      <div><button class="uflow-back-btn" id="uf-back" onclick="ufGoBack()" style="display:none"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 3L5 8l5 5"/></svg> Back</button></div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="uflow-footer-info" id="uf-hint"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="12" height="12"><path d="M8 1v8M8 12v1"/></svg><span id="uf-hint-text">Pick a source to get started</span></span>
+        <button class="uflow-next-btn" id="uf-next" onclick="ufGoNext()" style="display:none">Continue <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3l5 5-5 5"/></svg></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Overlay -->
+<div class="overlay" id="overlay" onclick="if(event.target===this)closeDetail()"></div>
+
+<script>
+const projects = [
+  { name:"Metric Pulse",slug:"metric-pulse",verified:true,desc:"Lightweight analytics dashboard for indie makers. Pulls Stripe, Plausible, and GitHub data into one glanceable view.",url:"metricpulse.vercel.app",tools:["Cursor"],host:"Vercel",stack:["Next.js","Supabase","Tailwind"],cat:"SaaS tool",commits:87,days:18,users:142,score:82,hasVideo:true,solo:true,problem:"Indie makers juggle 4-5 dashboards daily just to understand how their product is doing. I wanted a single screen that pulls Stripe revenue, Plausible analytics, and GitHub stars into one glanceable view, so makers can spend time building instead of context-switching between tabs.",decisions:["Chose Supabase over Firebase for the backend because real-time subscriptions were simpler to set up for live-updating metric cards.","Scoped to three integrations only (Stripe, Plausible, GitHub) instead of building a generic connector, to ship faster and validate demand.","Made the dashboard read-only on purpose. The temptation was to add actions, but user interviews said: just see the numbers, not manage them."],target:"Solo founders and indie hackers running 1-3 products who want a single morning dashboard.",learnings:"Building the Stripe integration taught me more about webhook reliability than any documentation could. Also learned that users care far more about load speed than feature count for a dashboard." },
+  { name:"FeatureVote",slug:"featurevote",verified:true,desc:"Public feature request board where users upvote ideas. Built as a lightweight Canny alternative for early-stage startups.",url:"featurevote.vercel.app",tools:["Lovable"],host:"Vercel",stack:["React","Vite","Supabase"],cat:"SaaS tool",commits:42,days:9,users:68,score:74,hasVideo:true,solo:true,problem:"Early-stage founders need a way to collect and prioritize user feedback, but Canny and ProductBoard are overkill for a product with 50 users. I built a dead-simple public board.",decisions:["Started in Lovable to get the UI right quickly, then moved to Vercel for hosting.","Chose anonymous voting over authenticated to reduce friction.","Used Supabase RLS policies for per-startup isolation without multi-tenant complexity."],target:"Early-stage SaaS founders with under 500 users.",learnings:"Lovable got me to a working prototype in 3 hours. The remaining 6 days were spent on edge cases." },
+  { name:"ShipLog",slug:"shiplog",verified:true,desc:"Changelog and release notes generator that auto-drafts updates from GitHub commits using AI summarization.",url:"shiplog.vercel.app",tools:["Cursor"],host:"Vercel",stack:["Next.js","OpenAI","Tailwind"],cat:"Dev tool",commits:104,days:24,users:91,score:88,hasVideo:true,solo:true,problem:"Nobody writes changelogs. Teams ship features and forget to tell users. I wanted a tool that reads your recent GitHub commits and drafts a user-facing changelog entry automatically.",decisions:["Used OpenAI API to summarize commit messages into human-readable release notes.","Added a manual edit step before publishing so PMs can refine the AI draft.","Built a public changelog page that teams can embed on their site."],target:"Small engineering teams (2-10 devs) who ship frequently but never communicate changes.",learnings:"The hardest part was figuring out which commits are user-facing vs. internal refactoring. Used conventional commit prefixes as a heuristic." },
+  { name:"PricingLab",slug:"pricinglab",verified:true,desc:"Interactive pricing page generator for SaaS founders. Input your tiers, get a deployable pricing page with toggle and A/B hooks.",url:"pricinglab.vercel.app",tools:["Cursor","v0"],host:"Vercel",stack:["Next.js","Tailwind"],cat:"Marketing tool",commits:56,days:12,users:34,score:76,hasVideo:false,solo:true,problem:"Every SaaS needs a pricing page but they all look the same. I wanted a tool where founders input their pricing tiers and get a polished, deployable page.",decisions:["Used v0 to generate the initial pricing components, then brought them into Cursor.","Added Plausible-compatible event tracking for A/B testing.","Kept it free. Monetization plan is a premium tier with custom branding."],target:"SaaS founders in the first year who need a professional pricing page.",learnings:"v0 is excellent for generating UI components but struggles with interactive logic. The hybrid v0 + Cursor workflow was the sweet spot." },
+  { name:"CompStack",slug:"compstack",verified:true,desc:"Competitor analysis tool that scrapes public data and generates side-by-side feature comparison matrices.",url:"compstack.vercel.app",tools:["Cursor"],host:"Vercel",stack:["Svelte","Supabase"],cat:"Research tool",commits:38,days:8,users:52,score:61,hasVideo:true,solo:true,problem:"PM teams spend hours building competitive analysis spreadsheets that go stale immediately. I wanted a living comparison matrix.",decisions:["Chose Svelte over React to learn a new framework.","Scraping is limited to publicly available data only.","Built shareable comparison links for strategy docs."],target:"Product managers at B2B SaaS companies who maintain competitive intelligence.",learnings:"Web scraping is fragile. Every competitor site has different HTML structure. Ended up building a semi-manual tagging system." },
+  { name:"PMReads",slug:"pmreads",verified:false,desc:"Curated reading list app for PMs. Save articles, tag by topic, and get weekly email digests of the best PM content.",url:"pmreads.lovable.app",tools:["Lovable"],host:"Lovable",stack:["React","Vite"],cat:"Content tool",commits:20,days:5,users:25,score:38,hasVideo:false,solo:true,problem:"Good PM content is scattered across dozens of Substacks, blogs, and Twitter threads. I wanted a personal reading list with weekly digests.",decisions:["Built entirely in Lovable to test what a non-technical PM could ship in under a week.","Used Lovable built-in auth and database.","Weekly digest is a simple cron job, no recommendation algorithm."],target:"Product managers who read PM content regularly.",learnings:"Lovable is amazing for CRUD apps but you hit walls the moment you need custom logic like email integration." }
+];
+
+const meshColors = [['--teal','--purple'],['--purple','--teal'],['--forest','--purple'],['--teal','--forest'],['--purple','--teal'],['--forest','--teal']];
+
+function renderCards() {
+  document.getElementById('project-grid').innerHTML = projects.map((p,i) => `
+    <div class="pcard ${!p.hasVideo?'no-video':''}" onclick="openDetail(${i})">
+      <div class="pcard-hero">
+        <div class="pcard-hero-mesh"><div class="m1" style="background:var(${meshColors[i][0]})"></div><div class="m2" style="background:var(${meshColors[i][1]})"></div><div class="m3"></div></div>
+        <div class="pcard-wireframe"><div></div><div style="display:grid;grid-template-rows:1fr 2fr;gap:3px"><div></div><div></div></div></div>
+        <div class="play-btn"><div class="play-arrow"></div></div>
+      </div>
+      <div class="pcard-body">
+        <div class="pcard-title-row">
+          <span class="pcard-title">${p.name}</span>
+          ${p.verified?'<span class="verified-inline"><svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Verified</span>':''}
+        </div>
+        <div class="pcard-desc">${p.desc}</div>
+        <div class="pcard-pills">
+          ${p.tools.map(t=>`<span class="pill pill-tool">${t}</span>`).join('')}
+          <span class="pill pill-host">${p.host}</span>
+          ${p.stack.slice(0,2).map(s=>`<span class="pill pill-stack">${s}</span>`).join('')}
+          ${p.stack.length>2?`<span class="pill pill-cat">+${p.stack.length-2}</span>`:''}
+        </div>
+        <div class="pcard-meta">
+          <span>${p.commits} commits</span><span>${p.days}d</span><span>${p.users} users</span>
+          <div class="pcard-conf"><div class="meta-dot ${p.score>=70?'dot-high':p.score>=50?'dot-med':'dot-low'}"></div>${p.score}</div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function renderDashProjects() {
+  document.getElementById('dash-project-list').innerHTML = projects.map((p,i) => {
+    const published = i < 5;
+    return `
+    <div class="dpl-item" style="cursor:pointer" onclick="showPage('profile');setTimeout(()=>openDetail(${i}),100)">
+      <div class="dpl-thumb"><div class="t1" style="background:var(${meshColors[i][0]})"></div><div class="t2" style="background:var(${meshColors[i][1]})"></div></div>
+      <div class="dpl-info">
+        <div class="dpl-name">${p.name} ${p.verified?'<span class="verified-inline" style="margin-left:4px"><svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>':''}</div>
+        <div class="dpl-meta">${p.commits} commits &middot; ${p.days}d build &middot; ${p.users} users &middot; <span style="font-family:var(--font-mono);color:var(--text-muted)">${p.url}</span></div>
+      </div>
+      <div style="display:flex;gap:4px;flex-wrap:nowrap;flex-shrink:0">
+        ${p.tools.map(t=>'<span class="pill pill-tool" style="font-size:10px;padding:2px 7px">'+t+'</span>').join('')}
+        <span class="pill pill-host" style="font-size:10px;padding:2px 7px">${p.host}</span>
+      </div>
+      <span class="dpl-status ${published?'dpl-published':'dpl-draft'}">${published?'Published':'Draft'}</span>
+      <div class="dpl-actions" onclick="event.stopPropagation()"><button>Edit</button></div>
+    </div>`;
+  }).join('');
+}
+
+function renderHeatmap() {
+  const levels = [0,1,2,0,0,3,1,0,2,4,1,0,0,0,1,2,0,4,2,1,0,3,0,1,3,0,1,0,2,1,0,0,1,0,4,2,1,0,0,3,1,0,2,0,3,1,0,0,0,2,4,1,0,0,1,3,0,2,0,1,2,0,0,1,0,2,0,1,3,0,2,3,1,0,1,0,3,2,0,1,0,0,4,1];
+  document.getElementById('heatmap').innerHTML = levels.map(l=>`<div class="hday h${l}"></div>`).join('');
+}
+
+function openDetail(i) {
+  const p = projects[i];
+  const bars = Array.from({length:24},(_,x)=> Math.max(2, Math.round(12*Math.sin(x*0.4+i)+Math.random()*6)));
+  const scoreColor = p.score >= 70 ? 'var(--teal)' : p.score >= 50 ? '#EF9F27' : 'var(--text-muted)';
+  const scoreLabel = p.score >= 70 ? 'High confidence' : p.score >= 50 ? 'Medium confidence' : 'Low confidence';
+  const ov = document.getElementById('overlay');
+  ov.innerHTML = `<div class="detail-card">
+    <button class="detail-close" onclick="closeDetail()"><svg viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+    <div class="detail-hero">
+      <div class="pcard-hero-mesh" style="opacity:0.15"><div class="m1" style="background:var(${meshColors[i][0]})"></div><div class="m2" style="background:var(${meshColors[i][1]})"></div><div class="m3" style="background:var(--forest)"></div></div>
+      <div class="pcard-wireframe" style="width:60%;height:160px"><div></div><div style="display:grid;grid-template-rows:1fr 1fr 2fr;gap:3px"><div></div><div></div><div></div></div></div>
+      ${p.hasVideo?'<div class="play-btn"><div class="play-arrow"></div></div>':''}
+    </div>
+    <div class="detail-body">
+      <div class="detail-title-row">
+        <span class="detail-title">${p.name}</span>
+        ${p.verified?'<span class="verified-badge"><svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Verified owner</span>':'<span style="font-size:12px;padding:5px 12px;border-radius:6px;background:var(--surface-light);color:var(--text-muted);font-weight:500">Unverified</span>'}
+      </div>
+      <div class="detail-desc">${p.desc}</div>
+      <a class="detail-url" onclick="event.preventDefault()"><svg viewBox="0 0 16 16" fill="none"><path d="M4 12L12 4M12 4H6M12 4V10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>${p.url}</a>
+      <div class="detail-pills">
+        ${p.tools.map(t=>'<span class="pill pill-tool">'+t+'</span>').join('')}
+        <span class="pill pill-host">${p.host}</span>
+        ${p.stack.map(s=>'<span class="pill pill-stack">'+s+'</span>').join('')}
+        <span class="pill pill-cat">${p.cat}</span>
+      </div>
+
+      <!-- Enhanced metrics section -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+        <div style="background:var(--surface-light);border-radius:var(--radius);padding:16px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+            <div>
+              <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;font-weight:500">Build activity</div>
+              <div style="font-size:22px;font-weight:500;margin-top:4px">${p.commits} <span style="font-size:13px;color:var(--text-muted);font-weight:400">commits</span></div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:13px;font-weight:500">${p.days} days</div>
+              <div style="font-size:11px;color:var(--text-muted)">build time</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:2px;align-items:flex-end;height:32px">
+            ${bars.map(h=>'<div style="flex:1;height:'+h+'px;background:var(--teal);opacity:0.6;border-radius:1px"></div>').join('')}
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div style="background:var(--surface-light);border-radius:var(--radius);padding:14px;text-align:center">
+            <div style="font-size:20px;font-weight:500">${p.solo?'Solo':'Team'}</div>
+            <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;margin-top:2px">Builder</div>
+          </div>
+          <div style="background:var(--surface-light);border-radius:var(--radius);padding:14px;text-align:center">
+            <div style="font-size:20px;font-weight:500">${p.users}</div>
+            <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;margin-top:2px">Users</div>
+          </div>
+          <div style="background:var(--surface-light);border-radius:var(--radius);padding:14px;text-align:center;grid-column:span 2">
+            <div style="display:flex;align-items:center;gap:10px;justify-content:center">
+              <div style="font-size:28px;font-weight:500;color:${scoreColor};font-family:var(--font-mono)">${p.score}</div>
+              <div style="text-align:left"><div style="font-size:12px;font-weight:500">${scoreLabel}</div><div style="font-size:11px;color:var(--text-muted)">Build score</div></div>
+            </div>
+            <div style="height:4px;background:var(--border-light);border-radius:2px;margin-top:8px;overflow:hidden"><div style="height:100%;width:${p.score}%;background:${scoreColor};border-radius:2px"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="detail-divider">
+      <div class="section-label">Problem</div>
+      <div class="detail-prose">${p.problem}</div>
+      <div class="section-label">Key decisions</div>
+      ${p.decisions.map(d=>'<div class="decision-item">'+d+'</div>').join('')}
+      <div style="margin-top:20px"></div>
+      <div class="section-label">Target user</div>
+      <div class="detail-prose">${p.target}</div>
+      <div class="section-label">What I learned</div>
+      <div class="detail-prose">${p.learnings}</div>
+      <div class="detail-ctas">
+        <button class="btn-primary" style="display:flex;align-items:center;gap:6px">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 14l3.5-3.5M5.5 10.5L14 2M14 2h-4M14 2v4"/></svg>
+          Visit live site
+        </button>
+        ${p.hasVideo?'<button class="btn-secondary" style="display:flex;align-items:center;gap:6px"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 3l9 5-9 5V3z" fill="currentColor"/></svg>Watch demo</button>':''}
+      </div>
+    </div>
+    <div class="detail-author">
+      <div class="author-avatar">AG</div>
+      <div><div class="author-name">Ameya Gupta</div><div class="author-role">Senior PM at Stripe &middot; 6 projects</div></div>
+      <div class="sparkline">${bars.slice(0,18).map(h=>'<div class="sbar" style="height:'+h+'px"></div>').join('')}</div>
+    </div>
+  </div>`;
+  ov.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDetail() {
+  document.getElementById('overlay').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+function showPage(id) {
+  closeDetail();
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function showDashTab(el, id) {
+  document.querySelectorAll('.dash-sidebar-item').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.dash-tab').forEach(t => t.style.display = 'none');
+  document.getElementById(id).style.display = 'block';
+}
+
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeDetail(); });
+
+// Flow pages
+// ===== UNIFIED ADD PROJECT FLOW =====
+let ufPhase = 1;
+let ufSource = null;
+let ufSelectedCard = null;
+
+function openUnifiedFlow() {
+  ufPhase = 1; ufSource = null; ufSelectedCard = null;
+  const overlay = document.getElementById('uflow');
+  overlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+  ufShowPhase(1);
+  renderFormChips();
+}
+
+function closeUnifiedFlow() {
+  document.getElementById('uflow').classList.remove('active');
+  document.body.style.overflow = '';
+  // Reset states
+  document.querySelectorAll('.uflow-source').forEach(s => s.classList.remove('selected'));
+  document.querySelectorAll('.uflow-icard').forEach(c => { c.classList.remove('selected'); });
+  document.querySelectorAll('.uflow-import').forEach(p => p.classList.remove('active'));
+  document.getElementById('uflow-p3').classList.remove('active');
+  document.getElementById('uflow-p1').style.display = '';
+}
+
+function ufShowPhase(phase) {
+  ufPhase = phase;
+  const fill = document.getElementById('uflow-phase-fill');
+  const phaseText = document.getElementById('uflow-phase-text');
+  const title = document.getElementById('uflow-title');
+  const backBtn = document.getElementById('uf-back');
+  const nextBtn = document.getElementById('uf-next');
+  const hint = document.getElementById('uf-hint');
+  const hintText = document.getElementById('uf-hint-text');
+
+  // Hide all phase content
+  document.getElementById('uflow-p1').style.display = 'none';
+  document.querySelectorAll('.uflow-import').forEach(p => p.classList.remove('active'));
+  document.getElementById('uflow-p3').classList.remove('active');
+
+  if (phase === 1) {
+    fill.style.width = '33%';
+    phaseText.textContent = 'Choose a source';
+    title.textContent = 'Add project';
+    document.getElementById('uflow-p1').style.display = '';
+    backBtn.style.display = 'none';
+    nextBtn.style.display = 'none';
+    hint.style.display = '';
+    hintText.textContent = 'Pick a source to get started';
+  } else if (phase === 2) {
+    fill.style.width = '66%';
+    phaseText.textContent = 'Select a project';
+    title.textContent = ufSource === 'vercel' ? 'Import from Vercel' : 'Import from Lovable';
+    document.getElementById('uflow-p2-' + ufSource).classList.add('active');
+    backBtn.style.display = '';
+    nextBtn.style.display = 'none';
+    hint.style.display = '';
+    hintText.textContent = 'Select a project to continue';
+  } else if (phase === 3) {
+    fill.style.width = '100%';
+    phaseText.textContent = 'Fill in details';
+    title.textContent = ufSource === 'manual' ? 'Add project details' : 'Complete your project';
+    document.getElementById('uflow-p3').classList.add('active');
+    backBtn.style.display = ufSource === 'manual' ? '' : '';
+    nextBtn.style.display = '';
+    nextBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Publish project';
+    nextBtn.classList.add('teal');
+    hint.style.display = 'none';
+    // Apply autofill indicators if importing
+    if (ufSource !== 'manual') applyAutofill();
+  }
+}
+
+function selectSource(source) {
+  ufSource = source;
+  document.querySelectorAll('.uflow-source').forEach(s => s.classList.remove('selected'));
+  document.getElementById('src-' + source).classList.add('selected');
+
+  if (source === 'manual') {
+    // Skip phase 2, go straight to form
+    setTimeout(() => ufShowPhase(3), 200);
+  } else {
+    setTimeout(() => ufShowPhase(2), 200);
+  }
+}
+
+function ufGoToPhase(phase) {
+  ufShowPhase(phase);
+}
+
+function selectImportCard(el, idx) {
+  if (el.classList.contains('uflow-icard-ingitpm')) return;
+  const parent = el.parentElement;
+  parent.querySelectorAll('.uflow-icard').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  ufSelectedCard = idx;
+
+  // Update radio visuals
+  parent.querySelectorAll('.icard-radio').forEach(r => {
+    r.innerHTML = '';
+    r.style.borderColor = 'var(--border)';
+    r.style.background = 'transparent';
+  });
+  const radio = el.querySelector('.icard-radio');
+  if (radio) {
+    radio.innerHTML = '<svg viewBox="0 0 16 16" fill="var(--white)" width="10" height="10"><circle cx="8" cy="8" r="4"/></svg>';
+    radio.style.borderColor = 'var(--purple)';
+    radio.style.background = 'var(--purple)';
+  }
+
+  // Show continue button
+  const nextBtn = document.getElementById('uf-next');
+  nextBtn.style.display = '';
+  nextBtn.innerHTML = 'Continue <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3l5 5-5 5"/></svg>';
+  nextBtn.classList.remove('teal');
+  document.getElementById('uf-hint').style.display = 'none';
+}
+
+function applyAutofill() {
+  // Simulate autofill for imported projects
+  const nameInput = document.getElementById('uf-name');
+  const urlInput = document.getElementById('uf-url');
+  const slugInput = document.getElementById('uf-slug');
+
+  if (ufSource === 'vercel' && ufSelectedCard === 0) {
+    nameInput.value = 'GitPM'; urlInput.value = 'https://www.gitpm.dev'; slugInput.value = 'gitpm';
+    nameInput.classList.add('autofilled'); urlInput.classList.add('autofilled');
+  } else if (ufSource === 'vercel' && ufSelectedCard === 1) {
+    nameInput.value = 'Kubera'; urlInput.value = 'https://kubera-3ffr.vercel.app'; slugInput.value = 'kubera';
+    nameInput.classList.add('autofilled'); urlInput.classList.add('autofilled');
+  } else if (ufSource === 'vercel' && ufSelectedCard === 2) {
+    nameInput.value = 'StockGram'; urlInput.value = 'https://www.stockstoryai.com'; slugInput.value = 'stockgram';
+    nameInput.classList.add('autofilled'); urlInput.classList.add('autofilled');
+  } else if (ufSource === 'lovable') {
+    nameInput.value = 'Peer Connect Hub'; urlInput.value = 'https://peer-connect-hub-37.lovable.app'; slugInput.value = 'peer-connect-hub';
+    nameInput.classList.add('autofilled'); urlInput.classList.add('autofilled');
+  }
+
+  // Show autofill badge on sections
+  document.getElementById('af-basics').innerHTML = '<span class="uform-autofill"><svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Auto-filled</span>';
+  document.getElementById('af-build').innerHTML = '<span class="uform-autofill"><svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Auto-filled</span>';
+}
+
+function ufGoBack() {
+  if (ufPhase === 3 && ufSource === 'manual') {
+    ufShowPhase(1);
+  } else if (ufPhase === 3) {
+    ufShowPhase(2);
+  } else if (ufPhase === 2) {
+    ufShowPhase(1);
+  }
+}
+
+function ufGoNext() {
+  if (ufPhase === 2) {
+    ufShowPhase(3);
+  } else if (ufPhase === 3) {
+    // "Publish" — close modal and go to dashboard
+    closeUnifiedFlow();
+    showPage('dashboard');
+  }
+}
+
+function renderFormChips() {
+  const cats = ['saas','dashboard','landing-page','mobile','api','tool','e-commerce','ai','productivity','social','data','other'];
+  const tools = ['Cursor','Lovable','V0','Bolt','Replit','Claude Code','Windsurf'];
+  const hosts = ['Vercel','Lovable','Github Pages','Netlify','Other'];
+  const el = (id) => document.getElementById(id);
+  if (el('uf-cats')) el('uf-cats').innerHTML = cats.map(c => `<button class="uf-chip" onclick="this.classList.toggle('sel-purple')">${c}</button>`).join('');
+  if (el('uf-tools')) el('uf-tools').innerHTML = tools.map(t => `<button class="uf-chip" onclick="this.classList.toggle('sel-purple')">${t}</button>`).join('');
+  if (el('uf-hosts')) el('uf-hosts').innerHTML = hosts.map(h => `<button class="uf-chip" onclick="this.classList.toggle('sel-teal')">${h}</button>`).join('');
+}
+
+renderCards();
+renderDashProjects();
+renderHeatmap();
+</script>
+</body>
+</html>

@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { Github, Linkedin, Globe } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Github, Linkedin } from "lucide-react";
 import type { User } from "@/types/project";
 
 interface ProfileHeaderProps {
@@ -17,65 +16,71 @@ function getInitials(name: string | null): string {
     .toUpperCase();
 }
 
-export function ProfileHeader({ user }: ProfileHeaderProps) {
-  return (
-    <div className="flex flex-col sm:flex-row sm:items-center gap-5">
-      <Avatar className="h-[72px] w-[72px] shrink-0 ring-2 ring-white/10">
-        <AvatarImage
-          src={user.avatar_url ?? undefined}
-          alt={user.display_name ?? user.username ?? "Avatar"}
-        />
-        <AvatarFallback className="bg-purple/20 text-purple text-xl font-display font-bold">
-          {getInitials(user.display_name ?? user.username)}
-        </AvatarFallback>
-      </Avatar>
+function formatUrl(url: string): string {
+  return url.replace(/^https?:\/\/(www\.)?/, "");
+}
 
-      <div className="flex flex-col gap-1.5">
-        <h1 className="text-[22px] font-display font-bold text-white leading-tight">
+export function ProfileHeader({ user }: ProfileHeaderProps) {
+  const initials = getInitials(user.display_name ?? user.username);
+  const hasSocials = user.github_username || user.linkedin_url;
+
+  return (
+    <div className="flex gap-5 items-start">
+      {/* Gradient initials circle */}
+      <div
+        className="w-16 h-16 shrink-0 rounded-full flex items-center justify-center text-white text-[22px] font-medium"
+        style={{
+          background: "linear-gradient(135deg, var(--purple) 0%, var(--teal) 100%)",
+          border: "1.5px solid rgba(255,255,255,0.1)",
+        }}
+      >
+        {initials}
+      </div>
+
+      {/* Info */}
+      <div className="flex-1 min-w-0">
+        <h1
+          className="text-2xl font-medium text-white"
+          style={{ letterSpacing: "-0.5px" }}
+        >
           {user.display_name ?? user.username}
         </h1>
 
         {user.headline && (
-          <p className="text-sm text-white/60 leading-snug max-w-md">
+          <p
+            className="text-sm font-light text-text-inverse-muted mt-1 max-w-[520px]"
+            style={{ lineHeight: 1.55 }}
+          >
             {user.headline}
           </p>
         )}
 
-        <div className="flex items-center gap-3 mt-0.5">
-          {user.github_username && (
-            <Link
-              href={`https://github.com/${user.github_username}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-white/40 hover:text-white transition-colors"
-              aria-label={`GitHub: ${user.github_username}`}
-            >
-              <Github className="h-4 w-4" />
-            </Link>
-          )}
-          {user.linkedin_url && (
-            <Link
-              href={user.linkedin_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-white/40 hover:text-white transition-colors"
-              aria-label="LinkedIn profile"
-            >
-              <Linkedin className="h-4 w-4" />
-            </Link>
-          )}
-          {user.website_url && (
-            <Link
-              href={user.website_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-white/40 hover:text-white transition-colors"
-              aria-label="Personal website"
-            >
-              <Globe className="h-4 w-4" />
-            </Link>
-          )}
-        </div>
+        {hasSocials && (
+          <div className="flex flex-wrap gap-4 mt-[14px]">
+            {user.github_username && (
+              <Link
+                href={`https://github.com/${user.github_username}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-[5px] text-[12px] font-mono text-text-inverse-muted hover:text-teal-light transition-colors"
+              >
+                <Github className="h-[14px] w-[14px] opacity-70 shrink-0" />
+                github.com/{user.github_username}
+              </Link>
+            )}
+            {user.linkedin_url && (
+              <Link
+                href={user.linkedin_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-[5px] text-[12px] font-mono text-text-inverse-muted hover:text-teal-light transition-colors"
+              >
+                <Linkedin className="h-[14px] w-[14px] opacity-70 shrink-0" />
+                {formatUrl(user.linkedin_url)}
+              </Link>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

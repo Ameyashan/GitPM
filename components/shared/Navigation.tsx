@@ -2,33 +2,23 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { buttonVariants } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  ExternalLink,
+  LogOut,
+  LayoutDashboard,
+  Menu,
+  FolderOpen,
+  Plug,
+  Settings,
+} from "lucide-react";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import {
-  Github,
-  LogOut,
-  LayoutDashboard,
-  User,
-  Menu,
-  FolderOpen,
-  Plug,
-  Settings,
-} from "lucide-react";
 import type { Tables } from "@/types/database";
 import { cn } from "@/lib/utils";
 
@@ -40,7 +30,7 @@ interface MobileNavItem {
 
 const MOBILE_NAV_ITEMS: MobileNavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Projects", href: "/dashboard/projects/new", icon: FolderOpen },
+  { label: "Projects", href: "/dashboard", icon: FolderOpen },
   { label: "Connections", href: "/dashboard/connections", icon: Plug },
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
@@ -123,149 +113,238 @@ export function Navigation() {
 
   return (
     <>
-    <nav className="border-b border-gitpm-border/50 bg-navy sticky top-0 z-50">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+      <nav
+        className="sticky top-0 z-[100] flex items-center justify-between"
+        style={{
+          background: "var(--navy)",
+          height: "52px",
+          padding: "0 40px",
+        }}
+      >
+        {/* Left: hamburger (mobile, authenticated only) + logo */}
         <div className="flex items-center gap-3">
-          {/* Mobile hamburger — only shown for authenticated dashboard users */}
           {navUser && (
             <button
-              className="md:hidden flex items-center justify-center h-8 w-8 rounded-md text-white/60 hover:text-white hover:bg-white/8 transition-colors"
+              className="md:hidden flex items-center justify-center h-8 w-8 rounded-md transition-colors"
+              style={{ color: "var(--text-inverse-muted)" }}
               aria-label="Open navigation menu"
               onClick={() => setMobileMenuOpen(true)}
             >
               <Menu className="h-5 w-5" />
             </button>
           )}
+
+          {/* Logo: gitpm.dev in JetBrains Mono, git=white pm=teal-light */}
           <Link
             href="/"
-            className="font-display font-bold text-white tracking-tight hover:text-white/80 transition-colors"
+            className="hover:opacity-80 transition-opacity"
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "14px",
+              fontWeight: 400,
+              letterSpacing: "-0.2px",
+              color: "var(--white)",
+              textDecoration: "none",
+            }}
           >
-            GitPM
+            git<span style={{ color: "var(--teal-light)" }}>pm</span>.dev
           </Link>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* Right: auth state */}
+        <div className="flex items-center gap-5">
           {loading ? (
-            <div className="h-8 w-8 rounded-full bg-white/10 animate-pulse" />
+            <div
+              className="h-6 w-16 rounded animate-pulse"
+              style={{ background: "rgba(255,255,255,0.08)" }}
+            />
           ) : navUser ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                className="flex items-center gap-2 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-purple/60"
-                aria-label="User menu"
-              >
-                {navUser.profile?.avatar_url ? (
-                  <Image
-                    src={navUser.profile.avatar_url}
-                    alt={navUser.profile.display_name ?? "Avatar"}
-                    width={32}
-                    height={32}
-                    className="rounded-full ring-1 ring-white/20"
-                  />
-                ) : (
-                  <div className="h-8 w-8 rounded-full bg-purple/30 flex items-center justify-center">
-                    <User className="h-4 w-4 text-purple" />
-                  </div>
-                )}
-                <span className="text-sm text-white/80 hidden sm:block">
-                  {navUser.profile?.username ?? navUser.email}
-                </span>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="end"
-                className="w-52 bg-surface-dark border-gitpm-border/50"
-              >
-                <div className="px-2 py-1.5">
-                  <p className="text-xs font-medium text-white truncate">
-                    {navUser.profile?.display_name ?? navUser.email}
-                  </p>
-                  {navUser.profile?.username && (
-                    <p className="text-xs text-white/40 truncate">
-                      @{navUser.profile.username}
-                    </p>
-                  )}
-                </div>
-                <DropdownMenuSeparator className="bg-gitpm-border/30" />
-                <DropdownMenuItem
-                  className="flex items-center gap-2 text-white/80 hover:text-white cursor-pointer"
-                  onClick={() => router.push("/dashboard")}
+            /* ── Authenticated dashboard state ── */
+            <>
+              {navUser.profile?.username && (
+                <Link
+                  href={`/${navUser.profile.username}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hidden sm:flex items-center gap-1.5 transition-colors"
+                  style={{
+                    fontSize: "13px",
+                    color: "var(--text-inverse-muted)",
+                  }}
+                  onMouseEnter={(e) =>
+                    ((e.currentTarget as HTMLElement).style.color =
+                      "var(--white)")
+                  }
+                  onMouseLeave={(e) =>
+                    ((e.currentTarget as HTMLElement).style.color =
+                      "var(--text-inverse-muted)")
+                  }
                 >
-                  <LayoutDashboard className="h-4 w-4" />
-                  Dashboard
-                </DropdownMenuItem>
-                {navUser.profile?.username && (
-                  <DropdownMenuItem
-                    className="flex items-center gap-2 text-white/80 hover:text-white cursor-pointer"
-                    onClick={() =>
-                      router.push(`/${navUser.profile!.username}`)
-                    }
-                  >
-                    <User className="h-4 w-4" />
-                    Public Profile
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuSeparator className="bg-gitpm-border/30" />
-                <DropdownMenuItem
-                  onClick={handleSignOut}
-                  className="flex items-center gap-2 text-white/60 hover:text-white cursor-pointer"
-                >
-                  <LogOut className="h-4 w-4" />
-                  Sign out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <button
-              onClick={handleSignIn}
-              className={cn(
-                buttonVariants({ size: "sm" }),
-                "bg-white text-navy hover:bg-white/90 font-medium gap-2"
+                  View public profile
+                  <ExternalLink className="h-3 w-3" />
+                </Link>
               )}
-            >
-              <Github className="h-4 w-4" />
-              Sign in with GitHub
-            </button>
+
+              <button
+                onClick={handleSignOut}
+                className="transition-colors"
+                style={{
+                  background: "transparent",
+                  color: "var(--white)",
+                  border: "0.5px solid rgba(255,255,255,0.2)",
+                  borderRadius: "6px",
+                  fontSize: "12px",
+                  fontWeight: 500,
+                  padding: "5px 12px",
+                  cursor: "pointer",
+                  fontFamily: "var(--font-body)",
+                }}
+                onMouseEnter={(e) =>
+                  ((e.currentTarget as HTMLElement).style.borderColor =
+                    "rgba(255,255,255,0.5)")
+                }
+                onMouseLeave={(e) =>
+                  ((e.currentTarget as HTMLElement).style.borderColor =
+                    "rgba(255,255,255,0.2)")
+                }
+              >
+                Sign out
+              </button>
+            </>
+          ) : (
+            /* ── Unauthenticated landing state ── */
+            <>
+              <Link
+                href="#example"
+                className="hidden sm:block transition-colors"
+                style={{
+                  fontSize: "13px",
+                  color: "var(--text-inverse-muted)",
+                  textDecoration: "none",
+                }}
+                onMouseEnter={(e) =>
+                  ((e.currentTarget as HTMLElement).style.color = "var(--white)")
+                }
+                onMouseLeave={(e) =>
+                  ((e.currentTarget as HTMLElement).style.color =
+                    "var(--text-inverse-muted)")
+                }
+              >
+                Example profile
+              </Link>
+
+              <button
+                onClick={handleSignIn}
+                style={{
+                  background: "var(--white)",
+                  color: "var(--navy)",
+                  border: "none",
+                  borderRadius: "6px",
+                  fontSize: "12px",
+                  fontWeight: 500,
+                  padding: "6px 14px",
+                  cursor: "pointer",
+                  fontFamily: "var(--font-body)",
+                  transition: "opacity 0.15s",
+                }}
+                onMouseEnter={(e) =>
+                  ((e.currentTarget as HTMLElement).style.opacity = "0.9")
+                }
+                onMouseLeave={(e) =>
+                  ((e.currentTarget as HTMLElement).style.opacity = "1")
+                }
+              >
+                Sign in with GitHub
+              </button>
+            </>
           )}
         </div>
-      </div>
-    </nav>
+      </nav>
 
-    {/* Mobile navigation drawer — only rendered when authenticated */}
-    {navUser && (
-      <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-        <SheetContent
-          side="left"
-          className="w-64 bg-navy border-gitpm-border/20 p-0"
-        >
-          <SheetHeader className="px-4 py-5 border-b border-gitpm-border/20">
-            <SheetTitle className="font-display font-bold text-white text-left">
-              GitPM
-            </SheetTitle>
-          </SheetHeader>
-          <nav className="flex flex-col gap-0.5 px-3 py-4">
-            {MOBILE_NAV_ITEMS.map((item) => {
-              const Icon = item.icon;
-              const active = isMobileNavActive(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={cn(
-                    "flex items-center gap-2.5 rounded-md px-3 py-2.5 text-sm transition-colors",
-                    active
-                      ? "bg-white/8 text-white font-medium"
-                      : "text-white/50 hover:text-white/80 hover:bg-white/5"
-                  )}
-                >
-                  <Icon className="h-4 w-4 shrink-0" />
-                  {item.label}
-                </Link>
-              );
-            })}
-          </nav>
-        </SheetContent>
-      </Sheet>
-    )}
+      {/* Mobile navigation drawer — authenticated only */}
+      {navUser && (
+        <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+          <SheetContent
+            side="left"
+            className="w-64 p-0"
+            style={{
+              background: "var(--navy)",
+              borderRight: "0.5px solid rgba(255,255,255,0.08)",
+            }}
+          >
+            <SheetHeader
+              className="px-4 py-5"
+              style={{ borderBottom: "0.5px solid rgba(255,255,255,0.08)" }}
+            >
+              <SheetTitle
+                className="text-left"
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "14px",
+                  fontWeight: 400,
+                  color: "var(--white)",
+                  letterSpacing: "-0.2px",
+                }}
+              >
+                git<span style={{ color: "var(--teal-light)" }}>pm</span>.dev
+              </SheetTitle>
+            </SheetHeader>
+
+            <nav className="flex flex-col gap-0.5 px-3 py-4">
+              {MOBILE_NAV_ITEMS.map((item) => {
+                const Icon = item.icon;
+                const active = isMobileNavActive(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={cn(
+                      "flex items-center gap-2.5 rounded-md px-3 py-2.5 text-sm transition-colors",
+                      active
+                        ? "font-medium"
+                        : ""
+                    )}
+                    style={{
+                      color: active
+                        ? "var(--white)"
+                        : "var(--text-inverse-muted)",
+                      background: active
+                        ? "rgba(255,255,255,0.08)"
+                        : "transparent",
+                    }}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </nav>
+
+            {/* Sign out in mobile drawer */}
+            <div className="px-3 pt-2" style={{ borderTop: "0.5px solid rgba(255,255,255,0.08)" }}>
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  handleSignOut();
+                }}
+                className="w-full flex items-center gap-2.5 rounded-md px-3 py-2.5 text-sm transition-colors"
+                style={{
+                  color: "var(--text-inverse-muted)",
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  fontFamily: "var(--font-body)",
+                  textAlign: "left",
+                }}
+              >
+                <LogOut className="h-4 w-4 shrink-0" />
+                Sign out
+              </button>
+            </div>
+          </SheetContent>
+        </Sheet>
+      )}
     </>
   );
 }

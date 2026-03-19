@@ -8,7 +8,7 @@ interface BadgePillProps {
 const VARIANT_CLASSES: Record<NonNullable<BadgePillProps["variant"]>, string> =
   {
     default:
-      "bg-surface-dark text-white/70 border border-gitpm-border/50",
+      "bg-dark-surface text-white/70 border border-gitpm-border/50",
     teal: "bg-teal/10 text-teal border border-teal/20",
     purple: "bg-purple/10 text-purple border border-purple/20",
     forest: "bg-forest/10 text-forest border border-forest/20",

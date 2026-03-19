@@ -1,194 +1,209 @@
-import {
-  CheckCircle,
-  Link2,
-  FileText,
-  ArrowRight,
-  ShieldCheck,
-} from "lucide-react";
 import { SignInButton } from "@/components/landing/SignInButton";
-import { BadgePill } from "@/components/shared/BadgePill";
 
 // ------------------------------------------------------------------
-// Static mock data — no DB calls, zero latency
+// Static mock data
 // ------------------------------------------------------------------
 
-interface MockProject {
+interface ExampleProfile {
+  initials: string;
+  gradientFrom: string;
+  gradientTo: string;
   name: string;
-  description: string;
-  buildTool: string;
-  hosting: string;
-  stack: string;
-  verified: boolean;
+  role: string;
+  projects: number;
   commits: number;
+  verified: number;
+  tools: string[];
+  toolVariant: "tool" | "stack";
 }
 
-interface MockProfile {
-  username: string;
-  displayName: string;
-  headline: string;
-  avatarInitials: string;
-  avatarColor: string;
-  projects: MockProject[];
-}
-
-const MOCK_PROFILES: MockProfile[] = [
+const EXAMPLE_PROFILES: ExampleProfile[] = [
   {
-    username: "alexchen",
-    displayName: "Alex Chen",
-    headline: "Senior PM at Stripe · Shipping with Cursor + v0",
-    avatarInitials: "AC",
-    avatarColor: "#6C5CE7",
-    projects: [
-      {
-        name: "InvoiceFlow",
-        description:
-          "Automated invoice reconciliation for finance teams. Reduced manual work by 80%.",
-        buildTool: "cursor",
-        hosting: "vercel",
-        stack: "Next.js",
-        verified: true,
-        commits: 142,
-      },
-      {
-        name: "MetricsBoard",
-        description:
-          "Real-time dashboard pulling from Stripe, Mixpanel, and Postgres in one view.",
-        buildTool: "v0",
-        hosting: "vercel",
-        stack: "React",
-        verified: true,
-        commits: 87,
-      },
-    ],
+    initials: "AG",
+    gradientFrom: "var(--purple)",
+    gradientTo: "var(--teal)",
+    name: "Ameya Gupta",
+    role: "Senior PM at Stripe",
+    projects: 6,
+    commits: 347,
+    verified: 5,
+    tools: ["Cursor", "Lovable", "Next.js"],
+    toolVariant: "tool",
   },
   {
-    username: "priyankam",
-    displayName: "Priyanka M.",
-    headline: "Product @ Notion · Building internal tools with Lovable",
-    avatarInitials: "PM",
-    avatarColor: "#0A7558",
-    projects: [
-      {
-        name: "FeatureVault",
-        description:
-          "Internal feature flag manager with Slack integration. 30 engineers use it daily.",
-        buildTool: "lovable",
-        hosting: "lovable",
-        stack: "React",
-        verified: true,
-        commits: 64,
-      },
-      {
-        name: "UserResearchHub",
-        description:
-          "Centralised repo for user interview notes with AI summaries and tagging.",
-        buildTool: "cursor",
-        hosting: "vercel",
-        stack: "Next.js",
-        verified: false,
-        commits: 39,
-      },
-    ],
+    initials: "SK",
+    gradientFrom: "var(--teal)",
+    gradientTo: "var(--forest)",
+    name: "Sarah Kim",
+    role: "PM at Figma",
+    projects: 4,
+    commits: 201,
+    verified: 3,
+    tools: ["Lovable", "v0", "React"],
+    toolVariant: "tool",
+  },
+  {
+    initials: "JR",
+    gradientFrom: "var(--forest)",
+    gradientTo: "var(--purple)",
+    name: "James Rivera",
+    role: "Aspiring PM, career switcher",
+    projects: 2,
+    commits: 78,
+    verified: 2,
+    tools: ["Cursor", "Bolt", "Svelte"],
+    toolVariant: "tool",
+  },
+];
+
+const HOW_IT_WORKS = [
+  {
+    step: "01",
+    title: "Sign up with GitHub",
+    description:
+      "One click. We pull your repos, avatar, and profile. No forms to fill.",
+  },
+  {
+    step: "02",
+    title: "Add your projects",
+    description:
+      "Import from Vercel or Lovable, or paste any URL. We auto-detect the tech stack and commit history.",
+  },
+  {
+    step: "03",
+    title: "Get verified",
+    description:
+      "Connect your deployment platform. We confirm ownership and your profile earns a trust badge.",
   },
 ];
 
 const FEATURES = [
   {
-    icon: Link2,
-    iconColor: "text-purple",
-    iconBg: "bg-purple/10",
-    title: "One URL for everything you've shipped",
+    label: "VERIFICATION",
+    labelColor: "var(--teal)",
+    title: "Prove you built it",
     description:
-      "Aggregate all your projects from GitHub, Vercel, and Lovable into a single shareable portfolio at gitpm.dev/yourname.",
+      "OAuth-verified deployment ownership. Commit history. A confidence score hiring managers can trust.",
   },
   {
-    icon: ShieldCheck,
-    iconColor: "text-teal",
-    iconBg: "bg-teal/10",
-    title: "OAuth-verified deployment badges",
+    label: "CONSOLIDATION",
+    labelColor: "var(--purple)",
+    title: "One URL for everything",
     description:
-      "Connect your platforms. GitPM confirms you actually deployed what you claim — no more taking your word for it.",
+      "Projects on Vercel, Lovable, GitHub Pages? Stop sharing 5 links. One profile, auto-detected metadata.",
   },
   {
-    icon: FileText,
-    iconColor: "text-forest",
-    iconBg: "bg-forest/10",
-    title: "PM-native product context",
+    label: "PRODUCT THINKING",
+    labelColor: "var(--forest)",
+    title: "Show the why, not just the what",
     description:
-      "Each project shows your problem statement, key decisions, and learnings — not just a README and a demo link.",
+      "Problem statements, key decisions, target users. The product thinking is what separates a PM from a developer.",
+  },
+  {
+    label: "DEMO-FIRST",
+    labelColor: "var(--navy)",
+    title: "A 2-min video beats any resume",
+    description:
+      "Embed Loom or YouTube walkthroughs. Let hiring managers watch your build before the interview starts.",
   },
 ];
 
-const TRUST_ITEMS = [
-  "Free forever for PMs",
-  "GitHub OAuth — no new password",
-  "Your projects, verified",
-  "No hiring manager gatekeeping",
-];
+const TOOL_NAMES = ["Cursor", "Lovable", "v0", "Bolt", "Replit", "Vercel"];
 
 // ------------------------------------------------------------------
 // Subcomponents
 // ------------------------------------------------------------------
 
-function MockProfileCard({ profile }: { profile: MockProfile }) {
+function ToolPill({
+  label,
+  type,
+}: {
+  label: string;
+  type: "tool" | "stack";
+}) {
+  const toolStyle: React.CSSProperties =
+    type === "tool"
+      ? {
+          background: "var(--purple-bg)",
+          color: "var(--purple)",
+          fontSize: "10px",
+          padding: "2px 8px",
+          borderRadius: "4px",
+          fontWeight: 500,
+        }
+      : {
+          background: "var(--surface-light)",
+          color: "var(--text-secondary)",
+          fontSize: "10px",
+          padding: "2px 8px",
+          borderRadius: "4px",
+          fontWeight: 500,
+        };
+  return <span style={toolStyle}>{label}</span>;
+}
+
+function ExampleProfileCard({ profile }: { profile: ExampleProfile }) {
+  const isLastTool = (i: number) => i === profile.tools.length - 1;
   return (
-    <div className="rounded-xl border border-gitpm-border/30 bg-surface-dark/60 overflow-hidden">
-      {/* Profile header */}
-      <div className="bg-navy/80 border-b border-gitpm-border/20 px-5 py-4 flex items-center gap-3">
+    <div
+      className="eprofile-card"
+      style={{
+        background: "var(--white)",
+        borderRadius: "14px",
+        border: "0.5px solid var(--border-light)",
+        padding: "20px",
+      }}
+    >
+      {/* Top: avatar + name */}
+      <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "14px" }}>
         <div
-          className="h-9 w-9 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
-          style={{ backgroundColor: profile.avatarColor }}
+          style={{
+            width: "44px",
+            height: "44px",
+            borderRadius: "50%",
+            background: `linear-gradient(135deg, ${profile.gradientFrom}, ${profile.gradientTo})`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "15px",
+            fontWeight: 500,
+            color: "var(--white)",
+            flexShrink: 0,
+          }}
         >
-          {profile.avatarInitials}
+          {profile.initials}
         </div>
-        <div className="min-w-0">
-          <p className="text-white font-semibold text-sm leading-tight">
-            {profile.displayName}
-          </p>
-          <p className="text-white/40 text-xs leading-tight truncate">
-            {profile.headline}
-          </p>
+        <div>
+          <div style={{ fontSize: "14px", fontWeight: 500 }}>{profile.name}</div>
+          <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>{profile.role}</div>
         </div>
       </div>
 
-      {/* Projects */}
-      <div className="px-5 py-4 space-y-3">
-        {profile.projects.map((project) => (
-          <div
-            key={project.name}
-            className="rounded-lg border border-gitpm-border/20 bg-navy/40 px-3 py-3"
-          >
-            <div className="flex items-start justify-between gap-2 mb-1.5">
-              <p className="text-white text-sm font-medium leading-tight">
-                {project.name}
-              </p>
-              {project.verified && (
-                <span className="flex-shrink-0 flex items-center gap-1 text-teal text-xs font-mono">
-                  <CheckCircle className="h-3 w-3" />
-                  Verified
-                </span>
-              )}
-            </div>
-            <p className="text-white/40 text-xs leading-snug line-clamp-2 mb-2">
-              {project.description}
-            </p>
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <BadgePill variant="purple" label={project.buildTool} />
-              <BadgePill variant="teal" label={project.hosting} />
-              <BadgePill variant="default" label={project.stack} />
-              <span className="ml-auto text-xs text-white/25 font-mono">
-                {project.commits} commits
-              </span>
-            </div>
-          </div>
+      {/* Stats */}
+      <div
+        style={{
+          display: "flex",
+          gap: "16px",
+          fontSize: "12px",
+          color: "var(--text-secondary)",
+          marginBottom: "12px",
+          fontFamily: "var(--font-mono)",
+        }}
+      >
+        <span>{profile.projects} projects</span>
+        <span>{profile.commits} commits</span>
+        <span style={{ color: "var(--teal)" }}>{profile.verified} verified</span>
+      </div>
+
+      {/* Tool pills */}
+      <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
+        {profile.tools.map((tool, i) => (
+          <ToolPill
+            key={tool}
+            label={tool}
+            type={isLastTool(i) ? "stack" : "tool"}
+          />
         ))}
-      </div>
-
-      {/* Footer */}
-      <div className="px-5 pb-4">
-        <p className="text-xs font-mono text-white/20">
-          gitpm.dev/{profile.username}
-        </p>
       </div>
     </div>
   );
@@ -200,117 +215,643 @@ function MockProfileCard({ profile }: { profile: MockProfile }) {
 
 export default function LandingPage() {
   return (
-    <main className="flex-1 flex flex-col">
+    <main className="flex-1 flex flex-col bg-page-bg">
+
       {/* ── Hero ──────────────────────────────────────────────────── */}
-      <section className="relative flex flex-col items-center justify-center text-center px-4 pt-24 pb-20 sm:pt-32 sm:pb-28">
-        {/* Subtle radial glow */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 overflow-hidden"
-        >
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 h-[400px] w-[600px] rounded-full bg-purple/5 blur-3xl" />
-        </div>
+      <section
+        className="landing-hero-section flex flex-col items-center justify-center text-center bg-navy"
+        style={{ padding: "80px 40px 140px" }}
+      >
+        <div className="relative z-[1] w-full" style={{ maxWidth: "680px" }}>
 
-        <p className="relative text-xs font-mono text-teal uppercase tracking-widest mb-5">
-          Portfolio for PMs who build with AI
-        </p>
-
-        <h1 className="relative text-5xl sm:text-6xl lg:text-7xl font-display font-bold text-white leading-[1.05] tracking-tight mb-6 max-w-3xl">
-          Your shipped projects.{" "}
-          <span className="text-teal">Verified.</span>
-        </h1>
-
-        <p className="relative text-lg sm:text-xl text-white/50 mb-10 max-w-xl leading-relaxed">
-          One shareable URL that aggregates every project you&apos;ve
-          shipped — with OAuth-confirmed deployment badges from GitHub,
-          Vercel, and Lovable.
-        </p>
-
-        <div className="relative flex flex-col sm:flex-row items-center gap-4">
-          <SignInButton size="lg" label="Sign up with GitHub — it's free" />
-          <a
-            href="#examples"
-            className="flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors"
+          {/* Beta badge */}
+          <div
+            className="inline-flex items-center gap-1.5"
+            style={{
+              padding: "5px 14px",
+              borderRadius: "20px",
+              border: "0.5px solid rgba(255,255,255,0.08)",
+              background: "rgba(255,255,255,0.03)",
+              fontSize: "12px",
+              color: "var(--teal-light)",
+              letterSpacing: "0.02em",
+              marginBottom: "36px",
+            }}
           >
-            See an example
-            <ArrowRight className="h-3.5 w-3.5" />
-          </a>
-        </div>
+            <span
+              className="pulse-dot"
+              style={{
+                width: "5px",
+                height: "5px",
+                borderRadius: "50%",
+                background: "var(--teal-light)",
+                display: "inline-block",
+                flexShrink: 0,
+              }}
+            />
+            Now in beta
+          </div>
 
-        {/* Trust tagline */}
-        <div className="relative mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-          {TRUST_ITEMS.map((item) => (
-            <span key={item} className="text-xs text-white/25 font-mono">
-              {item}
+          {/* Headline */}
+          <h1
+            className="text-white"
+            style={{
+              fontFamily: "var(--font-body)",
+              fontSize: "54px",
+              fontWeight: 300,
+              lineHeight: 1.08,
+              letterSpacing: "-1.5px",
+              marginBottom: "20px",
+            }}
+          >
+            <span className="block sm:hidden" style={{ fontSize: "36px" }}>
+              One link to prove
+              <br />
+              you can{" "}
+              <em
+                style={{
+                  fontFamily: "var(--font-serif)",
+                  fontStyle: "italic",
+                  color: "var(--teal-light)",
+                  fontWeight: 400,
+                }}
+              >
+                ship
+              </em>
+            </span>
+            <span className="hidden sm:block">
+              One link to prove
+              <br />
+              you can{" "}
+              <em
+                style={{
+                  fontFamily: "var(--font-serif)",
+                  fontStyle: "italic",
+                  color: "var(--teal-light)",
+                  fontWeight: 400,
+                }}
+              >
+                ship
+              </em>
+            </span>
+          </h1>
+
+          {/* Subtitle */}
+          <p
+            style={{
+              fontSize: "17px",
+              color: "var(--text-inverse-muted)",
+              lineHeight: 1.65,
+              maxWidth: "480px",
+              margin: "0 auto 36px",
+              fontWeight: 300,
+            }}
+          >
+            GitPM gives product managers a verified portfolio. Connect Vercel,
+            Lovable, or GitHub. Show hiring managers the projects you actually
+            built.
+          </p>
+
+          {/* CTAs */}
+          <div
+            style={{
+              display: "flex",
+              gap: "12px",
+              justifyContent: "center",
+              flexWrap: "wrap",
+            }}
+          >
+            <SignInButton variant="white" label="Start building your profile" />
+            <a
+              href="#examples"
+              className="landing-secondary-btn"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                padding: "13px 28px",
+                borderRadius: "8px",
+                fontSize: "14px",
+                fontWeight: 500,
+                color: "var(--text-inverse-muted)",
+                background: "transparent",
+                border: "0.5px solid rgba(255,255,255,0.25)",
+                textDecoration: "none",
+                letterSpacing: "-0.1px",
+              }}
+            >
+              See a live profile
+            </a>
+          </div>
+
+          {/* Trust tagline */}
+          <p
+            style={{
+              fontSize: "12px",
+              color: "var(--text-inverse-muted)",
+              marginTop: "16px",
+              opacity: 0.7,
+            }}
+          >
+            Free forever. No credit card. Takes 3 minutes.
+          </p>
+        </div>
+      </section>
+
+      {/* ── Product Screenshot Preview ─────────────────────────────── */}
+      <div
+        style={{
+          padding: "0 40px",
+          marginTop: "-70px",
+          position: "relative",
+          zIndex: 10,
+          maxWidth: "900px",
+          marginLeft: "auto",
+          marginRight: "auto",
+          width: "100%",
+        }}
+      >
+        <a href="#examples" style={{ textDecoration: "none" }}>
+          <div
+            className="product-preview-card"
+            style={{
+              background: "var(--dark-surface)",
+              borderRadius: "12px",
+              border: "0.5px solid rgba(255,255,255,0.06)",
+              overflow: "hidden",
+              boxShadow: "0 24px 80px rgba(0,0,0,0.4)",
+            }}
+          >
+            {/* Fake browser chrome */}
+            <div
+              style={{
+                padding: "8px 14px",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                borderBottom: "0.5px solid rgba(255,255,255,0.05)",
+                background: "rgba(0,0,0,0.15)",
+              }}
+            >
+              <div
+                style={{ width: "8px", height: "8px", borderRadius: "50%", background: "rgba(255,255,255,0.15)" }}
+              />
+              <div
+                style={{ width: "8px", height: "8px", borderRadius: "50%", background: "rgba(255,255,255,0.15)" }}
+              />
+              <div
+                style={{ width: "8px", height: "8px", borderRadius: "50%", background: "rgba(255,255,255,0.15)" }}
+              />
+              <span
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "11px",
+                  color: "rgba(255,255,255,0.35)",
+                  marginLeft: "12px",
+                }}
+              >
+                gitpm.dev/ameyag
+              </span>
+            </div>
+
+            {/* Profile preview */}
+            <div
+              style={{
+                padding: "24px 28px",
+                display: "flex",
+                gap: "20px",
+                alignItems: "flex-start",
+              }}
+            >
+              {/* Avatar */}
+              <div
+                style={{
+                  width: "52px",
+                  height: "52px",
+                  borderRadius: "50%",
+                  background: "linear-gradient(135deg, var(--purple), var(--teal))",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "18px",
+                  color: "white",
+                  fontWeight: 500,
+                  flexShrink: 0,
+                }}
+              >
+                AG
+              </div>
+
+              {/* Info + stats */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div
+                  style={{ fontSize: "18px", fontWeight: 500, color: "var(--white)" }}
+                >
+                  Ameya Gupta
+                </div>
+                <div
+                  style={{ fontSize: "13px", color: "var(--text-inverse-muted)", marginTop: "2px" }}
+                >
+                  Senior PM at Stripe
+                </div>
+                <div style={{ display: "flex", gap: "16px", marginTop: "12px" }}>
+                  {[
+                    { value: "6", label: "Projects", color: "var(--white)" },
+                    { value: "347", label: "Commits", color: "var(--white)" },
+                    { value: "5", label: "Verified", color: "var(--teal-light)" },
+                  ].map(({ value, label, color }) => (
+                    <div key={label} style={{ textAlign: "center" }}>
+                      <div style={{ fontSize: "18px", fontWeight: 500, color }}>{value}</div>
+                      <div
+                        style={{
+                          fontSize: "10px",
+                          color: "var(--text-inverse-muted)",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                        }}
+                      >
+                        {label}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Mini project cards — hidden on mobile */}
+              <div
+                className="hidden md:grid"
+                style={{
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "8px",
+                  width: "280px",
+                  flexShrink: 0,
+                }}
+              >
+                {[
+                  { name: "Metric Pulse", commits: "87 commits · 18d" },
+                  { name: "ShipLog", commits: "104 commits · 24d" },
+                ].map(({ name, commits }) => (
+                  <div
+                    key={name}
+                    style={{
+                      background: "rgba(255,255,255,0.04)",
+                      border: "0.5px solid rgba(255,255,255,0.08)",
+                      borderRadius: "8px",
+                      padding: "10px 12px",
+                    }}
+                  >
+                    <div
+                      style={{ display: "flex", alignItems: "center", gap: "5px", marginBottom: "4px" }}
+                    >
+                      <div
+                        style={{ fontSize: "12px", fontWeight: 500, color: "var(--white)" }}
+                      >
+                        {name}
+                      </div>
+                      <svg width="10" height="10" viewBox="0 0 16 16" fill="none">
+                        <path
+                          d="M3 8.5L6.5 12L13 4"
+                          stroke="#0F9B72"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </div>
+                    <div
+                      style={{ fontSize: "10px", color: "var(--text-inverse-muted)" }}
+                    >
+                      {commits}
+                    </div>
+                    <div style={{ display: "flex", gap: "3px", marginTop: "6px" }}>
+                      <span
+                        style={{
+                          fontSize: "9px",
+                          padding: "2px 6px",
+                          borderRadius: "3px",
+                          background: "rgba(108,92,231,0.15)",
+                          color: "var(--purple-light)",
+                        }}
+                      >
+                        Cursor
+                      </span>
+                      <span
+                        style={{
+                          fontSize: "9px",
+                          padding: "2px 6px",
+                          borderRadius: "3px",
+                          background: "rgba(10,117,88,0.15)",
+                          color: "var(--teal-light)",
+                        }}
+                      >
+                        Vercel
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      {/* ── Social Proof Strip ────────────────────────────────────── */}
+      <section style={{ padding: "48px 40px 0", textAlign: "center" }}>
+        <p
+          style={{
+            fontSize: "12px",
+            color: "var(--text-muted)",
+            textTransform: "uppercase",
+            letterSpacing: "0.08em",
+            fontWeight: 500,
+            marginBottom: "16px",
+          }}
+        >
+          PMs building with
+        </p>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "32px",
+            flexWrap: "wrap",
+            opacity: 0.5,
+          }}
+        >
+          {TOOL_NAMES.map((tool) => (
+            <span
+              key={tool}
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "14px",
+                fontWeight: 500,
+                color: "var(--text-secondary)",
+              }}
+            >
+              {tool}
             </span>
           ))}
         </div>
       </section>
 
-      {/* ── Features ──────────────────────────────────────────────── */}
-      <section className="px-4 py-16 sm:py-20 border-t border-gitpm-border/20">
-        <div className="mx-auto max-w-5xl">
-          <p className="text-xs font-mono text-white/30 uppercase tracking-widest text-center mb-12">
-            Why GitPM
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {FEATURES.map((feature) => {
-              const Icon = feature.icon;
-              return (
-                <div
-                  key={feature.title}
-                  className="rounded-xl border border-gitpm-border/25 bg-surface-dark/40 p-6"
-                >
-                  <div
-                    className={`h-10 w-10 rounded-lg ${feature.iconBg} flex items-center justify-center mb-4`}
-                  >
-                    <Icon className={`h-5 w-5 ${feature.iconColor}`} />
-                  </div>
-                  <h3 className="text-white font-semibold text-base mb-2 leading-snug">
-                    {feature.title}
-                  </h3>
-                  <p className="text-white/40 text-sm leading-relaxed">
-                    {feature.description}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
+      {/* ── How It Works ──────────────────────────────────────────── */}
+      <section
+        style={{
+          padding: "72px 40px",
+          maxWidth: "900px",
+          margin: "0 auto",
+          width: "100%",
+        }}
+      >
+        {/* Section header with line */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "baseline",
+            gap: "12px",
+            marginBottom: "40px",
+          }}
+        >
+          <span
+            style={{
+              fontSize: "12px",
+              color: "var(--teal)",
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
+              fontWeight: 500,
+              whiteSpace: "nowrap",
+            }}
+          >
+            How it works
+          </span>
+          <div
+            style={{ flex: 1, height: "0.5px", background: "var(--border-light)" }}
+          />
+        </div>
+
+        {/* 3-column steps */}
+        <div
+          className="grid grid-cols-1 md:grid-cols-3"
+          style={{ gap: "40px" }}
+        >
+          {HOW_IT_WORKS.map(({ step, title, description }) => (
+            <div key={step}>
+              <div
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "12px",
+                  color: "var(--teal)",
+                  marginBottom: "12px",
+                }}
+              >
+                {step}
+              </div>
+              <h3
+                style={{
+                  fontSize: "16px",
+                  fontWeight: 500,
+                  marginBottom: "6px",
+                  letterSpacing: "-0.2px",
+                  color: "var(--text-primary)",
+                }}
+              >
+                {title}
+              </h3>
+              <p
+                style={{
+                  fontSize: "14px",
+                  color: "var(--text-secondary)",
+                  lineHeight: 1.6,
+                }}
+              >
+                {description}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Features Grid ─────────────────────────────────────────── */}
+      <section
+        style={{
+          padding: "0 40px 72px",
+          maxWidth: "900px",
+          margin: "0 auto",
+          width: "100%",
+        }}
+      >
+        <div
+          className="grid grid-cols-1 md:grid-cols-2"
+          style={{
+            gap: "1px",
+            background: "var(--border-light)",
+            borderRadius: "14px",
+            overflow: "hidden",
+          }}
+        >
+          {FEATURES.map(({ label, labelColor, title, description }) => (
+            <div
+              key={label}
+              style={{ padding: "32px", background: "var(--white)" }}
+            >
+              <div
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "11px",
+                  color: labelColor,
+                  marginBottom: "12px",
+                }}
+              >
+                {label}
+              </div>
+              <h3
+                style={{
+                  fontSize: "17px",
+                  fontWeight: 500,
+                  marginBottom: "6px",
+                  letterSpacing: "-0.2px",
+                  color: "var(--text-primary)",
+                }}
+              >
+                {title}
+              </h3>
+              <p
+                style={{
+                  fontSize: "13px",
+                  color: "var(--text-secondary)",
+                  lineHeight: 1.6,
+                }}
+              >
+                {description}
+              </p>
+            </div>
+          ))}
         </div>
       </section>
 
       {/* ── Example Profiles ──────────────────────────────────────── */}
-      <section id="examples" className="px-4 py-16 sm:py-20 border-t border-gitpm-border/20">
-        <div className="mx-auto max-w-5xl">
-          <div className="text-center mb-10">
-            <p className="text-xs font-mono text-white/30 uppercase tracking-widest mb-3">
-              Real portfolios. Verified by deployment.
-            </p>
-            <h2 className="text-2xl sm:text-3xl font-display font-bold text-white">
-              What your profile looks like
-            </h2>
+      <section
+        id="examples"
+        style={{
+          padding: "56px 40px 64px",
+          background: "var(--surface-light)",
+        }}
+      >
+        <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+          {/* Header */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "baseline",
+              justifyContent: "space-between",
+              marginBottom: "24px",
+              flexWrap: "wrap",
+              gap: "12px",
+            }}
+          >
+            <div>
+              <h2
+                style={{
+                  fontSize: "24px",
+                  fontWeight: 500,
+                  letterSpacing: "-0.3px",
+                  color: "var(--text-primary)",
+                }}
+              >
+                PMs already building on GitPM
+              </h2>
+              <p
+                style={{
+                  fontSize: "14px",
+                  color: "var(--text-secondary)",
+                  marginTop: "4px",
+                }}
+              >
+                Early builders who are shaping the platform.
+              </p>
+            </div>
+            <a
+              href="#"
+              style={{
+                fontSize: "13px",
+                color: "var(--teal)",
+                textDecoration: "none",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Browse all profiles
+            </a>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {MOCK_PROFILES.map((profile) => (
-              <MockProfileCard key={profile.username} profile={profile} />
+          {/* Cards */}
+          <div
+            className="grid grid-cols-1 md:grid-cols-3"
+            style={{ gap: "16px" }}
+          >
+            {EXAMPLE_PROFILES.map((profile) => (
+              <ExampleProfileCard key={profile.initials} profile={profile} />
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Footer CTA ────────────────────────────────────────────── */}
-      <section className="border-t border-gitpm-border/20 px-4 py-20 sm:py-24">
-        <div className="mx-auto max-w-xl text-center">
-          <h2 className="text-3xl sm:text-4xl font-display font-bold text-white mb-4 leading-tight">
-            Start building your verified portfolio
-          </h2>
-          <p className="text-white/40 mb-8 text-base">
-            Connect GitHub. Add your projects. Share one URL.
-          </p>
-          <SignInButton size="lg" label="Sign up with GitHub — it's free" />
-        </div>
+      {/* ── Bottom CTA Banner ─────────────────────────────────────── */}
+      <section
+        style={{
+          background: "var(--navy)",
+          padding: "72px 40px",
+          textAlign: "center",
+        }}
+      >
+        <p
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "11px",
+            color: "var(--teal-light)",
+            letterSpacing: "0.08em",
+            marginBottom: "16px",
+            textTransform: "uppercase",
+          }}
+        >
+          FREE FOREVER FOR PMS
+        </p>
+        <h2
+          style={{
+            fontSize: "36px",
+            fontWeight: 300,
+            color: "var(--white)",
+            marginBottom: "8px",
+            letterSpacing: "-0.8px",
+          }}
+        >
+          Your builds deserve a profile
+        </h2>
+        <p
+          style={{
+            fontSize: "15px",
+            color: "var(--text-inverse-muted)",
+            marginBottom: "32px",
+            fontWeight: 300,
+          }}
+        >
+          Join the PMs who are proving they can ship.
+        </p>
+        <SignInButton variant="white" label="Get started with GitHub" />
       </section>
+
+      {/* ── Footer ────────────────────────────────────────────────── */}
+      <footer
+        style={{
+          padding: "24px 40px",
+          textAlign: "center",
+          fontSize: "12px",
+          color: "var(--text-muted)",
+          borderTop: "0.5px solid var(--border-light)",
+          background: "var(--page-bg)",
+        }}
+      >
+        GitPM · The portfolio platform for PMs who build · 2026
+      </footer>
     </main>
   );
 }

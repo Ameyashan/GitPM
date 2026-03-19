@@ -1,27 +1,29 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
-import { Inter_Tight } from "next/font/google";
+import { DM_Sans, JetBrains_Mono, Instrument_Serif } from "next/font/google";
 import { Toaster } from "@/components/shared/Toaster";
 import { PostHogProvider } from "@/components/shared/PostHogProvider";
 import "./globals.css";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
-
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
-});
-
-const interTight = Inter_Tight({
+const dmSans = DM_Sans({
   subsets: ["latin"],
-  variable: "--font-inter-tight",
+  variable: "--font-dm-sans",
   display: "swap",
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["300", "400", "500", "600"],
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jetbrains-mono",
+  display: "swap",
+  weight: ["400", "500"],
+});
+
+const instrumentSerif = Instrument_Serif({
+  subsets: ["latin"],
+  variable: "--font-instrument-serif",
+  display: "swap",
+  weight: ["400"],
+  style: ["normal", "italic"],
 });
 
 export const metadata: Metadata = {
@@ -44,9 +46,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${interTight.variable} dark`}
+      className={`${dmSans.variable} ${jetbrainsMono.variable} ${instrumentSerif.variable}`}
     >
-      <body className="bg-navy text-foreground antialiased font-sans">
+      <body className="antialiased">
         <PostHogProvider>
           {children}
           <Toaster />

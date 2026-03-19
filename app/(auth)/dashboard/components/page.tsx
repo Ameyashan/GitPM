@@ -199,14 +199,14 @@ export default function ComponentShowcasePage() {
 
       <Section title="ProjectCard">
         <div className="max-w-sm">
-          <ProjectCard project={MOCK_PROJECT} username="alexpm" />
+          <ProjectCard project={MOCK_PROJECT} onClick={() => {}} />
         </div>
       </Section>
 
       <Separator className="bg-gitpm-border/20" />
 
       <Section title="ProjectGrid">
-        <ProjectGrid projects={MOCK_PROJECTS} username="alexpm" />
+        <ProjectGrid projects={MOCK_PROJECTS} user={MOCK_USER} />
       </Section>
 
       <Separator className="bg-gitpm-border/20" />
@@ -245,14 +245,21 @@ export default function ComponentShowcasePage() {
       <Separator className="bg-gitpm-border/20" />
 
       <Section title="ConnectionCard">
-        <div className="space-y-3 max-w-md">
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", maxWidth: "560px" }}>
           <ConnectionCard
             provider="github"
             isConnected={true}
-            username="alexrivera"
-            connectedAt="2024-03-01T09:00:00Z"
+            statusText="Connected"
+            infoText="@alexrivera"
+            actionVariant="disconnect"
           />
-          <ConnectionCard provider="vercel" isConnected={false} />
+          <ConnectionCard
+            provider="vercel"
+            isConnected={false}
+            statusText="Not connected"
+            actionVariant="connect"
+            connectHref="/api/auth/vercel/connect"
+          />
         </div>
       </Section>
     </div>

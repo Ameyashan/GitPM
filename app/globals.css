@@ -9,31 +9,207 @@
   }
 }
 
+/* ── Landing page: hero radial gradient overlays ───────────── */
+.landing-hero-section {
+  position: relative;
+  overflow: hidden;
+}
+.landing-hero-section::before {
+  content: '';
+  position: absolute;
+  width: 900px;
+  height: 900px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(10,117,88,0.08) 0%, transparent 60%);
+  top: -400px;
+  right: -200px;
+  pointer-events: none;
+}
+.landing-hero-section::after {
+  content: '';
+  position: absolute;
+  width: 700px;
+  height: 700px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(108,92,231,0.06) 0%, transparent 60%);
+  bottom: -300px;
+  left: -200px;
+  pointer-events: none;
+}
+
+/* ── Landing page: pulsing beta badge dot ──────────────────── */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+.pulse-dot {
+  animation: pulse-dot 2s infinite;
+}
+
+/* ── Landing page: white CTA button hover ──────────────────── */
+.landing-cta-btn {
+  transition: all 0.2s;
+}
+.landing-cta-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 30px rgba(255,255,255,0.1);
+}
+
+/* ── Landing page: secondary ghost button hover ────────────── */
+.landing-secondary-btn {
+  transition: border-color 0.2s, color 0.15s;
+}
+.landing-secondary-btn:hover {
+  border-color: rgba(255,255,255,0.5) !important;
+  color: var(--white) !important;
+}
+
+/* ── Project modal slide-up animation ─────────────────────── */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.modal-slide-up {
+  animation: slideUp 0.2s ease-out;
+}
+
+/* ── Landing page: product preview card hover ──────────────── */
+.product-preview-card {
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+.product-preview-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 24px 70px rgba(0,0,0,0.35) !important;
+}
+
+/* ── Landing page: example profile card hover ──────────────── */
+.eprofile-card {
+  transition: border-color 0.2s, transform 0.2s;
+  cursor: pointer;
+}
+.eprofile-card:hover {
+  border-color: var(--border) !important;
+  transform: translateY(-2px);
+}
+
+/* ── Dashboard: add project dashed button ──────────────────── */
+.dash-add-project-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  font-size: 14px;
+  color: var(--text-muted);
+  background: transparent;
+  text-decoration: none;
+  margin-top: 8px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  font-family: var(--font-body);
+}
+.dash-add-project-btn:hover {
+  border-color: var(--teal);
+  color: var(--teal);
+  background: var(--teal-bg);
+}
+
+/* ── Dashboard: project row item hover ─────────────────────── */
+.dash-project-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  border: 0.5px solid var(--border-light);
+  border-radius: var(--radius);
+  margin-bottom: 8px;
+  transition: border-color 0.15s;
+  cursor: pointer;
+}
+.dash-project-row:hover {
+  border-color: var(--border);
+}
+
+/* ── Dashboard: action button hover ───────────────────────── */
+.dash-action-btn {
+  background: transparent;
+  border: 0.5px solid var(--border-light);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: border-color 0.15s, color 0.15s;
+}
+.dash-action-btn:hover {
+  border-color: var(--border);
+  color: var(--text-primary);
+}
+.dash-action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 @layer base {
-  /* GitPM is dark-only — no light mode vars needed */
   :root {
-    /* Navy #0D1B2A → HSL 209 69% 11% */
-    --background: 209 69% 11%;
-    --foreground: 210 20% 96%;
+    /* ── GitPM design tokens ───────────────────────────────── */
+    --navy: #0D1B2A;
+    --navy-mid: #152238;
+    --navy-light: #1E3150;
+    --dark-surface: #1B2838;
+    --teal: #0A7558;
+    --teal-light: #0F9B72;
+    --teal-bg: #0A75581a;
+    --purple: #6C5CE7;
+    --purple-light: #8B7EF0;
+    --purple-bg: #6C5CE71a;
+    --forest: #2D6A4F;
+    --forest-bg: #2D6A4F1a;
+    --surface-light: #EDECEA;
+    --surface-card: #FFFFFF;
+    --border: #C8C5BE;
+    --border-light: #DDD9D3;
+    --text-primary: #0D1B2A;
+    --text-secondary: #555B6E;
+    --text-muted: #8A8F9C;
+    --text-inverse: #E8ECF0;
+    --text-inverse-muted: #9BA8B9;
+    --white: #FFFFFF;
+    --page-bg: #F5F3EE;
+    --font-body: var(--font-dm-sans), system-ui, sans-serif;
+    --font-mono: var(--font-jetbrains-mono), monospace;
+    --font-serif: var(--font-instrument-serif), Georgia, serif;
+    --radius: 10px;
+    --radius-lg: 14px;
 
-    /* Dark surface #1B2838 → HSL 212 37% 16% */
-    --card: 212 37% 16%;
-    --card-foreground: 210 20% 96%;
+    /* ── shadcn/ui HSL tokens remapped to light theme ────── */
+    /* page-bg #F5F3EE → approx HSL 40 18% 95% */
+    --background: 40 18% 95%;
+    /* text-primary #0D1B2A → HSL 209 69% 11% */
+    --foreground: 209 69% 11%;
 
-    --popover: 212 37% 16%;
-    --popover-foreground: 210 20% 96%;
+    /* surface-card #FFFFFF */
+    --card: 0 0% 100%;
+    --card-foreground: 209 69% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 209 69% 11%;
 
     /* Purple #6C5CE7 → HSL 248 78% 63% */
     --primary: 248 78% 63%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary: slightly lighter surface */
-    --secondary: 212 30% 20%;
-    --secondary-foreground: 210 20% 80%;
+    /* surface-light #EDECEA */
+    --secondary: 36 9% 92%;
+    --secondary-foreground: 209 69% 11%;
 
-    /* Muted: dark surface */
-    --muted: 212 37% 16%;
-    --muted-foreground: 210 15% 55%;
+    /* surface-light as muted */
+    --muted: 36 9% 92%;
+    --muted-foreground: 220 10% 55%;
 
     /* Teal #0A7558 → HSL 161 87% 25% */
     --accent: 161 87% 25%;
@@ -42,34 +218,12 @@
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    /* gitpm-border #C8CCC8 → HSL 120 2% 78%, used at low opacity */
-    --border: 120 2% 78%;
-    --input: 212 30% 22%;
+    /* border-light #DDD9D3 → approx HSL 37 9% 84% */
+    --border: 37 9% 84%;
+    /* slightly darker input bg */
+    --input: 36 9% 90%;
     --ring: 248 78% 63%;
-    --radius: 0.5rem;
-  }
-
-  /* Keep .dark in sync — GitPM is dark-only but shadcn reads from .dark class */
-  .dark {
-    --background: 209 69% 11%;
-    --foreground: 210 20% 96%;
-    --card: 212 37% 16%;
-    --card-foreground: 210 20% 96%;
-    --popover: 212 37% 16%;
-    --popover-foreground: 210 20% 96%;
-    --primary: 248 78% 63%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 212 30% 20%;
-    --secondary-foreground: 210 20% 80%;
-    --muted: 212 37% 16%;
-    --muted-foreground: 210 15% 55%;
-    --accent: 161 87% 25%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 120 2% 78%;
-    --input: 212 30% 22%;
-    --ring: 248 78% 63%;
+    --radius: 0.625rem;
   }
 
   * {
@@ -77,6 +231,9 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+    color: var(--text-primary);
+    background: var(--page-bg);
+    -webkit-font-smoothing: antialiased;
   }
 }

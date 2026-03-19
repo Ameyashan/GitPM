@@ -14,8 +14,9 @@ import {
   Eye,
   EyeOff,
   Loader2,
+  CheckCircle,
 } from "lucide-react";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { RefreshGitHubButton } from "@/components/dashboard/RefreshGitHubButton";
 import {
   Dialog,
@@ -34,15 +35,28 @@ interface ProjectRow {
   name: string;
   slug: string;
   is_published: boolean;
+  is_verified: boolean;
   thumbnail_url: string | null;
   live_url: string;
   github_repo_url: string | null;
+  build_tools: string[] | null;
+  hosting_platform: string | null;
+  commit_count: number | null;
+  latest_deploy_at: string | null;
   display_order: number;
 }
 
 interface DashboardProjectActionsProps {
   projects: ProjectRow[];
   username: string;
+}
+
+function shortUrl(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return url;
+  }
 }
 
 export function DashboardProjectActions({
@@ -72,9 +86,7 @@ export function DashboardProjectActions({
 
       setProjects((prev) =>
         prev.map((p) =>
-          p.id === project.id
-            ? { ...p, is_published: !p.is_published }
-            : p
+          p.id === project.id ? { ...p, is_published: !p.is_published } : p
         )
       );
       toast.success(
@@ -123,13 +135,11 @@ export function DashboardProjectActions({
       newProjects[swapIdx],
       newProjects[idx],
     ];
-    // Reassign display_order
     const reordered = newProjects.map((p, i) => ({ ...p, display_order: i }));
     setProjects(reordered);
 
     setLoadingId(projectId);
     try {
-      // Update both swapped projects
       await Promise.all([
         fetch(`/api/projects/${reordered[idx].id}`, {
           method: "PATCH",
@@ -144,7 +154,6 @@ export function DashboardProjectActions({
           }),
         }),
       ]);
-
       router.refresh();
     } catch {
       toast.error("Failed to reorder projects");
@@ -155,192 +164,299 @@ export function DashboardProjectActions({
   }
 
   return (
-    <div className="rounded-xl border border-gitpm-border/40 overflow-hidden">
-      <div className="px-4 py-3 border-b border-gitpm-border/30 bg-surface-dark/40 flex items-center justify-between">
-        <h2 className="text-xs font-mono text-white/40 uppercase tracking-widest">
-          Projects
-        </h2>
-        <span className="text-xs font-mono text-white/25">
-          {projects.length} total
-        </span>
-      </div>
+    <div>
+      {projects.map((project, idx) => {
+        const isLoading = loadingId === project.id;
+        const tools = project.build_tools ?? [];
+        const metaParts: string[] = [];
+        if (project.commit_count != null) metaParts.push(`${project.commit_count} commits`);
+        metaParts.push(`/${project.slug}`);
+        if (project.live_url) metaParts.push(shortUrl(project.live_url));
 
-      <ul className="divide-y divide-gitpm-border/20">
-        {projects.map((project, idx) => {
-          const isLoading = loadingId === project.id;
-          return (
-            <li
-              key={project.id}
-              onClick={() => router.push(`/${username}/${project.slug}`)}
-              className="flex items-center justify-between px-4 py-3 gap-4 hover:bg-white/[0.04] transition-colors cursor-pointer"
+        return (
+          <div
+            key={project.id}
+            className="dash-project-row"
+            onClick={() => router.push(`/${username}/${project.slug}`)}
+          >
+            {/* Reorder buttons */}
+            <div
+              className="flex flex-col gap-0.5 shrink-0"
+              onClick={(e) => e.stopPropagation()}
             >
-              {/* Reorder buttons */}
-              <div
-                className="flex flex-col gap-0.5 shrink-0"
-                onClick={(e) => e.stopPropagation()}
+              <button
+                type="button"
+                onClick={() => handleReorder(project.id, "up")}
+                disabled={idx === 0 || isLoading}
+                className="p-0.5 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                style={{ color: "var(--text-muted)" }}
+                aria-label="Move up"
               >
-                <button
-                  type="button"
-                  onClick={() => handleReorder(project.id, "up")}
-                  disabled={idx === 0 || isLoading}
-                  className="p-0.5 text-white/20 hover:text-white/60 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
-                  aria-label="Move up"
-                >
-                  <ChevronUp className="h-3.5 w-3.5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleReorder(project.id, "down")}
-                  disabled={idx === projects.length - 1 || isLoading}
-                  className="p-0.5 text-white/20 hover:text-white/60 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
-                  aria-label="Move down"
-                >
-                  <ChevronDown className="h-3.5 w-3.5" />
-                </button>
-              </div>
+                <ChevronUp className="h-3.5 w-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => handleReorder(project.id, "down")}
+                disabled={idx === projects.length - 1 || isLoading}
+                className="p-0.5 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                style={{ color: "var(--text-muted)" }}
+                aria-label="Move down"
+              >
+                <ChevronDown className="h-3.5 w-3.5" />
+              </button>
+            </div>
 
-              {/* Thumbnail + name */}
-              <div className="flex items-center gap-3 min-w-0 flex-1">
-                <div className="relative h-9 w-14 rounded bg-surface-dark border border-gitpm-border/30 shrink-0 overflow-hidden">
-                  {project.thumbnail_url ? (
-                    <Image
-                      src={project.thumbnail_url}
-                      alt={project.name}
-                      fill
-                      className="object-cover"
-                      sizes="56px"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 bg-gradient-to-br from-purple/10 to-teal/10" />
-                  )}
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm text-white font-medium truncate">
-                    {project.name}
-                  </p>
-                  <p className="text-xs text-white/30 font-mono truncate">
-                    /{project.slug}
-                  </p>
-                  {project.github_repo_url && (
-                    <div className="mt-1" onClick={(e) => e.stopPropagation()}>
-                      <RefreshGitHubButton projectId={project.id} />
-                    </div>
-                  )}
-                </div>
-              </div>
+            {/* Thumbnail */}
+            <div
+              className="shrink-0 relative overflow-hidden"
+              style={{
+                width: "56px",
+                height: "38px",
+                borderRadius: "5px",
+                background: "var(--dark-surface)",
+              }}
+            >
+              {project.thumbnail_url ? (
+                <Image
+                  src={project.thumbnail_url}
+                  alt={project.name}
+                  fill
+                  className="object-cover"
+                  sizes="56px"
+                />
+              ) : (
+                <>
+                  <div
+                    className="absolute rounded-full"
+                    style={{
+                      width: "30px",
+                      height: "30px",
+                      background: "var(--teal)",
+                      top: "-8px",
+                      right: "-4px",
+                      filter: "blur(10px)",
+                      opacity: 0.25,
+                    }}
+                  />
+                  <div
+                    className="absolute rounded-full"
+                    style={{
+                      width: "20px",
+                      height: "20px",
+                      background: "var(--purple)",
+                      bottom: "-6px",
+                      left: "4px",
+                      filter: "blur(10px)",
+                      opacity: 0.25,
+                    }}
+                  />
+                </>
+              )}
+            </div>
 
-              {/* Status + actions */}
+            {/* Info column */}
+            <div className="flex-1 min-w-0">
+              {/* Name + verified badge */}
+              <div
+                className="flex items-center gap-2 truncate"
+                style={{ fontSize: "14px", fontWeight: 500, color: "var(--text-primary)" }}
+              >
+                <span className="truncate">{project.name}</span>
+                {project.is_verified && (
+                  <span
+                    className="flex items-center gap-1 shrink-0"
+                    style={{
+                      fontSize: "10px",
+                      padding: "2px 7px",
+                      borderRadius: "4px",
+                      background: "var(--teal-bg)",
+                      color: "var(--teal)",
+                      fontWeight: 500,
+                    }}
+                  >
+                    <CheckCircle style={{ width: "10px", height: "10px" }} />
+                    Verified
+                  </span>
+                )}
+              </div>
+              {/* Meta line */}
+              <div
+                className="truncate mt-0.5"
+                style={{
+                  fontSize: "12px",
+                  color: "var(--text-muted)",
+                  fontFamily: "var(--font-mono)",
+                }}
+              >
+                {metaParts.join(" · ")}
+              </div>
+              {/* GitHub refresh button */}
+              {project.github_repo_url && (
+                <div className="mt-1" onClick={(e) => e.stopPropagation()}>
+                  <RefreshGitHubButton projectId={project.id} />
+                </div>
+              )}
+            </div>
+
+            {/* Tool pills */}
+            {(tools.length > 0 || project.hosting_platform) && (
               <div
                 className="flex items-center gap-1 shrink-0"
                 onClick={(e) => e.stopPropagation()}
               >
-                <span
-                  className={cn(
-                    "text-[10px] font-mono px-2 py-0.5 rounded-full mr-1",
-                    project.is_published
-                      ? "bg-teal/10 text-teal border border-teal/20"
-                      : "bg-white/5 text-white/30 border border-gitpm-border/30"
-                  )}
-                >
-                  {project.is_published ? "Published" : "Draft"}
-                </span>
-
-                {project.live_url && (
-                  <Link
-                    href={project.live_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={cn(
-                      buttonVariants({ variant: "ghost", size: "icon-sm" }),
-                      "text-white/30 hover:text-white"
-                    )}
-                    aria-label="View live site"
+                {tools.slice(0, 2).map((tool) => (
+                  <span
+                    key={tool}
+                    style={{
+                      fontSize: "10px",
+                      padding: "2px 7px",
+                      borderRadius: "4px",
+                      background: "var(--purple-bg)",
+                      color: "var(--purple)",
+                      fontWeight: 500,
+                      whiteSpace: "nowrap",
+                    }}
                   >
-                    <ExternalLink className="h-3.5 w-3.5" />
-                  </Link>
+                    {tool}
+                  </span>
+                ))}
+                {project.hosting_platform && (
+                  <span
+                    style={{
+                      fontSize: "10px",
+                      padding: "2px 7px",
+                      borderRadius: "4px",
+                      background: "var(--teal-bg)",
+                      color: "var(--teal)",
+                      fontWeight: 500,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {project.hosting_platform}
+                  </span>
                 )}
+              </div>
+            )}
 
-                <button
-                  type="button"
-                  onClick={() => handlePublishToggle(project)}
-                  disabled={isLoading}
-                  className={cn(
-                    buttonVariants({ variant: "ghost", size: "icon-sm" }),
-                    "text-white/30 hover:text-white disabled:opacity-50"
-                  )}
-                  aria-label={
-                    project.is_published ? "Unpublish project" : "Publish project"
-                  }
-                  title={project.is_published ? "Unpublish" : "Publish"}
-                >
-                  {isLoading ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  ) : project.is_published ? (
-                    <EyeOff className="h-3.5 w-3.5" />
-                  ) : (
-                    <Eye className="h-3.5 w-3.5" />
-                  )}
-                </button>
+            {/* Status badge + actions */}
+            <div
+              className="flex items-center gap-2 shrink-0"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Status */}
+              <span
+                style={{
+                  fontSize: "11px",
+                  padding: "3px 10px",
+                  borderRadius: "4px",
+                  fontWeight: 500,
+                  background: project.is_published ? "var(--teal-bg)" : "var(--surface-light)",
+                  color: project.is_published ? "var(--teal)" : "var(--text-muted)",
+                }}
+              >
+                {project.is_published ? "Published" : "Draft"}
+              </span>
 
+              {/* View live */}
+              {project.live_url && (
                 <Link
-                  href={`/dashboard/projects/${project.id}/edit`}
-                  className={cn(
-                    buttonVariants({ variant: "ghost", size: "sm" }),
-                    "h-7 px-2 text-white/40 hover:text-white gap-1 text-xs"
-                  )}
+                  href={project.live_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="dash-action-btn"
+                  style={{ padding: "6px 8px", lineHeight: 1 }}
+                  aria-label="View live site"
                 >
-                  <Pencil className="h-3 w-3" />
-                  Edit
+                  <ExternalLink style={{ width: "12px", height: "12px" }} />
                 </Link>
+              )}
 
-                <Dialog>
-                  <DialogTrigger
-                    className={cn(
-                      buttonVariants({ variant: "ghost", size: "icon-sm" }),
-                      "text-red-400/50 hover:text-red-400 hover:bg-red-400/10"
-                    )}
+              {/* Publish toggle */}
+              <button
+                type="button"
+                onClick={() => handlePublishToggle(project)}
+                disabled={isLoading}
+                className="dash-action-btn"
+                style={{ padding: "6px 8px", lineHeight: 1 }}
+                title={project.is_published ? "Unpublish" : "Publish"}
+              >
+                {isLoading ? (
+                  <Loader2 style={{ width: "12px", height: "12px" }} className="animate-spin" />
+                ) : project.is_published ? (
+                  <EyeOff style={{ width: "12px", height: "12px" }} />
+                ) : (
+                  <Eye style={{ width: "12px", height: "12px" }} />
+                )}
+              </button>
+
+              {/* Edit */}
+              <Link
+                href={`/dashboard/projects/${project.id}/edit`}
+                className={cn("dash-action-btn flex items-center gap-1")}
+              >
+                <Pencil style={{ width: "11px", height: "11px" }} />
+                Edit
+              </Link>
+
+              {/* Delete */}
+              <Dialog>
+                <DialogTrigger asChild>
+                  <button
+                    type="button"
+                    className="dash-action-btn"
+                    style={{
+                      padding: "6px 8px",
+                      lineHeight: 1,
+                      color: "var(--text-muted)",
+                    }}
                     aria-label="Delete project"
                   >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </DialogTrigger>
-                  <DialogContent className="bg-surface-dark border border-gitpm-border/50 max-w-sm">
-                    <DialogHeader>
-                      <DialogTitle className="text-white text-base">
-                        Delete &ldquo;{project.name}&rdquo;?
-                      </DialogTitle>
-                      <DialogDescription className="text-white/50 text-sm">
-                        This will permanently remove the project and all its
-                        data. This cannot be undone.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter className="border-t border-gitpm-border/30 bg-transparent flex-row gap-2 justify-end">
-                      <DialogClose
-                        className={cn(
-                          buttonVariants({ variant: "ghost" }),
-                          "text-white/50 hover:text-white"
-                        )}
-                      >
-                        Cancel
-                      </DialogClose>
-                      <Button
-                        variant="destructive"
-                        onClick={() => handleDelete(project)}
-                        disabled={isLoading}
-                        className="bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/20"
-                      >
-                        {isLoading && (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        )}
-                        Delete Project
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+                    <Trash2 style={{ width: "12px", height: "12px" }} />
+                  </button>
+                </DialogTrigger>
+                <DialogContent
+                  style={{
+                    background: "var(--surface-card)",
+                    border: "0.5px solid var(--border-light)",
+                    maxWidth: "360px",
+                  }}
+                >
+                  <DialogHeader>
+                    <DialogTitle style={{ fontSize: "15px", color: "var(--text-primary)" }}>
+                      Delete &ldquo;{project.name}&rdquo;?
+                    </DialogTitle>
+                    <DialogDescription style={{ fontSize: "13px", color: "var(--text-secondary)" }}>
+                      This will permanently remove the project and all its data. This cannot
+                      be undone.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter
+                    style={{
+                      borderTop: "0.5px solid var(--border-light)",
+                      paddingTop: "12px",
+                    }}
+                    className="flex-row gap-2 justify-end"
+                  >
+                    <DialogClose className="dash-action-btn">Cancel</DialogClose>
+                    <Button
+                      variant="destructive"
+                      onClick={() => handleDelete(project)}
+                      disabled={isLoading}
+                      className="bg-red-500/10 text-red-600 hover:bg-red-500/20 border border-red-200"
+                      style={{ fontSize: "13px" }}
+                    >
+                      {isLoading && (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
+                      )}
+                      Delete Project
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

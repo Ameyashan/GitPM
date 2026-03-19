@@ -2,10 +2,9 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
-import { buttonVariants } from "@/components/ui/button-variants";
 import { DashboardProjectActions } from "@/components/dashboard/DashboardProjectActions";
-import { PlusCircle, ExternalLink, Layers, Sparkles, Triangle, Heart } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { AddProjectButton } from "@/components/dashboard/AddProjectButton";
+import { ExternalLink, Layers } from "lucide-react";
 
 export const metadata: Metadata = { title: "Dashboard — GitPM" };
 
@@ -14,7 +13,7 @@ interface DashboardPageProps {
 }
 
 export default async function DashboardPage({ searchParams }: DashboardPageProps) {
-  const { welcome } = await searchParams;
+  await searchParams; // consume to avoid unused warning
   const supabase = await createClient();
 
   const {
@@ -38,197 +37,186 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   const { data: projects } = await supabase
     .from("projects")
     .select(
-      "id, name, slug, is_published, thumbnail_url, live_url, github_repo_url, display_order, created_at"
+      "id, name, slug, is_published, is_verified, thumbnail_url, live_url, github_repo_url, build_tools, hosting_platform, commit_count, latest_deploy_at, display_order, created_at"
     )
     .eq("user_id", user.id)
     .order("display_order", { ascending: true });
 
-  const { data: vercelAccount } = await supabase
+  // Read connected accounts for the modal source picker
+  const { data: connectedAccounts } = await supabase
     .from("connected_accounts")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("provider", "vercel")
-    .maybeSingle();
+    .select("provider, provider_username")
+    .eq("user_id", user.id);
 
-  const { data: githubAccount } = await supabase
-    .from("connected_accounts")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("provider", "github")
-    .maybeSingle();
+  const vercelAccount = connectedAccounts?.find((a) => a.provider === "vercel");
+  const githubAccount = connectedAccounts?.find((a) => a.provider === "github");
 
-  const publishedCount = projects?.filter((p) => p.is_published).length ?? 0;
-
-  const isWelcome = welcome === "1";
+  const firstName = profile.display_name?.split(" ")[0] ?? profile.username ?? "there";
+  const totalProjects = projects?.length ?? 0;
+  const totalCommits = projects?.reduce((sum, p) => sum + (p.commit_count ?? 0), 0) ?? 0;
+  const verifiedCount = projects?.filter((p) => p.is_verified).length ?? 0;
 
   return (
-    <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-10 w-full">
-      <main>
-        {/* Welcome banner — shown once after onboarding */}
-        {isWelcome && (
-          <div className="mb-8 rounded-xl border border-teal/30 bg-teal/5 px-5 py-4 flex items-start gap-4">
-            <div className="h-9 w-9 rounded-full bg-teal/15 flex items-center justify-center flex-shrink-0 mt-0.5">
-              <Sparkles className="h-4 w-4 text-teal" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-white font-semibold text-sm mb-0.5">
-                Welcome to GitPM, {profile.display_name?.split(" ")[0]}!
-              </p>
-              <p className="text-white/50 text-sm">
-                Your profile is live at{" "}
-                <span className="font-mono text-purple">
-                  gitpm.dev/{profile.username}
-                </span>
-                . Add your first project to start building your verified
-                portfolio.
-              </p>
-            </div>
-            <Link
-              href="/dashboard/projects/new"
-              className={cn(
-                buttonVariants({ size: "sm" }),
-                "bg-teal hover:bg-teal/90 text-white flex-shrink-0 self-center gap-1.5"
-              )}
-            >
-              <PlusCircle className="h-3.5 w-3.5" />
-              Add project
-            </Link>
+    <div className="w-full max-w-[880px] mx-auto px-5 py-8 sm:px-10">
+      {/* Welcome banner */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: "16px",
+          padding: "20px 24px",
+          background: "linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%)",
+          borderRadius: "var(--radius-lg)",
+          marginBottom: "24px",
+        }}
+      >
+        <div>
+          <div style={{ fontSize: "18px", fontWeight: 500, color: "var(--white)" }}>
+            Welcome back, {firstName}
           </div>
-        )}
-
-        {/* Header */}
-        <div className="mb-10 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-          <div>
-            <p className="text-xs font-mono text-teal mb-1 uppercase tracking-widest">
-              Dashboard
-            </p>
-            <h1 className="text-2xl font-display font-bold text-white">
-              Hey, {profile.display_name?.split(" ")[0] ?? profile.username} 👋
-            </h1>
-            <p className="text-white/40 text-sm mt-1">{profile.headline}</p>
-          </div>
-          <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
-            {githubAccount && (
-              <Link
-                href="/dashboard/projects/import-lovable"
-                className={cn(
-                  buttonVariants({ variant: "outline" }),
-                  "border-gitpm-border/40 text-white/60 hover:text-white gap-2"
-                )}
-              >
-                <Heart className="h-4 w-4" />
-                Import from Lovable
-              </Link>
-            )}
-            {vercelAccount && (
-              <Link
-                href="/dashboard/projects/import"
-                className={cn(
-                  buttonVariants({ variant: "outline" }),
-                  "border-gitpm-border/40 text-white/60 hover:text-white gap-2"
-                )}
-              >
-                <Triangle className="h-4 w-4" />
-                Import from Vercel
-              </Link>
-            )}
-            <Link
-              href="/dashboard/projects/new"
-              className={cn(
-                buttonVariants(),
-                "bg-purple hover:bg-purple/90 text-white gap-2"
-              )}
-            >
-              <PlusCircle className="h-4 w-4" />
-              Add project
-            </Link>
+          <div style={{ fontSize: "13px", color: "var(--text-inverse-muted)", marginTop: "3px" }}>
+            {totalProjects === 0
+              ? "Add your first project to start building your verified portfolio."
+              : `You have ${totalProjects} project${totalProjects !== 1 ? "s" : ""} and ${verifiedCount} are verified.`}
           </div>
         </div>
-
-        {/* Stats row */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-10">
-          <div className="rounded-lg border border-gitpm-border/40 bg-surface-dark/40 px-4 py-3">
-            <p className="text-2xl font-display font-bold text-white">
-              {projects?.length ?? 0}
-            </p>
-            <p className="text-xs text-white/40 mt-0.5">Total projects</p>
-          </div>
-          <div className="rounded-lg border border-gitpm-border/40 bg-surface-dark/40 px-4 py-3">
-            <p className="text-2xl font-display font-bold text-teal">
-              {publishedCount}
-            </p>
-            <p className="text-xs text-white/40 mt-0.5">Published</p>
-          </div>
-          {profile.username && (
-            <div className="rounded-lg border border-gitpm-border/40 bg-surface-dark/40 px-4 py-3 col-span-2 sm:col-span-1">
-              <p className="text-sm font-mono text-purple truncate">
-                gitpm.dev/{profile.username}
-              </p>
-              <Link
-                href={`/${profile.username}`}
-                className="text-xs text-white/40 mt-0.5 flex items-center gap-1 hover:text-white/70 transition-colors"
-              >
-                View public profile
-                <ExternalLink className="h-3 w-3" />
-              </Link>
-            </div>
-          )}
-        </div>
-
-        {/* Projects list or empty state */}
-        {!projects || projects.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-gitpm-border/40 bg-surface-dark/20 p-12 text-center">
-            <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-purple/10 flex items-center justify-center">
-              <Layers className="h-6 w-6 text-purple/60" />
-            </div>
-            <h2 className="text-lg font-display font-semibold text-white mb-2">
-              No projects yet
-            </h2>
-            <p className="text-sm text-white/40 mb-6 max-w-xs mx-auto">
-              Add your first shipped project and start building your verified
-              portfolio.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center gap-2 flex-wrap justify-center">
-              {githubAccount && (
-                <Link
-                  href="/dashboard/projects/import-lovable"
-                  className={cn(
-                    buttonVariants({ variant: "outline" }),
-                    "border-gitpm-border/40 text-white/60 hover:text-white gap-2"
-                  )}
-                >
-                  <Heart className="h-4 w-4" />
-                  Import from Lovable
-                </Link>
-              )}
-              {vercelAccount && (
-                <Link
-                  href="/dashboard/projects/import"
-                  className={cn(
-                    buttonVariants({ variant: "outline" }),
-                    "border-gitpm-border/40 text-white/60 hover:text-white gap-2"
-                  )}
-                >
-                  <Triangle className="h-4 w-4" />
-                  Import from Vercel
-                </Link>
-              )}
-              <Link
-                href="/dashboard/projects/new"
-                className={cn(
-                  buttonVariants(),
-                  "bg-purple hover:bg-purple/90 text-white gap-2"
-                )}
-              >
-                <PlusCircle className="h-4 w-4" />
-                Add your first project
-              </Link>
-            </div>
-          </div>
-        ) : (
-          <DashboardProjectActions projects={projects} username={profile.username ?? ""} />
+        {profile.username && (
+          <Link
+            href={`/${profile.username}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              background: "var(--white)",
+              color: "var(--navy)",
+              border: "none",
+              padding: "9px 16px",
+              borderRadius: "8px",
+              fontSize: "13px",
+              fontWeight: 500,
+              textDecoration: "none",
+              whiteSpace: "nowrap",
+              flexShrink: 0,
+            }}
+          >
+            <ExternalLink style={{ width: "13px", height: "13px" }} />
+            View public profile
+          </Link>
         )}
-      </main>
+      </div>
+
+      {/* Quick stats grid */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(4, 1fr)",
+          gap: "10px",
+          marginBottom: "28px",
+        }}
+      >
+        {[
+          { value: totalProjects, label: "Projects", teal: false },
+          { value: totalCommits, label: "Commits", teal: false },
+          { value: verifiedCount, label: "Verified", teal: true },
+          { value: 0, label: "Views (7d)", teal: false },
+        ].map(({ value, label, teal }) => (
+          <div
+            key={label}
+            style={{
+              padding: "16px",
+              background: "var(--surface-light)",
+              borderRadius: "var(--radius)",
+              textAlign: "center",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "22px",
+                fontWeight: 500,
+                color: teal ? "var(--teal)" : "var(--text-primary)",
+              }}
+            >
+              {value}
+            </div>
+            <div
+              style={{
+                fontSize: "11px",
+                color: "var(--text-muted)",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+                marginTop: "2px",
+              }}
+            >
+              {label}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Projects section */}
+      <div
+        style={{
+          fontSize: "12px",
+          fontWeight: 500,
+          color: "var(--text-muted)",
+          textTransform: "uppercase",
+          letterSpacing: "0.07em",
+          paddingBottom: "8px",
+          borderBottom: "0.5px solid var(--border-light)",
+          marginBottom: "12px",
+        }}
+      >
+        Your projects
+      </div>
+
+      {/* Project list or empty state */}
+      {!projects || projects.length === 0 ? (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "48px 24px",
+            border: "0.5px solid var(--border-light)",
+            borderRadius: "var(--radius)",
+            textAlign: "center",
+          }}
+        >
+          <div
+            style={{
+              width: "44px",
+              height: "44px",
+              borderRadius: "50%",
+              background: "var(--purple-bg)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              marginBottom: "12px",
+            }}
+          >
+            <Layers style={{ width: "20px", height: "20px", color: "var(--purple)" }} />
+          </div>
+          <p style={{ fontSize: "14px", fontWeight: 500, color: "var(--text-primary)", marginBottom: "4px" }}>
+            No projects yet
+          </p>
+          <p style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "16px", maxWidth: "280px" }}>
+            Add your first shipped project to start building your verified portfolio.
+          </p>
+        </div>
+      ) : (
+        <DashboardProjectActions projects={projects} username={profile.username ?? ""} />
+      )}
+
+      {/* Add project button — opens unified modal */}
+      <AddProjectButton
+        vercelConnected={!!vercelAccount}
+        vercelUsername={vercelAccount?.provider_username}
+        githubUsername={githubAccount?.provider_username ?? profile.github_username}
+      />
     </div>
   );
 }
