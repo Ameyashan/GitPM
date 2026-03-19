@@ -1,4 +1,5 @@
-import type { Metadata } from "next";
+"use client";
+
 import { BadgePill } from "@/components/shared/BadgePill";
 import { StatCard } from "@/components/shared/StatCard";
 import { SectionLabel } from "@/components/shared/SectionLabel";
@@ -15,8 +16,6 @@ import { ProjectList } from "@/components/dashboard/ProjectList";
 import { ConnectionCard } from "@/components/dashboard/ConnectionCard";
 import { Separator } from "@/components/ui/separator";
 import type { User, Project } from "@/types/project";
-
-export const metadata: Metadata = { title: "Component Showcase" };
 
 const MOCK_USER: User = {
   id: "mock-user-1",

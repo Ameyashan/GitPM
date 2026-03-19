@@ -19,7 +19,7 @@ interface ConnectionsManagerProps {
 
 export function ConnectionsManager({
   githubUsername,
-  githubConnectedAt,
+  githubConnectedAt: _githubConnectedAt,
   initialVercel,
   lovableCount,
 }: ConnectionsManagerProps) {

@@ -2,7 +2,7 @@
 
 import { useEffect, useCallback } from "react";
 import { X, ExternalLink, Play } from "lucide-react";
-import type { Project, User, VerificationMethod } from "@/types/project";
+import type { Project, User } from "@/types/project";
 
 interface ProjectModalProps {
   project: Project;

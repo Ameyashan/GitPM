@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import { GitCommitHorizontal, User, Users, Play } from "lucide-react";
 import type { Project } from "@/types/project";

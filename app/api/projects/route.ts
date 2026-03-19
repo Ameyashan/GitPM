@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { generateAndStoreProjectThumbnail } from "@/lib/thumbnails";
 import { projectCreateSchema } from "@/lib/validators/project";
+import type { Tables } from "@/types/database";
 
 function generateSlug(name: string): string {
   return name
@@ -124,7 +125,7 @@ export async function POST(request: Request) {
 
     const display_order = count ?? 0;
 
-    const { data: project, error } = await supabase
+    const { data: rawProject, error } = await supabase
       .from("projects")
       .insert({
         user_id: user.id,
@@ -151,8 +152,10 @@ export async function POST(request: Request) {
       .select()
       .single();
 
-    if (error) {
-      console.error("[POST /api/projects] DB error:", error.message);
+    const project = rawProject as Tables<"projects"> | null;
+
+    if (error || !project) {
+      console.error("[POST /api/projects] DB error:", error?.message);
       return NextResponse.json(
         { error: "Failed to create project", code: "db_error" },
         { status: 500 }

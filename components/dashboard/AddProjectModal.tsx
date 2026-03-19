@@ -15,7 +15,6 @@ import {
   GitBranch,
   TriangleAlert,
   Lock,
-  ArrowRight,
 } from "lucide-react";
 import Image from "next/image";
 import { VideoEmbed } from "@/components/shared/VideoEmbed";
@@ -24,7 +23,6 @@ import {
   HOSTING_PLATFORMS,
   CATEGORY_TAGS,
 } from "@/lib/validators/project";
-import type { Screenshot } from "@/types/project";
 import type { VercelProjectSummary } from "@/app/api/vercel/projects/route";
 import type { LovableProjectSummary } from "@/app/api/github/lovable-projects/route";
 

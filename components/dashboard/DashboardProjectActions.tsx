@@ -400,19 +400,16 @@ export function DashboardProjectActions({
 
               {/* Delete */}
               <Dialog>
-                <DialogTrigger asChild>
-                  <button
-                    type="button"
-                    className="dash-action-btn"
-                    style={{
-                      padding: "6px 8px",
-                      lineHeight: 1,
-                      color: "var(--text-muted)",
-                    }}
-                    aria-label="Delete project"
-                  >
-                    <Trash2 style={{ width: "12px", height: "12px" }} />
-                  </button>
+                <DialogTrigger
+                  className="dash-action-btn"
+                  style={{
+                    padding: "6px 8px",
+                    lineHeight: 1,
+                    color: "var(--text-muted)",
+                  }}
+                  aria-label="Delete project"
+                >
+                  <Trash2 style={{ width: "12px", height: "12px" }} />
                 </DialogTrigger>
                 <DialogContent
                   style={{

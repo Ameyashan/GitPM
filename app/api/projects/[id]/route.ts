@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { generateAndStoreProjectThumbnail } from "@/lib/thumbnails";
 import { projectUpdateSchema } from "@/lib/validators/project";
+import type { Tables } from "@/types/database";
 
 interface Context {
   params: Promise<{ id: string }>;
@@ -146,7 +147,7 @@ export async function PATCH(request: Request, { params }: Context) {
       updated_at: new Date().toISOString(),
     };
 
-    const { data: project, error } = await supabase
+    const { data: rawProject, error } = await supabase
       .from("projects")
       .update(updates)
       .eq("id", id)
@@ -154,8 +155,10 @@ export async function PATCH(request: Request, { params }: Context) {
       .select()
       .single();
 
-    if (error) {
-      console.error("[PATCH /api/projects/[id]] DB error:", error.message);
+    const project = rawProject as Tables<"projects"> | null;
+
+    if (error || !project) {
+      console.error("[PATCH /api/projects/[id]] DB error:", error?.message);
       return NextResponse.json(
         { error: "Failed to update project", code: "db_error" },
         { status: 500 }
