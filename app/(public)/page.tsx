@@ -22,8 +22,8 @@ const EXAMPLE_PROFILES: ExampleProfile[] = [
     initials: "AG",
     gradientFrom: "var(--purple)",
     gradientTo: "var(--teal)",
-    name: "Ameya Gupta",
-    role: "Senior PM at Stripe",
+    name: "Ameya Shanbhag",
+    role: "Senior PM at Goldman Sachs",
     projects: 6,
     commits: 347,
     verified: 5,
@@ -446,12 +446,12 @@ export default function LandingPage() {
                 <div
                   style={{ fontSize: "18px", fontWeight: 500, color: "var(--white)" }}
                 >
-                  Ameya Gupta
+                  Ameya Shanbhag
                 </div>
                 <div
                   style={{ fontSize: "13px", color: "var(--text-inverse-muted)", marginTop: "2px" }}
                 >
-                  Senior PM at Stripe
+                  Senior PM at Goldman Sachs
                 </div>
                 <div style={{ display: "flex", gap: "16px", marginTop: "12px" }}>
                   {[
