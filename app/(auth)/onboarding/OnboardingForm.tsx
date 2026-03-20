@@ -4,10 +4,6 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle, XCircle, Loader2, Github, User } from "lucide-react";
 
 interface OnboardingFormProps {
@@ -18,6 +14,34 @@ interface OnboardingFormProps {
 }
 
 type UsernameStatus = "idle" | "checking" | "available" | "taken" | "invalid";
+
+const LABEL_STYLE: React.CSSProperties = {
+  display: "block",
+  fontSize: "13px",
+  fontWeight: 500,
+  color: "var(--text-primary)",
+  marginBottom: "6px",
+};
+
+const INPUT_STYLE: React.CSSProperties = {
+  width: "100%",
+  padding: "9px 12px",
+  border: "0.5px solid var(--border-light)",
+  borderRadius: "8px",
+  fontSize: "14px",
+  fontFamily: "var(--font-body)",
+  background: "transparent",
+  color: "var(--text-primary)",
+  outline: "none",
+  boxSizing: "border-box",
+  transition: "border-color 0.15s, box-shadow 0.15s",
+};
+
+const TEXTAREA_STYLE: React.CSSProperties = {
+  ...INPUT_STYLE,
+  resize: "vertical",
+  lineHeight: "1.5",
+};
 
 export function OnboardingForm({
   initialUsername,
@@ -132,179 +156,386 @@ export function OnboardingForm({
     headline.trim().length > 0 &&
     !submitting;
 
+  function focusInput(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) {
+    e.currentTarget.style.borderColor = "var(--purple)";
+    e.currentTarget.style.boxShadow = "0 0 0 3px var(--purple-bg)";
+  }
+
+  function blurInput(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) {
+    e.currentTarget.style.borderColor = "var(--border-light)";
+    e.currentTarget.style.boxShadow = "none";
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* GitHub identity preview */}
+    <form
+      onSubmit={handleSubmit}
+      style={{ display: "grid", gap: "18px" }}
+    >
+      {/* GitHub identity card */}
       {(initialAvatarUrl || initialGithubUsername) && (
-        <div className="flex items-center gap-3 p-3 rounded-lg border border-gitpm-border/40 bg-surface-dark/40">
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            padding: "12px 14px",
+            border: "0.5px solid var(--border-light)",
+            borderRadius: "10px",
+            background: "var(--surface-light)",
+          }}
+        >
           {initialAvatarUrl ? (
             <Image
               src={initialAvatarUrl}
               alt="GitHub avatar"
-              width={40}
-              height={40}
-              className="rounded-full ring-1 ring-white/10"
+              width={36}
+              height={36}
+              style={{ borderRadius: "50%", flexShrink: 0 }}
             />
           ) : (
-            <div className="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center">
-              <User className="h-5 w-5 text-white/40" />
+            <div
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: "50%",
+                background: "var(--border-light)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <User size={16} color="var(--text-muted)" />
             </div>
           )}
-          <div>
-            <p className="text-sm text-white font-medium">
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p
+              style={{
+                fontSize: "14px",
+                fontWeight: 500,
+                color: "var(--text-primary)",
+                margin: 0,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
               {initialDisplayName || initialGithubUsername}
             </p>
             {initialGithubUsername && (
-              <p className="text-xs text-white/40 flex items-center gap-1">
-                <Github className="h-3 w-3" />
+              <p
+                style={{
+                  fontSize: "12px",
+                  color: "var(--text-muted)",
+                  margin: "2px 0 0",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  fontFamily: "var(--font-mono)",
+                }}
+              >
+                <Github size={11} />
                 {initialGithubUsername}
               </p>
             )}
           </div>
+          <span
+            style={{
+              fontSize: "11px",
+              fontFamily: "var(--font-mono)",
+              color: "var(--teal)",
+              background: "var(--teal-bg)",
+              padding: "3px 8px",
+              borderRadius: "999px",
+              flexShrink: 0,
+            }}
+          >
+            connected
+          </span>
         </div>
       )}
 
-      {/* Username */}
-      <div className="space-y-1.5">
-        <Label htmlFor="username" className="text-white/80 text-sm">
-          Username <span className="text-teal">*</span>
-        </Label>
-        <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 text-sm select-none">
+      {/* ── Username ─────────────────────────────────── */}
+      <div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "baseline",
+            marginBottom: "6px",
+          }}
+        >
+          <label style={{ ...LABEL_STYLE, marginBottom: 0 }}>
+            Username <span style={{ color: "var(--teal)" }}>*</span>
+          </label>
+          <span
+            style={{
+              fontSize: "11px",
+              fontFamily: "var(--font-mono)",
+              color: "var(--text-muted)",
+            }}
+          >
+            {username.length}/30
+          </span>
+        </div>
+        {/* Prefix + input + status icon */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "stretch",
+            border: "0.5px solid var(--border-light)",
+            borderRadius: "8px",
+            overflow: "hidden",
+            transition: "border-color 0.15s, box-shadow 0.15s",
+          }}
+        >
+          <span
+            style={{
+              padding: "9px 12px",
+              background: "var(--surface-light)",
+              fontSize: "13px",
+              color: "var(--text-muted)",
+              fontFamily: "var(--font-mono)",
+              borderRight: "0.5px solid var(--border-light)",
+              whiteSpace: "nowrap",
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
             gitpm.dev/
           </span>
-          <Input
-            id="username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value.toLowerCase())}
-            className="pl-[6.5rem] bg-surface-dark border-gitpm-border/50 text-white placeholder:text-white/20 focus-visible:ring-purple/50"
-            placeholder="yourhandle"
-            maxLength={30}
-            autoComplete="off"
-            autoCapitalize="none"
-            spellCheck={false}
-          />
-          <div className="absolute right-3 top-1/2 -translate-y-1/2">
-            {usernameStatus === "checking" && (
-              <Loader2 className="h-4 w-4 text-white/40 animate-spin" />
-            )}
-            {usernameStatus === "available" && (
-              <CheckCircle className="h-4 w-4 text-teal" />
-            )}
-            {(usernameStatus === "taken" || usernameStatus === "invalid") && (
-              <XCircle className="h-4 w-4 text-red-400" />
-            )}
+          <div style={{ flex: 1, position: "relative" }}>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value.toLowerCase())}
+              onFocus={focusInput}
+              onBlur={blurInput}
+              placeholder="yourhandle"
+              maxLength={30}
+              autoComplete="off"
+              autoCapitalize="none"
+              spellCheck={false}
+              style={{
+                ...INPUT_STYLE,
+                border: "none",
+                borderRadius: 0,
+                paddingRight: "36px",
+                fontFamily: "var(--font-mono)",
+              }}
+            />
+            <span
+              style={{
+                position: "absolute",
+                right: "10px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              {usernameStatus === "checking" && (
+                <Loader2 size={15} color="var(--text-muted)" className="animate-spin" />
+              )}
+              {usernameStatus === "available" && (
+                <CheckCircle size={15} color="var(--teal)" />
+              )}
+              {(usernameStatus === "taken" || usernameStatus === "invalid") && (
+                <XCircle size={15} color="#EF4444" />
+              )}
+            </span>
           </div>
         </div>
-        <p className="text-xs text-white/30">
+        <p
+          style={{
+            fontSize: "11px",
+            fontFamily: "var(--font-mono)",
+            marginTop: "5px",
+            color:
+              usernameStatus === "available"
+                ? "var(--teal)"
+                : usernameStatus === "taken" || usernameStatus === "invalid"
+                ? "#EF4444"
+                : "var(--text-muted)",
+          }}
+        >
           {usernameStatus === "taken" && "That username is already taken."}
           {usernameStatus === "invalid" &&
             "3–30 characters. Lowercase letters, numbers, hyphens, underscores only."}
-          {usernameStatus === "available" && (
-            <span className="text-teal">Available!</span>
-          )}
-          {usernameStatus === "idle" &&
-            "3–30 characters. Letters, numbers, - and _ only."}
+          {usernameStatus === "available" && "Available!"}
+          {(usernameStatus === "idle") &&
+            "Lowercase letters, numbers, - and _ only."}
         </p>
       </div>
 
-      {/* Display name */}
-      <div className="space-y-1.5">
-        <Label htmlFor="display_name" className="text-white/80 text-sm">
-          Display name <span className="text-teal">*</span>
-        </Label>
-        <Input
-          id="display_name"
+      {/* ── Display name ─────────────────────────────── */}
+      <div>
+        <label style={LABEL_STYLE}>
+          Display name <span style={{ color: "var(--teal)" }}>*</span>
+        </label>
+        <input
+          type="text"
           value={displayName}
           onChange={(e) => setDisplayName(e.target.value)}
-          className="bg-surface-dark border-gitpm-border/50 text-white placeholder:text-white/20 focus-visible:ring-purple/50"
+          onFocus={focusInput}
+          onBlur={blurInput}
           placeholder="Ada Lovelace"
           maxLength={100}
+          style={INPUT_STYLE}
         />
       </div>
 
-      {/* Headline */}
-      <div className="space-y-1.5">
-        <Label htmlFor="headline" className="text-white/80 text-sm">
-          Headline <span className="text-teal">*</span>
-        </Label>
-        <Input
-          id="headline"
+      {/* ── Headline ─────────────────────────────────── */}
+      <div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "baseline",
+            marginBottom: "6px",
+          }}
+        >
+          <label style={{ ...LABEL_STYLE, marginBottom: 0 }}>
+            Headline <span style={{ color: "var(--teal)" }}>*</span>
+          </label>
+          <span
+            style={{
+              fontSize: "11px",
+              fontFamily: "var(--font-mono)",
+              color: headline.length > 140 ? "#F59E0B" : "var(--text-muted)",
+            }}
+          >
+            {headline.length}/160
+          </span>
+        </div>
+        <input
+          type="text"
           value={headline}
           onChange={(e) => setHeadline(e.target.value)}
-          className="bg-surface-dark border-gitpm-border/50 text-white placeholder:text-white/20 focus-visible:ring-purple/50"
+          onFocus={focusInput}
+          onBlur={blurInput}
           placeholder="PM at Acme · Shipping with Cursor + v0"
           maxLength={160}
+          style={INPUT_STYLE}
         />
-        <p className="text-xs text-white/30">
-          {headline.length}/160 — one punchy line about you and what you build.
+        <p style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "5px" }}>
+          One punchy line about who you are and what you build.
         </p>
       </div>
 
-      {/* Bio */}
-      <div className="space-y-1.5">
-        <Label htmlFor="bio" className="text-white/80 text-sm">
-          Bio{" "}
-          <span className="text-white/30 text-xs font-normal">(optional)</span>
-        </Label>
-        <Textarea
-          id="bio"
+      {/* ── Optional divider ─────────────────────────── */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
+          margin: "2px 0",
+        }}
+      >
+        <div style={{ flex: 1, height: "0.5px", background: "var(--border-light)" }} />
+        <span
+          style={{
+            fontSize: "11px",
+            fontFamily: "var(--font-mono)",
+            color: "var(--text-muted)",
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+          }}
+        >
+          Optional
+        </span>
+        <div style={{ flex: 1, height: "0.5px", background: "var(--border-light)" }} />
+      </div>
+
+      {/* ── Bio ──────────────────────────────────────── */}
+      <div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "baseline",
+            marginBottom: "6px",
+          }}
+        >
+          <label style={{ ...LABEL_STYLE, marginBottom: 0 }}>Bio</label>
+          <span
+            style={{
+              fontSize: "11px",
+              fontFamily: "var(--font-mono)",
+              color: bio.length > 450 ? "#F59E0B" : "var(--text-muted)",
+            }}
+          >
+            {bio.length}/500
+          </span>
+        </div>
+        <textarea
           value={bio}
           onChange={(e) => setBio(e.target.value)}
-          className="bg-surface-dark border-gitpm-border/50 text-white placeholder:text-white/20 focus-visible:ring-purple/50 resize-none"
+          onFocus={focusInput}
+          onBlur={blurInput}
           placeholder="A bit more about what you build, your stack, or your PM background…"
           rows={3}
           maxLength={500}
-        />
-        <p className="text-xs text-white/30">{bio.length}/500</p>
-      </div>
-
-      {/* LinkedIn */}
-      <div className="space-y-1.5">
-        <Label htmlFor="linkedin_url" className="text-white/80 text-sm">
-          LinkedIn URL{" "}
-          <span className="text-white/30 text-xs font-normal">(optional)</span>
-        </Label>
-        <Input
-          id="linkedin_url"
-          value={linkedinUrl}
-          onChange={(e) => setLinkedinUrl(e.target.value)}
-          type="url"
-          className="bg-surface-dark border-gitpm-border/50 text-white placeholder:text-white/20 focus-visible:ring-purple/50"
-          placeholder="https://linkedin.com/in/yourprofile"
+          style={TEXTAREA_STYLE}
         />
       </div>
 
-      {/* Website */}
-      <div className="space-y-1.5">
-        <Label htmlFor="website_url" className="text-white/80 text-sm">
-          Personal website{" "}
-          <span className="text-white/30 text-xs font-normal">(optional)</span>
-        </Label>
-        <Input
-          id="website_url"
-          value={websiteUrl}
-          onChange={(e) => setWebsiteUrl(e.target.value)}
-          type="url"
-          className="bg-surface-dark border-gitpm-border/50 text-white placeholder:text-white/20 focus-visible:ring-purple/50"
-          placeholder="https://yoursite.com"
-        />
+      {/* ── LinkedIn + Website ───────────────────────── */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+        <div>
+          <label style={LABEL_STYLE}>LinkedIn</label>
+          <input
+            type="url"
+            value={linkedinUrl}
+            onChange={(e) => setLinkedinUrl(e.target.value)}
+            onFocus={focusInput}
+            onBlur={blurInput}
+            placeholder="linkedin.com/in/you"
+            style={{ ...INPUT_STYLE, fontFamily: "var(--font-mono)", fontSize: "13px" }}
+          />
+        </div>
+        <div>
+          <label style={LABEL_STYLE}>Website</label>
+          <input
+            type="url"
+            value={websiteUrl}
+            onChange={(e) => setWebsiteUrl(e.target.value)}
+            onFocus={focusInput}
+            onBlur={blurInput}
+            placeholder="yoursite.com"
+            style={{ ...INPUT_STYLE, fontFamily: "var(--font-mono)", fontSize: "13px" }}
+          />
+        </div>
       </div>
 
-      <Button
-        type="submit"
-        disabled={!canSubmit}
-        className="w-full bg-purple hover:bg-purple/90 text-white font-medium disabled:opacity-40"
-      >
-        {submitting ? (
-          <>
-            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-            Saving…
-          </>
-        ) : (
-          "Save profile & continue"
-        )}
-      </Button>
+      {/* ── Submit ───────────────────────────────────── */}
+      <div style={{ marginTop: "6px" }}>
+        <button
+          type="submit"
+          disabled={!canSubmit}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "8px",
+            width: "100%",
+            padding: "11px 24px",
+            borderRadius: "8px",
+            fontSize: "13px",
+            fontWeight: 500,
+            fontFamily: "var(--font-body)",
+            background: "var(--navy)",
+            color: "#fff",
+            border: "none",
+            cursor: canSubmit ? "pointer" : "not-allowed",
+            opacity: canSubmit ? 1 : 0.4,
+            transition: "opacity 0.15s",
+          }}
+        >
+          {submitting && <Loader2 size={14} className="animate-spin" />}
+          {submitting ? "Saving…" : "Save profile & continue →"}
+        </button>
+      </div>
     </form>
   );
 }

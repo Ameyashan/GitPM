@@ -14,30 +14,47 @@ const STEPS = [
 
 function StepIndicator() {
   return (
-    <div className="flex items-center gap-0 mb-10">
+    <div style={{ display: "flex", alignItems: "center", marginBottom: "28px" }}>
       {STEPS.map((step, i) => (
-        <div key={step.label} className="flex items-center">
+        <div key={step.label} style={{ display: "flex", alignItems: "center" }}>
           {/* Step pill */}
           <div
-            className={[
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono transition-colors",
-              step.status === "done"
-                ? "bg-teal/15 text-teal"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              padding: "5px 12px",
+              borderRadius: "999px",
+              fontSize: "12px",
+              fontFamily: "var(--font-mono)",
+              transition: "all 0.15s",
+              ...(step.status === "done"
+                ? { background: "var(--teal-bg)", color: "var(--teal)" }
                 : step.status === "current"
-                ? "bg-white/10 text-white"
-                : "bg-transparent text-white/25",
-            ].join(" ")}
+                ? {
+                    background: "var(--surface-light)",
+                    color: "var(--text-primary)",
+                    border: "0.5px solid var(--border-light)",
+                  }
+                : { background: "transparent", color: "var(--text-muted)" }),
+            }}
           >
             {step.status === "done" ? (
-              <CheckCircle className="h-3.5 w-3.5" />
+              <CheckCircle size={13} />
             ) : (
               <span
-                className={[
-                  "h-3.5 w-3.5 rounded-full border flex-shrink-0",
-                  step.status === "current"
-                    ? "border-white/50"
-                    : "border-white/20",
-                ].join(" ")}
+                style={{
+                  width: 13,
+                  height: 13,
+                  borderRadius: "50%",
+                  border: `1.5px solid ${
+                    step.status === "current"
+                      ? "var(--text-secondary)"
+                      : "var(--border-light)"
+                  }`,
+                  flexShrink: 0,
+                  display: "inline-block",
+                }}
               />
             )}
             {step.label}
@@ -46,10 +63,13 @@ function StepIndicator() {
           {/* Connector line */}
           {i < STEPS.length - 1 && (
             <div
-              className={[
-                "h-px w-6 mx-1",
-                i === 0 ? "bg-teal/40" : "bg-white/10",
-              ].join(" ")}
+              style={{
+                height: "1px",
+                width: "24px",
+                margin: "0 4px",
+                background:
+                  i === 0 ? "var(--teal-bg)" : "var(--border-light)",
+              }}
             />
           )}
         </div>
@@ -83,14 +103,28 @@ export default async function OnboardingPage() {
   }
 
   return (
-    <div className="mx-auto max-w-xl px-4 py-16 w-full">
-      <div className="mb-10">
+    <div style={{ maxWidth: "560px", padding: "40px 32px", width: "100%" }}>
+      <div>
         <StepIndicator />
-        <h1 className="text-3xl font-display font-bold text-white mb-2">
+        <h1
+          style={{
+            fontSize: "22px",
+            fontWeight: 500,
+            letterSpacing: "-0.3px",
+            color: "var(--text-primary)",
+            margin: "0 0 6px",
+          }}
+        >
           Set up your profile
         </h1>
-        <p className="text-white/50 text-sm">
-          This is your public portfolio. Keep it sharp.
+        <p
+          style={{
+            fontSize: "14px",
+            color: "var(--text-secondary)",
+            margin: "0 0 32px",
+          }}
+        >
+          Your public portfolio — this is what other PMs and hiring managers will see.
         </p>
       </div>
 
