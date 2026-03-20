@@ -1,0 +1,13 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#0D1B2A"/>
+  <!-- Commit node icon -->
+  <line x1="530" y1="260" x2="530" y2="280" stroke="#0A7558" stroke-width="4" stroke-linecap="round"/>
+  <line x1="530" y1="308" x2="530" y2="328" stroke="#0A7558" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="530" cy="294" r="10" stroke="#0A7558" stroke-width="4"/>
+  <circle cx="530" cy="294" r="4" fill="#0A7558"/>
+  <!-- Wordmark -->
+  <text x="556" y="303" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="40" font-weight="700" letter-spacing="-1.2" fill="#F0F2F0">git</text>
+  <text x="627" y="303" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="40" font-weight="500" letter-spacing="-1.2" fill="#F0F2F0" opacity="0.55">pm</text>
+  <!-- Tagline -->
+  <text x="600" y="380" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="18" font-weight="400" fill="#7B8FA3" text-anchor="middle">The portfolio platform for product managers who build.</text>
+</svg>

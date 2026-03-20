@@ -1,0 +1,10 @@
+<svg width="180" height="36" viewBox="0 0 180 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Commit node icon -->
+  <line x1="18" y1="1" x2="18" y2="11" stroke="#0D1B2A" stroke-width="2.8" stroke-linecap="round"/>
+  <line x1="18" y1="25" x2="18" y2="35" stroke="#0D1B2A" stroke-width="2.8" stroke-linecap="round"/>
+  <circle cx="18" cy="18" r="7" stroke="#0D1B2A" stroke-width="2.8"/>
+  <circle cx="18" cy="18" r="2.8" fill="#0D1B2A"/>
+  <!-- Wordmark -->
+  <text x="46" y="24.5" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="28" font-weight="700" letter-spacing="-0.84" fill="#0D1B2A">git</text>
+  <text x="96" y="24.5" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="28" font-weight="500" letter-spacing="-0.84" fill="#0D1B2A" opacity="0.55">pm</text>
+</svg>

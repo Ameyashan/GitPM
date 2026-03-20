@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
+import { GitPMLogo } from "@/components/shared/GitPMLogo";
 import { createClient } from "@/lib/supabase/client";
 import {
   ExternalLink,
@@ -135,20 +136,8 @@ export function Navigation() {
             </button>
           )}
 
-          {/* Logo: gitpm.dev in JetBrains Mono, git=white pm=teal-light */}
-          <Link
-            href="/"
-            className="hover:opacity-80 transition-opacity"
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "14px",
-              fontWeight: 400,
-              letterSpacing: "-0.2px",
-              color: "var(--white)",
-              textDecoration: "none",
-            }}
-          >
-            git<span style={{ color: "var(--teal-light)" }}>pm</span>.dev
+          <Link href="/" className="hover:opacity-80 transition-opacity">
+            <GitPMLogo variant="dark" size="sm" />
           </Link>
         </div>
 
@@ -277,17 +266,8 @@ export function Navigation() {
               className="px-4 py-5"
               style={{ borderBottom: "0.5px solid rgba(255,255,255,0.08)" }}
             >
-              <SheetTitle
-                className="text-left"
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "14px",
-                  fontWeight: 400,
-                  color: "var(--white)",
-                  letterSpacing: "-0.2px",
-                }}
-              >
-                git<span style={{ color: "var(--teal-light)" }}>pm</span>.dev
+              <SheetTitle className="text-left">
+                <GitPMLogo variant="dark" size="sm" />
               </SheetTitle>
             </SheetHeader>
 
