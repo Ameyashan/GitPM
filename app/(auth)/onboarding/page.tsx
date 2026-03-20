@@ -103,7 +103,7 @@ export default async function OnboardingPage() {
   }
 
   return (
-    <div style={{ maxWidth: "560px", padding: "40px 32px", width: "100%" }}>
+    <div style={{ maxWidth: "560px", padding: "40px 32px", width: "100%", margin: "0 auto" }}>
       <div>
         <StepIndicator />
         <h1
