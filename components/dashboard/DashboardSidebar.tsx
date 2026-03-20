@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   FolderOpen,
@@ -13,6 +14,7 @@ import { cn } from "@/lib/utils";
 interface SidebarProfile {
   display_name: string | null;
   username: string | null;
+  avatar_url: string | null;
 }
 
 interface NavItem {
@@ -66,21 +68,32 @@ export function DashboardSidebar({ profile }: DashboardSidebarProps) {
           }}
         >
           <div className="flex items-center gap-2.5">
-            {/* Avatar initials circle */}
-            <div
-              className="flex items-center justify-center shrink-0"
-              style={{
-                width: "36px",
-                height: "36px",
-                borderRadius: "50%",
-                background: "linear-gradient(135deg, var(--purple), var(--teal))",
-                fontSize: "13px",
-                fontWeight: 500,
-                color: "var(--white)",
-              }}
-            >
-              {getInitials(profile.display_name)}
-            </div>
+            {/* Avatar */}
+            {profile.avatar_url ? (
+              <Image
+                src={profile.avatar_url}
+                alt={profile.display_name ?? profile.username ?? "Avatar"}
+                width={36}
+                height={36}
+                className="shrink-0 rounded-full object-cover"
+                style={{ border: "1.5px solid rgba(255,255,255,0.08)" }}
+              />
+            ) : (
+              <div
+                className="flex items-center justify-center shrink-0"
+                style={{
+                  width: "36px",
+                  height: "36px",
+                  borderRadius: "50%",
+                  background: "linear-gradient(135deg, var(--purple), var(--teal))",
+                  fontSize: "13px",
+                  fontWeight: 500,
+                  color: "var(--white)",
+                }}
+              >
+                {getInitials(profile.display_name)}
+              </div>
+            )}
             <div className="min-w-0">
               <div
                 className="truncate"

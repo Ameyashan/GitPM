@@ -7,6 +7,7 @@ const ProfileUpdateSchema = z.object({
   headline: z.string().max(160).optional(),
   bio: z.string().max(1000).optional(),
   linkedin_url: z.string().url().or(z.literal("")).optional(),
+  website_url: z.string().url().or(z.literal("")).optional(),
 });
 
 export async function PATCH(req: Request) {

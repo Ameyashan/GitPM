@@ -12,13 +12,16 @@ export default async function AuthLayout({
     data: { user },
   } = await supabase.auth.getUser();
 
-  let profile: { display_name: string | null; username: string | null } | null =
-    null;
+  let profile: {
+    display_name: string | null;
+    username: string | null;
+    avatar_url: string | null;
+  } | null = null;
 
   if (user) {
     const { data } = await supabase
       .from("users")
-      .select("username, display_name")
+      .select("username, display_name, avatar_url")
       .eq("id", user.id)
       .single();
     profile = data;

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Github, Linkedin } from "lucide-react";
 import type { User } from "@/types/project";
 
@@ -26,16 +27,27 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
 
   return (
     <div className="flex gap-5 items-start">
-      {/* Gradient initials circle */}
-      <div
-        className="w-16 h-16 shrink-0 rounded-full flex items-center justify-center text-white text-[22px] font-medium"
-        style={{
-          background: "linear-gradient(135deg, var(--purple) 0%, var(--teal) 100%)",
-          border: "1.5px solid rgba(255,255,255,0.1)",
-        }}
-      >
-        {initials}
-      </div>
+      {/* Avatar */}
+      {user.avatar_url ? (
+        <Image
+          src={user.avatar_url}
+          alt={user.display_name ?? user.username ?? "Avatar"}
+          width={64}
+          height={64}
+          className="shrink-0 rounded-full object-cover"
+          style={{ border: "1.5px solid rgba(255,255,255,0.1)" }}
+        />
+      ) : (
+        <div
+          className="w-16 h-16 shrink-0 rounded-full flex items-center justify-center text-white text-[22px] font-medium"
+          style={{
+            background: "linear-gradient(135deg, var(--purple) 0%, var(--teal) 100%)",
+            border: "1.5px solid rgba(255,255,255,0.1)",
+          }}
+        >
+          {initials}
+        </div>
+      )}
 
       {/* Info */}
       <div className="flex-1 min-w-0">
