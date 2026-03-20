@@ -1,0 +1,70 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="cgrid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1B2838" stroke-width="0.5"/>
+    </pattern>
+    <linearGradient id="cgridFade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="white" stop-opacity="0.3"/>
+      <stop offset="0.5" stop-color="white" stop-opacity="0.15"/>
+      <stop offset="1" stop-color="white" stop-opacity="0"/>
+    </linearGradient>
+    <mask id="cgridMask">
+      <rect width="1200" height="630" fill="url(#cgridFade)"/>
+    </mask>
+    <!-- Animated-look glow -->
+    <radialGradient id="centerGlow" cx="600" cy="260" r="250" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0A7558" stop-opacity="0.2"/>
+      <stop offset="0.6" stop-color="#0A7558" stop-opacity="0.05"/>
+      <stop offset="1" stop-color="#0A7558" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Ring glow -->
+    <radialGradient id="ringGlow" cx="600" cy="200" r="100" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0A7558" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#0A7558" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#0D1B2A"/>
+  <rect width="1200" height="630" fill="url(#cgrid)" mask="url(#cgridMask)"/>
+
+  <!-- Glows -->
+  <ellipse cx="600" cy="260" rx="400" ry="300" fill="url(#centerGlow)"/>
+  <circle cx="600" cy="200" r="120" fill="url(#ringGlow)"/>
+
+  <!-- Large commit node as hero element -->
+  <line x1="600" y1="70" x2="600" y2="140" stroke="#0A7558" stroke-width="4.5" stroke-linecap="round"/>
+  <line x1="600" y1="240" x2="600" y2="310" stroke="#0A7558" stroke-width="4.5" stroke-linecap="round"/>
+  <circle cx="600" cy="190" r="38" stroke="#0A7558" stroke-width="4.5"/>
+  <circle cx="600" cy="190" r="15" fill="#0A7558"/>
+
+  <!-- Outer decorative ring -->
+  <circle cx="600" cy="190" r="60" stroke="#0A7558" stroke-width="1" opacity="0.2"/>
+  <circle cx="600" cy="190" r="85" stroke="#0A7558" stroke-width="0.5" opacity="0.1"/>
+
+  <!-- COMING SOON label -->
+  <rect x="530" y="335" width="140" height="30" rx="15" fill="#0A7558" opacity="0.15"/>
+  <text x="600" y="355" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="12" font-weight="700" fill="#0A7558" text-anchor="middle" letter-spacing="3">COMING SOON</text>
+
+  <!-- Wordmark -->
+  <g transform="translate(600, 420)">
+    <line x1="-22" y1="-38" x2="-22" y2="-25" stroke="#0A7558" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="-22" y1="-3" x2="-22" y2="10" stroke="#0A7558" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="-22" cy="-14" r="8" stroke="#0A7558" stroke-width="2.5"/>
+    <circle cx="-22" cy="-14" r="3.2" fill="#0A7558"/>
+    <text x="0" y="-4" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="30" font-weight="700" letter-spacing="-0.9" fill="#F0F2F0">git</text>
+    <text x="58" y="-4" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="30" font-weight="500" letter-spacing="-0.9" fill="#F0F2F0" opacity="0.55">pm</text>
+  </g>
+
+  <!-- Tagline -->
+  <text x="600" y="465" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="18" font-weight="400" fill="#7B8FA3" text-anchor="middle">The portfolio platform for product managers who build.</text>
+
+  <!-- Email signup CTA -->
+  <rect x="445" y="500" width="310" height="46" rx="23" fill="none" stroke="#C8CCC8" stroke-width="0.5" stroke-opacity="0.3"/>
+  <text x="540" y="528" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="14" font-weight="400" fill="#7B8FA3" opacity="0.5">your@email.com</text>
+  <rect x="635" y="505" width="110" height="36" rx="18" fill="#0A7558"/>
+  <text x="690" y="528" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="600" fill="#FFFFFF" text-anchor="middle">Notify me</text>
+
+  <!-- Bottom URL -->
+  <text x="600" y="590" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="14" font-weight="500" fill="#7B8FA3" text-anchor="middle" opacity="0.5">gitpm.dev</text>
+</svg>

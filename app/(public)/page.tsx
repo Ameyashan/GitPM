@@ -322,38 +322,7 @@ export default function LandingPage() {
             }}
           >
             <SignInButton variant="white" label="Start building your profile" />
-            <a
-              href="#examples"
-              className="landing-secondary-btn"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                padding: "13px 28px",
-                borderRadius: "8px",
-                fontSize: "14px",
-                fontWeight: 500,
-                color: "var(--text-inverse-muted)",
-                background: "transparent",
-                border: "0.5px solid rgba(255,255,255,0.25)",
-                textDecoration: "none",
-                letterSpacing: "-0.1px",
-              }}
-            >
-              See a live profile
-            </a>
           </div>
-
-          {/* Trust tagline */}
-          <p
-            style={{
-              fontSize: "12px",
-              color: "var(--text-inverse-muted)",
-              marginTop: "16px",
-              opacity: 0.7,
-            }}
-          >
-            Free forever. No credit card. Takes 3 minutes.
-          </p>
         </div>
       </section>
 

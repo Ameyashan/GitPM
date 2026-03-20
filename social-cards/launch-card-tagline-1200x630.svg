@@ -1,0 +1,61 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="tgrid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1B2838" stroke-width="0.5"/>
+    </pattern>
+    <linearGradient id="tgridFade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="white" stop-opacity="0.4"/>
+      <stop offset="0.6" stop-color="white" stop-opacity="0.15"/>
+      <stop offset="1" stop-color="white" stop-opacity="0"/>
+    </linearGradient>
+    <mask id="tgridMask">
+      <rect width="1200" height="630" fill="url(#tgridFade)"/>
+    </mask>
+    <radialGradient id="purpleGlow" cx="900" cy="250" r="300" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6C5CE7" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#6C5CE7" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="ttealGlow" cx="400" cy="300" r="350" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0A7558" stop-opacity="0.1"/>
+      <stop offset="1" stop-color="#0A7558" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#0D1B2A"/>
+  <rect width="1200" height="630" fill="url(#tgrid)" mask="url(#tgridMask)"/>
+  <ellipse cx="400" cy="300" rx="450" ry="300" fill="url(#ttealGlow)"/>
+  <ellipse cx="900" cy="250" rx="350" ry="300" fill="url(#purpleGlow)"/>
+
+  <!-- Bottom accent bar -->
+  <rect x="0" y="627" width="1200" height="3" fill="#0A7558"/>
+
+  <!-- Large centered commit-node icon -->
+  <line x1="600" y1="100" x2="600" y2="155" stroke="#0A7558" stroke-width="4" stroke-linecap="round"/>
+  <line x1="600" y1="215" x2="600" y2="270" stroke="#0A7558" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="600" cy="185" r="22" stroke="#0A7558" stroke-width="4"/>
+  <circle cx="600" cy="185" r="9" fill="#0A7558"/>
+
+  <!-- Wordmark under icon -->
+  <text x="600" y="330" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="56" font-weight="700" letter-spacing="-1.7" fill="#F0F2F0" text-anchor="middle">The portfolio platform</text>
+  <text x="600" y="400" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="56" font-weight="700" letter-spacing="-1.7" fill="#F0F2F0" text-anchor="middle">for PMs who <tspan fill="#0A7558">build</tspan>.</text>
+
+  <!-- Feature pills row -->
+  <g transform="translate(600, 450)">
+    <!-- Pill 1 -->
+    <rect x="-310" y="0" width="180" height="36" rx="18" fill="#1B2838" stroke="#C8CCC8" stroke-width="0.5" stroke-opacity="0.3"/>
+    <circle cx="-290" cy="18" r="4" fill="#0A7558"/>
+    <text x="-278" y="23" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="500" fill="#7B8FA3">Verified badges</text>
+    <!-- Pill 2 -->
+    <rect x="-90" y="0" width="180" height="36" rx="18" fill="#1B2838" stroke="#C8CCC8" stroke-width="0.5" stroke-opacity="0.3"/>
+    <circle cx="-70" cy="18" r="4" fill="#6C5CE7"/>
+    <text x="-58" y="23" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="500" fill="#7B8FA3">One shareable link</text>
+    <!-- Pill 3 -->
+    <rect x="130" y="0" width="180" height="36" rx="18" fill="#1B2838" stroke="#C8CCC8" stroke-width="0.5" stroke-opacity="0.3"/>
+    <circle cx="150" cy="18" r="4" fill="#0A7558"/>
+    <text x="162" y="23" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="500" fill="#7B8FA3">GitHub · Vercel · Lovable</text>
+  </g>
+
+  <!-- URL bottom -->
+  <text x="600" y="555" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="18" font-weight="600" fill="#0A7558" text-anchor="middle">gitpm.dev</text>
+</svg>

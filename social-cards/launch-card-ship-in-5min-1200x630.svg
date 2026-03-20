@@ -1,0 +1,60 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="sgrid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1B2838" stroke-width="0.5"/>
+    </pattern>
+    <linearGradient id="sgridFade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="white" stop-opacity="0.5"/>
+      <stop offset="0.5" stop-color="white" stop-opacity="0.2"/>
+      <stop offset="1" stop-color="white" stop-opacity="0"/>
+    </linearGradient>
+    <mask id="sgridMask">
+      <rect width="1200" height="630" fill="url(#sgridFade)"/>
+    </mask>
+    <radialGradient id="stealGlow" cx="600" cy="280" r="350" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0A7558" stop-opacity="0.15"/>
+      <stop offset="1" stop-color="#0A7558" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#0D1B2A"/>
+  <rect width="1200" height="630" fill="url(#sgrid)" mask="url(#sgridMask)"/>
+  <ellipse cx="600" cy="280" rx="500" ry="350" fill="url(#stealGlow)"/>
+
+  <!-- Top bar accent -->
+  <rect x="0" y="0" width="1200" height="3" fill="#0A7558"/>
+
+  <!-- Commit-node timeline running vertically on left side -->
+  <g opacity="0.2">
+    <line x1="100" y1="0" x2="100" y2="180" stroke="#0A7558" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="100" cy="200" r="6" stroke="#0A7558" stroke-width="2" fill="none"/>
+    <circle cx="100" cy="200" r="2.5" fill="#0A7558"/>
+    <line x1="100" y1="220" x2="100" y2="380" stroke="#0A7558" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="100" cy="400" r="6" stroke="#0A7558" stroke-width="2" fill="none"/>
+    <circle cx="100" cy="400" r="2.5" fill="#0A7558"/>
+    <line x1="100" y1="420" x2="100" y2="630" stroke="#0A7558" stroke-width="2" stroke-linecap="round"/>
+  </g>
+
+  <!-- Small logo mark top-left -->
+  <line x1="160" y1="60" x2="160" y2="72" stroke="#0A7558" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="160" y1="92" x2="160" y2="104" stroke="#0A7558" stroke-width="2.2" stroke-linecap="round"/>
+  <circle cx="160" cy="82" r="7.5" stroke="#0A7558" stroke-width="2.2"/>
+  <circle cx="160" cy="82" r="3" fill="#0A7558"/>
+  <text x="180" y="89" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="22" font-weight="700" letter-spacing="-0.7" fill="#F0F2F0">git</text>
+  <text x="220" y="89" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="22" font-weight="500" letter-spacing="-0.7" fill="#F0F2F0" opacity="0.55">pm</text>
+
+  <!-- Hero text -->
+  <text x="600" y="240" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="62" font-weight="700" fill="#F0F2F0" text-anchor="middle" letter-spacing="-2">Ship your PM portfolio</text>
+  <text x="600" y="310" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="62" font-weight="700" fill="#0A7558" text-anchor="middle" letter-spacing="-2">in 5 minutes.</text>
+
+  <!-- Subtext -->
+  <text x="600" y="370" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="20" font-weight="400" fill="#7B8FA3" text-anchor="middle">One link. All your shipped projects. Verified.</text>
+
+  <!-- CTA pill -->
+  <rect x="505" y="410" width="190" height="48" rx="24" fill="#0A7558"/>
+  <text x="600" y="440" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="17" font-weight="600" fill="#FFFFFF" text-anchor="middle">Get started free</text>
+
+  <!-- URL bottom -->
+  <text x="600" y="570" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="16" font-weight="500" fill="#7B8FA3" text-anchor="middle" opacity="0.7">gitpm.dev</text>
+</svg>

@@ -1,0 +1,57 @@
+<svg width="1500" height="500" viewBox="0 0 1500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Subtle grid pattern for depth -->
+    <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+      <path d="M 60 0 L 0 0 0 60" fill="none" stroke="#1B2838" stroke-width="0.5"/>
+    </pattern>
+    <!-- Fade mask for grid -->
+    <linearGradient id="gridFade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="white" stop-opacity="0"/>
+      <stop offset="0.3" stop-color="white" stop-opacity="0.4"/>
+      <stop offset="0.7" stop-color="white" stop-opacity="0.4"/>
+      <stop offset="1" stop-color="white" stop-opacity="0"/>
+    </linearGradient>
+    <mask id="gridMask">
+      <rect width="1500" height="500" fill="url(#gridFade)"/>
+    </mask>
+    <!-- Teal glow -->
+    <radialGradient id="tealGlow" cx="750" cy="250" r="400" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0A7558" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#0A7558" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1500" height="500" fill="#0D1B2A"/>
+
+  <!-- Subtle grid -->
+  <rect width="1500" height="500" fill="url(#grid)" mask="url(#gridMask)"/>
+
+  <!-- Glow behind logo -->
+  <ellipse cx="750" cy="250" rx="500" ry="300" fill="url(#tealGlow)"/>
+
+  <!-- Decorative commit line (left) -->
+  <line x1="200" y1="0" x2="200" y2="160" stroke="#0A7558" stroke-width="2" stroke-linecap="round" opacity="0.25"/>
+  <circle cx="200" cy="180" r="5" stroke="#0A7558" stroke-width="2" fill="none" opacity="0.25"/>
+  <circle cx="200" cy="180" r="2" fill="#0A7558" opacity="0.25"/>
+  <line x1="200" y1="200" x2="200" y2="500" stroke="#0A7558" stroke-width="2" stroke-linecap="round" opacity="0.25"/>
+
+  <!-- Decorative commit line (right) -->
+  <line x1="1300" y1="0" x2="1300" y2="280" stroke="#6C5CE7" stroke-width="2" stroke-linecap="round" opacity="0.15"/>
+  <circle cx="1300" cy="300" r="5" stroke="#6C5CE7" stroke-width="2" fill="none" opacity="0.15"/>
+  <circle cx="1300" cy="300" r="2" fill="#6C5CE7" opacity="0.15"/>
+  <line x1="1300" y1="320" x2="1300" y2="500" stroke="#6C5CE7" stroke-width="2" stroke-linecap="round" opacity="0.15"/>
+
+  <!-- Center commit-node icon -->
+  <line x1="660" y1="160" x2="660" y2="205" stroke="#0A7558" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="660" y1="255" x2="660" y2="300" stroke="#0A7558" stroke-width="3.5" stroke-linecap="round"/>
+  <circle cx="660" cy="230" r="18" stroke="#0A7558" stroke-width="3.5"/>
+  <circle cx="660" cy="230" r="7" fill="#0A7558"/>
+
+  <!-- Wordmark -->
+  <text x="698" y="242" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="48" font-weight="700" letter-spacing="-1.4" fill="#F0F2F0">git</text>
+  <text x="790" y="242" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="48" font-weight="500" letter-spacing="-1.4" fill="#F0F2F0" opacity="0.55">pm</text>
+
+  <!-- Tagline -->
+  <text x="750" y="340" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="18" font-weight="400" fill="#7B8FA3" text-anchor="middle" letter-spacing="0.5">The portfolio platform for product managers who build.</text>
+</svg>
