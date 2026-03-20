@@ -23,7 +23,7 @@ export default async function SettingsPage() {
     .single();
 
   return (
-    <div style={{ maxWidth: "680px", padding: "40px 32px", width: "100%" }}>
+    <div style={{ maxWidth: "680px", padding: "40px 32px", width: "100%", margin: "0 auto" }}>
       {/* Page header */}
       <div style={{ marginBottom: "28px" }}>
         <h1

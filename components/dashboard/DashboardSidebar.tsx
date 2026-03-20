@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  LayoutDashboard,
   FolderOpen,
   Plug,
   Settings,
@@ -23,7 +22,6 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Projects", href: "/dashboard", icon: FolderOpen },
   { label: "Connections", href: "/dashboard/connections", icon: Plug },
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
