@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { toast } from "sonner";
 import { Loader2, Camera } from "lucide-react";
@@ -83,6 +84,7 @@ export function SettingsForm({
     linkedin_url: linkedinUrl,
     website_url: websiteUrl,
   });
+  const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string | null>(avatarUrl);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -124,6 +126,7 @@ export function SettingsForm({
       const json = (await res.json()) as { data: { avatar_url: string } };
       setCurrentAvatarUrl(json.data.avatar_url);
       toast.success("Profile photo updated");
+      router.refresh();
     } catch (err) {
       console.error("Avatar upload error:", err);
       toast.error("Failed to upload photo. Please try again.");
