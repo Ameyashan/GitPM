@@ -89,7 +89,7 @@ export function VercelConnectModal({
       <style>{`
         @keyframes vcModalIn {
           from { opacity: 0; transform: translate(-50%, -48%) scale(0.97); }
-          to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+          to   { opacity: 1; transform: translate(-50%, -50%) scale(1.0001); }
         }
         @keyframes vcFadeIn { from { opacity: 0; } to { opacity: 1; } }
       `}</style>
@@ -116,8 +116,9 @@ export function VercelConnectModal({
           position: "fixed",
           top: "50%",
           left: "50%",
+          transform: "translate(-50%, -50%)",
           zIndex: 401,
-          width: "100%",
+          width: "calc(100% - 2rem)",
           maxWidth: "420px",
           background: "var(--surface-card, #fff)",
           border: "0.5px solid var(--border-light)",
