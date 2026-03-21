@@ -15,6 +15,7 @@ import {
   EyeOff,
   Loader2,
   CheckCircle,
+  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RefreshGitHubButton } from "@/components/dashboard/RefreshGitHubButton";
@@ -49,6 +50,7 @@ interface ProjectRow {
 interface DashboardProjectActionsProps {
   projects: ProjectRow[];
   username: string;
+  vercelConnected: boolean;
 }
 
 function shortUrl(url: string): string {
@@ -62,10 +64,12 @@ function shortUrl(url: string): string {
 export function DashboardProjectActions({
   projects: initialProjects,
   username,
+  vercelConnected,
 }: DashboardProjectActionsProps) {
   const router = useRouter();
   const [projects, setProjects] = useState(initialProjects);
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [verifyingId, setVerifyingId] = useState<string | null>(null);
 
   if (projects.length === 0) return null;
 
@@ -160,6 +164,35 @@ export function DashboardProjectActions({
       setProjects(initialProjects);
     } finally {
       setLoadingId(null);
+    }
+  }
+
+  async function handleVerify(project: ProjectRow) {
+    setVerifyingId(project.id);
+    try {
+      const res = await fetch(`/api/projects/${project.id}/verify`, {
+        method: "POST",
+      });
+      const json = (await res.json()) as { data?: { verified: boolean }; error?: string };
+
+      if (!res.ok) {
+        toast.error(json.error ?? "Verification failed");
+        return;
+      }
+
+      if (json.data?.verified) {
+        setProjects((prev) =>
+          prev.map((p) => (p.id === project.id ? { ...p, is_verified: true } : p))
+        );
+        toast.success("Project verified with Vercel");
+        router.refresh();
+      } else {
+        toast.error("No matching Vercel deployment found for this project's URL");
+      }
+    } catch {
+      toast.error("Network error. Please try again.");
+    } finally {
+      setVerifyingId(null);
     }
   }
 
@@ -371,7 +404,25 @@ export function DashboardProjectActions({
                 </Link>
               )}
 
-              {/* Publish toggle */}
+              {/* Verify with Vercel */}
+              {vercelConnected && !project.is_verified && (
+                <button
+                  type="button"
+                  onClick={() => handleVerify(project)}
+                  disabled={verifyingId === project.id}
+                  className="dash-action-btn"
+                  style={{ padding: "6px 8px", lineHeight: 1 }}
+                  title="Verify with Vercel"
+                >
+                  {verifyingId === project.id ? (
+                    <Loader2 style={{ width: "12px", height: "12px" }} className="animate-spin" />
+                  ) : (
+                    <ShieldCheck style={{ width: "12px", height: "12px" }} />
+                  )}
+                </button>
+              )}
+
+              {/* Publish toggle — Eye = visible/published, EyeOff = hidden/draft */}
               <button
                 type="button"
                 onClick={() => handlePublishToggle(project)}
@@ -383,9 +434,9 @@ export function DashboardProjectActions({
                 {isLoading ? (
                   <Loader2 style={{ width: "12px", height: "12px" }} className="animate-spin" />
                 ) : project.is_published ? (
-                  <EyeOff style={{ width: "12px", height: "12px" }} />
-                ) : (
                   <Eye style={{ width: "12px", height: "12px" }} />
+                ) : (
+                  <EyeOff style={{ width: "12px", height: "12px" }} />
                 )}
               </button>
 

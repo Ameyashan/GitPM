@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { generateAndStoreProjectThumbnail } from "@/lib/thumbnails";
+import { verifyProjectsAgainstDeployments } from "@/lib/vercel";
+import { decrypt } from "@/lib/crypto";
 import { projectCreateSchema } from "@/lib/validators/project";
 import type { Tables } from "@/types/database";
 
@@ -144,7 +146,7 @@ export async function POST(request: Request) {
         key_decisions: input.key_decisions || null,
         learnings: input.learnings || null,
         metrics_text: input.metrics_text || null,
-        is_published: input.is_published ?? false,
+        is_published: input.is_published ?? true,
         is_solo: true,
         is_verified: false,
         display_order,
@@ -162,11 +164,12 @@ export async function POST(request: Request) {
       );
     }
 
+    const admin = createAdminClient();
+
     let projectWithThumbnail = project;
 
     if (project.is_published && !project.thumbnail_url) {
       try {
-        const admin = createAdminClient();
         const thumbnailUrl = await generateAndStoreProjectThumbnail(
           project.id,
           project.live_url,
@@ -184,6 +187,38 @@ export async function POST(request: Request) {
         );
       }
     }
+
+    // Fire-and-forget: auto-verify against Vercel if the user has it connected
+    supabase
+      .from("connected_accounts")
+      .select("access_token")
+      .eq("user_id", user.id)
+      .eq("provider", "vercel")
+      .maybeSingle()
+      .then(async ({ data: account }) => {
+        if (!account) return;
+        try {
+          const token = decrypt(account.access_token);
+          const matches = await verifyProjectsAgainstDeployments(token, [
+            { id: project.id, live_url: project.live_url },
+          ]);
+          if (matches.has(project.id)) {
+            const { latestDeployAt } = matches.get(project.id)!;
+            await admin
+              .from("projects")
+              .update({
+                is_verified: true,
+                verification_method: "vercel_oauth",
+                hosting_platform: "vercel",
+                latest_deploy_at: latestDeployAt,
+              })
+              .eq("id", project.id)
+              .eq("user_id", user.id);
+          }
+        } catch (err) {
+          console.error("[POST /api/projects] Auto-verification failed:", err);
+        }
+      });
 
     return NextResponse.json({ data: projectWithThumbnail }, { status: 201 });
   } catch (err) {

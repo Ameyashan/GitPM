@@ -76,7 +76,7 @@ export const projectCreateSchema = z.object({
   demo_video_url: optionalUrl,
   github_repo_url: optionalUrl,
   metrics_text: z.string().max(500).nullable().optional(),
-  is_published: z.boolean().optional().default(false),
+  is_published: z.boolean().optional().default(true),
 });
 
 export const projectUpdateSchema = projectCreateSchema.partial().extend({

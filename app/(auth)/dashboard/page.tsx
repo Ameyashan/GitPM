@@ -208,7 +208,11 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
           </p>
         </div>
       ) : (
-        <DashboardProjectActions projects={projects} username={profile.username ?? ""} />
+        <DashboardProjectActions
+          projects={projects}
+          username={profile.username ?? ""}
+          vercelConnected={!!vercelAccount}
+        />
       )}
 
       {/* Add project button — opens unified modal */}
