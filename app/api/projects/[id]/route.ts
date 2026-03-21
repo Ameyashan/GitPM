@@ -134,16 +134,28 @@ export async function PATCH(request: Request, { params }: Context) {
 
     const input = parsed.data;
 
-    // Normalize empty strings to null for nullable fields
+    // Only include nullable fields in the update when they were explicitly sent.
+    // If absent from the payload, leave them as undefined so Supabase ignores
+    // them entirely — otherwise `undefined || null` would wipe existing data.
+    const nullableOverrides: Record<string, unknown> = {};
+    if ("github_repo_url" in input)
+      nullableOverrides.github_repo_url = input.github_repo_url || null;
+    if ("demo_video_url" in input)
+      nullableOverrides.demo_video_url = input.demo_video_url || null;
+    if ("hosting_platform" in input)
+      nullableOverrides.hosting_platform = input.hosting_platform || null;
+    if ("target_user" in input)
+      nullableOverrides.target_user = input.target_user || null;
+    if ("key_decisions" in input)
+      nullableOverrides.key_decisions = input.key_decisions || null;
+    if ("learnings" in input)
+      nullableOverrides.learnings = input.learnings || null;
+    if ("metrics_text" in input)
+      nullableOverrides.metrics_text = input.metrics_text || null;
+
     const updates: Record<string, unknown> = {
       ...input,
-      github_repo_url: input.github_repo_url || null,
-      demo_video_url: input.demo_video_url || null,
-      hosting_platform: input.hosting_platform || null,
-      target_user: input.target_user || null,
-      key_decisions: input.key_decisions || null,
-      learnings: input.learnings || null,
-      metrics_text: input.metrics_text || null,
+      ...nullableOverrides,
       updated_at: new Date().toISOString(),
     };
 

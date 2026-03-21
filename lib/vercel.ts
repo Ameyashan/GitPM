@@ -122,6 +122,25 @@ function deploymentTimestamp(d: VercelDeployment): number {
   return d.readyAt ?? d.createdAt ?? d.created;
 }
 
+function latestDeploymentTimestamp(deployments: VercelDeployment[]): string | null {
+  const latest = [...deployments].sort(
+    (a, b) => deploymentTimestamp(b) - deploymentTimestamp(a)
+  )[0];
+
+  if (!latest) return null;
+
+  const timestamp = latest.readyAt ?? latest.createdAt ?? latest.created;
+  return new Date(timestamp).toISOString();
+}
+
+function isReadyDeployment(d: VercelDeployment): boolean {
+  return d.state === "READY" && Boolean(d.url);
+}
+
+function isLikelyProductionDeployment(d: VercelDeployment): boolean {
+  return d.target === "production" || d.target === null;
+}
+
 /**
  * Verifies user projects against Vercel deployments.
  * Returns a map of project ID → deployment data for matched projects.
@@ -156,41 +175,50 @@ export async function verifyProjectsAgainstDeployments(
     return results;
   }
 
-  // Only consider READY production deployments
-  const readyDeployments = deployments.filter(
-    (d) => d.state === "READY" && d.target === "production" && Boolean(d.url)
+  const readyDeployments = deployments.filter(isReadyDeployment);
+  const readyProductionDeployments = readyDeployments.filter(
+    isLikelyProductionDeployment
   );
 
   for (const project of projectsWithUrl) {
     const projectHostname = extractHostname(project.live_url!);
     const projectNorm = normalizeHostname(projectHostname);
 
-    // 1) Direct match: deployment default URL hostname (e.g. project-abc123.vercel.app)
-    let match = readyDeployments.find((d) => {
+    // 1) Direct match: deployment URL hostname (e.g. project-abc123.vercel.app)
+    // Vercel can return `target: null` for deployments that still back the
+    // current production project/domain, so do not require an exact target match here.
+    const directMatch = readyProductionDeployments.find((d) => {
       const h = deploymentUrlHostname(d);
       return h !== null && normalizeHostname(h) === projectNorm;
     });
 
-    // 2) Custom domain: match live URL to production alias, then use latest prod deployment for that project
-    if (!match) {
-      const vercelProject = vercelProjects.find((vp) =>
-        collectVercelProjectHostnames(vp).some(
-          (h) => normalizeHostname(h) === projectNorm
-        )
+    // 2) Stable project hostname / custom domain match. This is the most reliable
+    // ownership signal for imported Vercel projects because the project record
+    // carries the active production domains even when the deployment list is sparse.
+    const vercelProject = vercelProjects.find((vp) =>
+      collectVercelProjectHostnames(vp).some(
+        (h) => normalizeHostname(h) === projectNorm
+      )
+    );
+
+    let latestDeployAt: string | null = null;
+
+    if (directMatch) {
+      latestDeployAt = new Date(
+        directMatch.readyAt ?? directMatch.createdAt ?? directMatch.created
+      ).toISOString();
+    } else if (vercelProject) {
+      const projectDeployments = readyProductionDeployments.filter(
+        (d) => d.projectId === vercelProject.id
       );
-      if (vercelProject) {
-        const forProject = readyDeployments
-          .filter((d) => d.projectId === vercelProject.id)
-          .sort((a, b) => deploymentTimestamp(b) - deploymentTimestamp(a));
-        match = forProject[0];
-      }
+
+      latestDeployAt =
+        latestDeploymentTimestamp(projectDeployments) ??
+        latestDeploymentTimestamp(vercelProject.latestDeployments ?? []);
     }
 
-    if (match) {
-      const deployedAt = match.readyAt
-        ? new Date(match.readyAt).toISOString()
-        : new Date(match.createdAt).toISOString();
-      results.set(project.id, { latestDeployAt: deployedAt });
+    if (directMatch || vercelProject) {
+      results.set(project.id, { latestDeployAt });
     }
   }
 
