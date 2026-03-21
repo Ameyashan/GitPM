@@ -1,10 +1,16 @@
+import Link from "next/link";
 import { SignInButton } from "@/components/landing/SignInButton";
+import { getFeaturedProfiles } from "@/lib/featured-profiles";
+
+// Always show up-to-date featured builders (requires SUPABASE_SERVICE_ROLE_KEY at runtime).
+export const dynamic = "force-dynamic";
 
 // ------------------------------------------------------------------
-// Static mock data
+// Featured profiles (server-fetched: users with published projects)
 // ------------------------------------------------------------------
 
 interface ExampleProfile {
+  username: string;
   initials: string;
   gradientFrom: string;
   gradientTo: string;
@@ -16,45 +22,6 @@ interface ExampleProfile {
   tools: string[];
   toolVariant: "tool" | "stack";
 }
-
-const EXAMPLE_PROFILES: ExampleProfile[] = [
-  {
-    initials: "AG",
-    gradientFrom: "var(--purple)",
-    gradientTo: "var(--teal)",
-    name: "Ameya Shanbhag",
-    role: "Senior PM at Goldman Sachs",
-    projects: 6,
-    commits: 347,
-    verified: 5,
-    tools: ["Cursor", "Lovable", "Next.js"],
-    toolVariant: "tool",
-  },
-  {
-    initials: "SK",
-    gradientFrom: "var(--teal)",
-    gradientTo: "var(--forest)",
-    name: "Sarah Kim",
-    role: "PM at Figma",
-    projects: 4,
-    commits: 201,
-    verified: 3,
-    tools: ["Lovable", "v0", "React"],
-    toolVariant: "tool",
-  },
-  {
-    initials: "JR",
-    gradientFrom: "var(--forest)",
-    gradientTo: "var(--purple)",
-    name: "James Rivera",
-    role: "Aspiring PM, career switcher",
-    projects: 2,
-    commits: 78,
-    verified: 2,
-    tools: ["Cursor", "Bolt", "Svelte"],
-    toolVariant: "tool",
-  },
-];
 
 const HOW_IT_WORKS = [
   {
@@ -196,15 +163,17 @@ function ExampleProfileCard({ profile }: { profile: ExampleProfile }) {
       </div>
 
       {/* Tool pills */}
-      <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
-        {profile.tools.map((tool, i) => (
-          <ToolPill
-            key={tool}
-            label={tool}
-            type={isLastTool(i) ? "stack" : "tool"}
-          />
-        ))}
-      </div>
+      {profile.tools.length > 0 && (
+        <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
+          {profile.tools.map((tool, i) => (
+            <ToolPill
+              key={tool}
+              label={tool}
+              type={isLastTool(i) ? "stack" : "tool"}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -213,7 +182,9 @@ function ExampleProfileCard({ profile }: { profile: ExampleProfile }) {
 // Page
 // ------------------------------------------------------------------
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const featuredProfiles = await getFeaturedProfiles(9);
+
   return (
     <main className="flex-1 flex flex-col bg-page-bg">
 
@@ -739,28 +710,36 @@ export default function LandingPage() {
                 Early builders who are shaping the platform.
               </p>
             </div>
-            <a
-              href="#"
-              style={{
-                fontSize: "13px",
-                color: "var(--teal)",
-                textDecoration: "none",
-                whiteSpace: "nowrap",
-              }}
-            >
-              Browse all profiles
-            </a>
           </div>
 
-          {/* Cards */}
-          <div
-            className="grid grid-cols-1 md:grid-cols-3"
-            style={{ gap: "16px" }}
-          >
-            {EXAMPLE_PROFILES.map((profile) => (
-              <ExampleProfileCard key={profile.initials} profile={profile} />
-            ))}
-          </div>
+          {/* Cards — real users with at least one published project */}
+          {featuredProfiles.length === 0 ? (
+            <p
+              style={{
+                fontSize: "14px",
+                color: "var(--text-secondary)",
+                lineHeight: 1.6,
+              }}
+            >
+              Publish a project to appear here — you&apos;ll be among the first
+              builders on the platform.
+            </p>
+          ) : (
+            <div
+              className="grid grid-cols-1 md:grid-cols-3"
+              style={{ gap: "16px" }}
+            >
+              {featuredProfiles.map((profile) => (
+                <Link
+                  key={profile.username}
+                  href={`/${profile.username}`}
+                  style={{ textDecoration: "none", color: "inherit" }}
+                >
+                  <ExampleProfileCard profile={profile} />
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

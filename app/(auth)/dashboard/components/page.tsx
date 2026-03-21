@@ -27,6 +27,9 @@ const MOCK_USER: User = {
   github_username: "alexrivera",
   linkedin_url: "https://linkedin.com/in/alexrivera",
   website_url: "https://alexrivera.pm",
+  github_contributions: null,
+  github_contributions_synced_at: null,
+  profile_view_count: 0,
   created_at: "2024-01-15T10:00:00Z",
   updated_at: "2024-06-01T12:00:00Z",
 };
@@ -178,7 +181,12 @@ export default function ComponentShowcasePage() {
 
       <Section title="AggregateStats">
         <div className="rounded-xl bg-surface-dark/40 border border-gitpm-border/30 p-5">
-          <AggregateStats totalProjects={6} totalCommits={342} verifiedCount={4} />
+          <AggregateStats
+            totalProjects={6}
+            totalCommits={342}
+            verifiedCount={4}
+            profileViews={128}
+          />
         </div>
       </Section>
 
