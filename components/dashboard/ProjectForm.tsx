@@ -50,6 +50,7 @@ interface FormErrors {
 interface ProjectFormProps {
   mode: "create" | "edit";
   initialData?: Partial<Project>;
+  username?: string | null;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -373,7 +374,7 @@ function RepoCombobox({
 
 // ── Main Form ─────────────────────────────────────────────────────────────────
 
-export function ProjectForm({ mode, initialData }: ProjectFormProps) {
+export function ProjectForm({ mode, initialData, username }: ProjectFormProps) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [enriching, setEnriching] = useState(false);
@@ -617,7 +618,7 @@ export function ProjectForm({ mode, initialData }: ProjectFormProps) {
           <label style={labelStyle}>URL slug</label>
           <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
             <span style={{ padding: "9px 10px", background: "var(--surface-light)", border: "0.5px solid var(--border-light)", borderRight: "none", borderRadius: "7px 0 0 7px", fontSize: 11, color: "var(--text-muted)", fontFamily: "var(--font-mono)", whiteSpace: "nowrap" }}>
-              gitpm.dev/you/
+              {username ? `gitpm.dev/${username}/` : "gitpm.dev/you/"}
             </span>
             <input
               style={{ ...inputStyle, borderRadius: "0 7px 7px 0", marginBottom: 0, flex: 1, fontFamily: "var(--font-mono)" }}
