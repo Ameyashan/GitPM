@@ -48,7 +48,8 @@ const nextConfig = {
             value: [
               "default-src 'self'",
               // Scripts: self, PostHog, Sentry CDN
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://app.posthog.com https://us.posthog.com https://browser.sentry-cdn.com",
+              // PostHog: SDK may load from app/us; events go to us.i / eu.i ingest hosts
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://app.posthog.com https://us.posthog.com https://us.i.posthog.com https://eu.i.posthog.com https://browser.sentry-cdn.com",
               // Styles: self + inline (Tailwind generates inline styles)
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               // Fonts: self + Google Fonts
@@ -56,7 +57,7 @@ const nextConfig = {
               // Images: self, Supabase Storage, GitHub avatars, data URIs (Next.js image optimizer)
               "img-src 'self' data: blob: https://*.supabase.co https://avatars.githubusercontent.com",
               // Connections: self, Supabase, PostHog, Sentry, GitHub API
-              "connect-src 'self' https://*.supabase.co https://app.posthog.com https://us.posthog.com https://o*.ingest.sentry.io https://api.github.com https://api.vercel.com",
+              "connect-src 'self' https://*.supabase.co https://app.posthog.com https://us.posthog.com https://us.i.posthog.com https://eu.i.posthog.com https://o*.ingest.sentry.io https://api.github.com https://api.vercel.com",
               // Frames: allow Loom and YouTube embeds
               "frame-src https://www.loom.com https://www.youtube.com https://www.youtube-nocookie.com",
               // Workers: self (Sentry uses workers)
