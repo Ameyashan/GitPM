@@ -75,8 +75,8 @@ export default async function PublicProfilePage({ params }: Props) {
 
   const publishedProjects = (projectRows ?? []) as Project[];
 
-  // Increment view count — fire and forget, non-blocking
-  void admin.rpc("increment_profile_view", { p_user_id: user.id });
+  // Increment view count — awaited so the serverless function doesn't exit before the DB write
+  await admin.rpc("increment_profile_view", { p_user_id: user.id });
 
   // Aggregate stats
   const totalCommits = publishedProjects.reduce(

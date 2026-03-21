@@ -15,12 +15,12 @@ export function AggregateStats({
     { value: totalProjects, label: "Projects" },
     { value: totalCommits, label: "Commits" },
     { value: verifiedCount, label: "Verified" },
-    { value: profileViews, label: "Profile views", mobileHide: true },
+    { value: profileViews, label: "Profile views" },
   ];
 
   return (
     <div
-      className="grid grid-cols-3 md:grid-cols-4 gap-px bg-gitpm-border-light rounded-[14px] overflow-hidden relative z-10 shadow-[0_1px_3px_rgba(13,27,42,0.08)]"
+      className="grid grid-cols-4 gap-px bg-gitpm-border-light rounded-[14px] overflow-hidden relative z-10 shadow-[0_1px_3px_rgba(13,27,42,0.08)]"
       style={{ marginTop: "-28px" }}
     >
       {stats.map((stat, i) => (
