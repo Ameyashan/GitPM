@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useCallback } from "react";
+import Image from "next/image";
 import { X, ExternalLink, Play } from "lucide-react";
 import type { Project, User } from "@/types/project";
 
@@ -482,6 +483,17 @@ export function ProjectModal({ project, user, onClose }: ProjectModalProps) {
               }}
             />
           </div>
+
+          {hasThumbnail && (
+            <Image
+              src={project.thumbnail_url!}
+              alt={project.name}
+              fill
+              className="object-cover z-[1]"
+              sizes="(max-width: 700px) 100vw, 700px"
+              priority
+            />
+          )}
 
           {/* Wireframe placeholder (no thumbnail) */}
           {!hasThumbnail && (

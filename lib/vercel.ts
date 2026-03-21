@@ -88,9 +88,48 @@ function extractHostname(url: string): string {
   }
 }
 
+/** Hostnames that differ only by leading `www.` are treated as the same site. */
+function normalizeHostname(hostname: string): string {
+  return hostname.toLowerCase().replace(/^www\./, "");
+}
+
+function deploymentUrlHostname(d: VercelDeployment): string | null {
+  if (!d.url) return null;
+  return d.url.replace(/^https?:\/\//, "").split("/")[0];
+}
+
+/**
+ * Production aliases / URL from a Vercel project (custom domains live here;
+ * deployment `url` is usually the hash URL, not the custom domain).
+ */
+function collectVercelProjectHostnames(vp: VercelProject): string[] {
+  const hosts: string[] = [];
+  const prod = vp.targets?.production;
+  if (prod?.url) {
+    const raw = prod.url.includes("://") ? prod.url : `https://${prod.url}`;
+    hosts.push(extractHostname(raw));
+  }
+  if (prod?.alias?.length) {
+    for (const a of prod.alias) {
+      const raw = a.includes("://") ? a : `https://${a}`;
+      hosts.push(extractHostname(raw));
+    }
+  }
+  return hosts;
+}
+
+function deploymentTimestamp(d: VercelDeployment): number {
+  return d.readyAt ?? d.createdAt ?? d.created;
+}
+
 /**
  * Verifies user projects against Vercel deployments.
  * Returns a map of project ID → deployment data for matched projects.
+ *
+ * Matches:
+ * 1) Project live URL hostname to deployment `url` (e.g. *.vercel.app), or
+ * 2) Project live URL hostname to any production alias on the Vercel project
+ *    (custom domains such as www.example.com are only present on aliases, not on deployment.url).
  */
 export async function verifyProjectsAgainstDeployments(
   token: string,
@@ -107,24 +146,45 @@ export async function verifyProjectsAgainstDeployments(
   if (projectsWithUrl.length === 0) return results;
 
   let deployments: VercelDeployment[];
+  let vercelProjects: VercelProject[];
   try {
-    deployments = await getVercelDeployments(token);
+    [deployments, vercelProjects] = await Promise.all([
+      getVercelDeployments(token),
+      getVercelProjects(token),
+    ]);
   } catch {
     return results;
   }
 
   // Only consider READY production deployments
   const readyDeployments = deployments.filter(
-    (d) => d.state === "READY" && d.target === "production"
+    (d) => d.state === "READY" && d.target === "production" && Boolean(d.url)
   );
 
   for (const project of projectsWithUrl) {
     const projectHostname = extractHostname(project.live_url!);
+    const projectNorm = normalizeHostname(projectHostname);
 
-    const match = readyDeployments.find((d) => {
-      const deployHostname = d.url.replace(/^https?:\/\//, "");
-      return deployHostname === projectHostname || projectHostname === deployHostname;
+    // 1) Direct match: deployment default URL hostname (e.g. project-abc123.vercel.app)
+    let match = readyDeployments.find((d) => {
+      const h = deploymentUrlHostname(d);
+      return h !== null && normalizeHostname(h) === projectNorm;
     });
+
+    // 2) Custom domain: match live URL to production alias, then use latest prod deployment for that project
+    if (!match) {
+      const vercelProject = vercelProjects.find((vp) =>
+        collectVercelProjectHostnames(vp).some(
+          (h) => normalizeHostname(h) === projectNorm
+        )
+      );
+      if (vercelProject) {
+        const forProject = readyDeployments
+          .filter((d) => d.projectId === vercelProject.id)
+          .sort((a, b) => deploymentTimestamp(b) - deploymentTimestamp(a));
+        match = forProject[0];
+      }
+    }
 
     if (match) {
       const deployedAt = match.readyAt

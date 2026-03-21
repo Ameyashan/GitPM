@@ -23,7 +23,8 @@ export interface VercelProject {
 export interface VercelDeployment {
   uid: string;
   name: string;
-  url: string;
+  /** May be null while upload is incomplete. */
+  url: string | null;
   created: number;
   state: "BUILDING" | "ERROR" | "INITIALIZING" | "QUEUED" | "READY" | "CANCELED";
   target: "production" | "preview" | null;
