@@ -24,6 +24,7 @@ const HEATMAP_DATA = generateHeatmap();
 
 interface TierCardProps {
   verifiedCount: number;
+  heatmapData?: number[] | null;
 }
 
 function StarIcon() {
@@ -38,7 +39,11 @@ function StarIcon() {
   );
 }
 
-export function TierCard({ verifiedCount }: TierCardProps) {
+export function TierCard({ verifiedCount, heatmapData }: TierCardProps) {
+  const resolvedHeatmap =
+    Array.isArray(heatmapData) && heatmapData.length === 84
+      ? heatmapData
+      : HEATMAP_DATA;
   const tierName =
     verifiedCount >= 5
       ? "Verified builder"
@@ -84,7 +89,7 @@ export function TierCard({ verifiedCount }: TierCardProps) {
           className="grid gap-[2px]"
           style={{ gridTemplateColumns: "repeat(12, 1fr)" }}
         >
-          {HEATMAP_DATA.map((level, i) => (
+          {resolvedHeatmap.map((level, i) => (
             <div
               key={i}
               className="w-[9px] h-[9px] rounded-[2px]"

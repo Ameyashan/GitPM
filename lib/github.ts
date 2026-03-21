@@ -239,6 +239,74 @@ export async function getPackageJsonTechStack(
 }
 
 /**
+ * Fetches the user's recent push events from the public GitHub events API
+ * and converts them into an 84-cell intensity grid (12 columns × 7 rows,
+ * representing 12 weeks of daily commit activity, newest column on the right).
+ *
+ * Uses the unauthenticated endpoint so it works on public profile pages.
+ * Rate limit: 60 req/hr per IP — always cache the result.
+ *
+ * Returns an array of 84 integers in range 0–4.
+ */
+export async function getWeeklyActivityGrid(username: string): Promise<number[]> {
+  const WEEKS = 12;
+  const DAYS = 7;
+  const TOTAL_CELLS = WEEKS * DAYS; // 84
+
+  // Build a map of ISO date string → commit count for the past 12 weeks
+  const commitsByDate = new Map<string, number>();
+
+  // Seed all dates in range with 0
+  const now = new Date();
+  for (let d = 0; d < TOTAL_CELLS; d++) {
+    const date = new Date(now);
+    date.setDate(date.getDate() - (TOTAL_CELLS - 1 - d));
+    commitsByDate.set(date.toISOString().slice(0, 10), 0);
+  }
+
+  try {
+    const res = await fetch(
+      `${GITHUB_API}/users/${username}/events?per_page=100`,
+      {
+        headers: { Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" },
+        next: { revalidate: 0 },
+      }
+    );
+
+    if (res.ok) {
+      const events = (await res.json()) as Array<{
+        type: string;
+        created_at: string;
+        payload: { commits?: Array<unknown> };
+      }>;
+
+      for (const event of events) {
+        if (event.type !== "PushEvent") continue;
+        const dateKey = event.created_at.slice(0, 10);
+        if (!commitsByDate.has(dateKey)) continue;
+        const count = event.payload.commits?.length ?? 1;
+        commitsByDate.set(dateKey, (commitsByDate.get(dateKey) ?? 0) + count);
+      }
+    }
+  } catch {
+    // Non-fatal — return all zeros; caller will fall back to placeholder
+  }
+
+  const dailyCounts = Array.from(commitsByDate.values());
+  const max = Math.max(...dailyCounts, 1);
+
+  // Quantise into 0–4 levels
+  return dailyCounts.map((count) => {
+    if (count === 0) return 0;
+    const ratio = count / max;
+    if (ratio > 0.75) return 4;
+    if (ratio > 0.5) return 3;
+    if (ratio > 0.25) return 2;
+    return 1;
+  });
+}
+
+/**
  * Fetches commits, languages, and package.json in parallel and returns
  * enrichment data for a project. Commit count is capped at 100 (MVP).
  */

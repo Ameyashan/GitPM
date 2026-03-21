@@ -53,7 +53,7 @@ export const projectCreateSchema = z.object({
     ),
   description: z
     .string()
-    .max(300, "Description must be 300 characters or less")
+    .max(500, "Description must be 500 characters or less")
     .optional()
     .default(""),
   live_url: z
@@ -104,7 +104,7 @@ export const step1Schema = z.object({
       /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
       "Slug must be lowercase, numbers, and hyphens only"
     ),
-  description: z.string().max(300, "Max 300 characters").optional(),
+  description: z.string().max(500, "Max 500 characters").optional(),
   live_url: z
     .string()
     .min(1, "Live URL is required")

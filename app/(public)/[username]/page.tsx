@@ -75,6 +75,9 @@ export default async function PublicProfilePage({ params }: Props) {
 
   const publishedProjects = (projectRows ?? []) as Project[];
 
+  // Increment view count — fire and forget, non-blocking
+  void admin.rpc("increment_profile_view", { p_user_id: user.id });
+
   // Aggregate stats
   const totalCommits = publishedProjects.reduce(
     (sum, p) => sum + (p.commit_count ?? 0),
@@ -129,10 +132,18 @@ export default async function PublicProfilePage({ params }: Props) {
           totalProjects={publishedProjects.length}
           totalCommits={totalCommits}
           verifiedCount={verifiedCount}
+          profileViews={user.profile_view_count}
         />
 
         {/* Tier card */}
-        <TierCard verifiedCount={verifiedCount} />
+        <TierCard
+          verifiedCount={verifiedCount}
+          heatmapData={
+            Array.isArray(user.github_contributions)
+              ? (user.github_contributions as number[])
+              : null
+          }
+        />
 
         {/* Tools section */}
         {toolsUsed.length > 0 && (

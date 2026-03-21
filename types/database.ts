@@ -20,6 +20,9 @@ export interface Database {
           github_username: string | null;
           linkedin_url: string | null;
           website_url: string | null;
+          github_contributions: Json | null;
+          github_contributions_synced_at: string | null;
+          profile_view_count: number;
           created_at: string;
           updated_at: string;
         };
@@ -33,6 +36,9 @@ export interface Database {
           github_username?: string | null;
           linkedin_url?: string | null;
           website_url?: string | null;
+          github_contributions?: Json | null;
+          github_contributions_synced_at?: string | null;
+          profile_view_count?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -46,6 +52,9 @@ export interface Database {
           github_username?: string | null;
           linkedin_url?: string | null;
           website_url?: string | null;
+          github_contributions?: Json | null;
+          github_contributions_synced_at?: string | null;
+          profile_view_count?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -227,7 +236,12 @@ export interface Database {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      increment_profile_view: {
+        Args: { p_user_id: string };
+        Returns: void;
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };

@@ -891,10 +891,15 @@ function Phase3Form({
           <input style={af("live_url")} value={formData.live_url} onChange={(e) => set("live_url", e.target.value)} placeholder="https://myproject.vercel.app" type="url" />
           <FieldError msg={errors.live_url} />
 
-          <div style={labelStyle}>
-            Description <span style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: 400 }}>(optional)</span>
+          <div style={{ ...labelStyle, justifyContent: "space-between" }}>
+            <span>
+              Description <span style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: 400 }}>(optional)</span>
+            </span>
+            <span style={{ fontSize: "10px", color: formData.description.length > 450 ? "#E24B4A" : "var(--text-muted)", fontFamily: "var(--font-mono)" }}>
+              {formData.description.length}/500
+            </span>
           </div>
-          <textarea style={{ ...inputStyle, resize: "vertical", minHeight: "56px", lineHeight: 1.5 }} value={formData.description} onChange={(e) => set("description", e.target.value)} placeholder="A one-line summary of what this project does." rows={2} />
+          <textarea style={{ ...inputStyle, resize: "vertical", minHeight: "56px", lineHeight: 1.5 }} value={formData.description} onChange={(e) => set("description", e.target.value)} placeholder="A one-line summary of what this project does." rows={2} maxLength={500} />
 
           <div style={labelStyle}>
             Categories <span style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: 400 }}>(optional)</span>
@@ -1180,7 +1185,7 @@ export function AddProjectModal({
     const payload = {
       name: formData.name,
       slug: formData.slug,
-      description: formData.description || null,
+      description: formData.description,
       live_url: formData.live_url,
       category_tags: formData.category_tags,
       build_tools: formData.build_tools,
