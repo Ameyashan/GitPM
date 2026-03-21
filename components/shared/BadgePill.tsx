@@ -2,13 +2,13 @@
 
 interface BadgePillProps {
   label: string;
-  variant?: "default" | "teal" | "purple" | "forest";
+  variant?: "default" | "light" | "teal" | "purple" | "forest";
 }
 
 const VARIANT_CLASSES: Record<NonNullable<BadgePillProps["variant"]>, string> =
   {
-    default:
-      "bg-dark-surface text-white/70 border border-gitpm-border/50",
+    default: "bg-dark-surface text-white/70 border border-gitpm-border/50",
+    light: "bg-surface-light text-text-secondary border border-gitpm-border-light",
     teal: "bg-teal/10 text-teal border border-teal/20",
     purple: "bg-purple/10 text-purple border border-purple/20",
     forest: "bg-forest/10 text-forest border border-forest/20",

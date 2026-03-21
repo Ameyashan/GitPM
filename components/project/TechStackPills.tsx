@@ -7,6 +7,7 @@ interface TechStackPillsProps {
   stack?: string[];
   categories?: string[];
   verificationMethod?: VerificationMethod | null;
+  mode?: "dark" | "light";
 }
 
 export function TechStackPills({
@@ -14,7 +15,9 @@ export function TechStackPills({
   hosting,
   stack = [],
   categories = [],
+  mode = "dark",
 }: TechStackPillsProps) {
+  const defaultVariant = mode === "light" ? "light" : "default";
   const hasAny =
     buildTools.length > 0 || hosting || stack.length > 0 || categories.length > 0;
 
@@ -27,7 +30,7 @@ export function TechStackPills({
       ))}
       {hosting && <BadgePill label={hosting} variant="teal" />}
       {stack.map((tech) => (
-        <BadgePill key={`stack-${tech}`} label={tech} variant="default" />
+        <BadgePill key={`stack-${tech}`} label={tech} variant={defaultVariant} />
       ))}
       {categories.map((cat) => (
         <BadgePill key={`cat-${cat}`} label={cat} variant="forest" />

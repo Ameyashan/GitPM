@@ -1,4 +1,3 @@
-import { StatCard } from "@/components/shared/StatCard";
 import type { Project } from "@/types/project";
 
 interface ProjectStatsProps {
@@ -26,7 +25,7 @@ export function ProjectStats({ project }: ProjectStatsProps) {
     project.latest_deploy_at
   );
 
-  const stats: { value: string | number; label: string; accent?: "teal" | "purple" }[] = [];
+  const stats: { value: string | number; label: string; accent?: "purple" }[] = [];
 
   if (project.commit_count !== null && project.commit_count > 0) {
     stats.push({ value: project.commit_count, label: "Commits" });
@@ -43,13 +42,29 @@ export function ProjectStats({ project }: ProjectStatsProps) {
   if (stats.length === 0) return null;
 
   return (
-    <div className="flex items-center gap-8 flex-wrap">
+    <div
+      className="grid gap-px bg-gitpm-border-light rounded-[14px] overflow-hidden relative z-10 shadow-[0_1px_3px_rgba(13,27,42,0.08)]"
+      style={{
+        marginTop: "-28px",
+        gridTemplateColumns: `repeat(${stats.length}, 1fr)`,
+      }}
+    >
       {stats.map((stat, i) => (
-        <div key={i} className="flex items-center gap-8">
-          <StatCard value={stat.value} label={stat.label} accent={stat.accent} />
-          {i < stats.length - 1 && (
-            <div className="h-8 w-px bg-gitpm-border/30" />
-          )}
+        <div key={i} className="bg-white py-4 px-3 text-center">
+          <div
+            className={`text-[22px] font-medium font-mono ${
+              stat.accent === "purple" ? "text-purple" : "text-text-primary"
+            }`}
+            style={{ letterSpacing: "-0.5px" }}
+          >
+            {stat.value}
+          </div>
+          <div
+            className="text-[10px] text-text-muted uppercase font-medium mt-[3px]"
+            style={{ letterSpacing: "0.07em" }}
+          >
+            {stat.label}
+          </div>
         </div>
       ))}
     </div>

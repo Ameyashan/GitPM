@@ -7,18 +7,18 @@ interface ProductContextProps {
 
 export function ProductContext({ project }: ProductContextProps) {
   return (
-    <div className="space-y-7">
+    <div className="mt-2">
       <section>
-        <SectionLabel>Problem Statement</SectionLabel>
-        <p className="text-white/80 leading-relaxed text-[15px]">
+        <SectionLabel mode="light">Problem Statement</SectionLabel>
+        <p className="text-text-secondary leading-relaxed text-[15px]">
           {project.problem_statement}
         </p>
       </section>
 
       {project.target_user && (
         <section>
-          <SectionLabel>Target User</SectionLabel>
-          <p className="text-white/80 leading-relaxed text-[15px]">
+          <SectionLabel mode="light">Target User</SectionLabel>
+          <p className="text-text-secondary leading-relaxed text-[15px]">
             {project.target_user}
           </p>
         </section>
@@ -26,9 +26,9 @@ export function ProductContext({ project }: ProductContextProps) {
 
       {project.key_decisions && (
         <section>
-          <SectionLabel>Key Decisions</SectionLabel>
-          <div className="border-l-2 border-purple/50 pl-4">
-            <p className="text-white/80 leading-relaxed text-[15px]">
+          <SectionLabel mode="light">Key Decisions</SectionLabel>
+          <div className="border-l-2 border-purple/30 pl-4">
+            <p className="text-text-secondary leading-relaxed text-[15px]">
               {project.key_decisions}
             </p>
           </div>
@@ -37,8 +37,8 @@ export function ProductContext({ project }: ProductContextProps) {
 
       {project.learnings && (
         <section>
-          <SectionLabel>Learnings</SectionLabel>
-          <p className="text-white/80 leading-relaxed text-[15px]">
+          <SectionLabel mode="light">Learnings</SectionLabel>
+          <p className="text-text-secondary leading-relaxed text-[15px]">
             {project.learnings}
           </p>
         </section>

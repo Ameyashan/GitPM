@@ -12,7 +12,6 @@ import { TechStackPills } from "@/components/project/TechStackPills";
 import { ProjectStats } from "@/components/project/ProjectStats";
 import { ProductContext } from "@/components/project/ProductContext";
 import { VerifiedBadge } from "@/components/project/VerifiedBadge";
-import { Separator } from "@/components/ui/separator";
 import type { Project, User, Screenshot, VerificationMethod } from "@/types/project";
 
 interface Props {
@@ -115,30 +114,40 @@ export default async function ProjectDetailPage({ params }: Props) {
   const hasStats = project.commit_count !== null || project.first_commit_at !== null;
 
   return (
-    <main className="min-h-screen bg-navy">
-      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-10">
-        {/* Breadcrumb */}
-        <Link
-          href={`/${username}`}
-          className="inline-flex items-center gap-1 text-xs text-white/40 hover:text-white/70 transition-colors mb-8 font-mono"
-        >
-          <ChevronLeft className="h-3.5 w-3.5" />
-          {owner.display_name ?? username}
-        </Link>
+    <main className="min-h-screen bg-page-bg">
+      {/* ── Dark hero section ── */}
+      <div className="bg-navy">
+        <div className="mx-auto max-w-[880px] px-10 max-md:px-5 pt-8 pb-0">
+          {/* Breadcrumb */}
+          <Link
+            href={`/${username}`}
+            className="inline-flex items-center gap-1 text-xs text-white/40 hover:text-white/70 transition-colors mb-6 font-mono"
+          >
+            <ChevronLeft className="h-3.5 w-3.5" />
+            {owner.display_name ?? username}
+          </Link>
 
-        {/* Hero */}
-        <div className="mb-8">
+          {/* Hero image — sits flush at the bottom of the dark section */}
           <ProjectHero project={project} screenshots={screenshots} />
         </div>
+      </div>
+
+      {/* ── Light content section ── */}
+      <div className="mx-auto max-w-[880px] px-10 max-md:px-5 pb-16">
+        {/* Stats bar — floats over the hero/content boundary */}
+        {hasStats && <ProjectStats project={project} />}
 
         {/* Title + verified */}
-        <div className="flex flex-col sm:flex-row sm:items-start gap-3 mb-4">
+        <div className={`flex flex-col sm:flex-row sm:items-start gap-3 mb-4 ${hasStats ? "mt-6" : "mt-8"}`}>
           <div className="flex-1 min-w-0">
-            <h1 className="text-2xl font-display font-bold text-white leading-tight">
+            <h1
+              className="text-[24px] font-medium text-text-primary leading-tight"
+              style={{ letterSpacing: "-0.5px" }}
+            >
               {project.name}
             </h1>
             {project.description && (
-              <p className="text-white/55 mt-1.5 text-[15px] leading-relaxed">
+              <p className="text-text-secondary mt-1.5 text-[15px] leading-relaxed">
                 {project.description}
               </p>
             )}
@@ -159,9 +168,8 @@ export default async function ProjectDetailPage({ params }: Props) {
           hosting={project.hosting_platform}
           stack={project.tech_stack}
           categories={project.category_tags}
-          verificationMethod={
-            project.verification_method as VerificationMethod | null
-          }
+          verificationMethod={project.verification_method as VerificationMethod | null}
+          mode="light"
         />
 
         {/* Live URL */}
@@ -170,22 +178,18 @@ export default async function ProjectDetailPage({ params }: Props) {
             href={project.live_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 mt-4 text-xs font-mono text-white/40 hover:text-teal transition-colors"
+            className="inline-flex items-center gap-1.5 mt-4 text-xs font-mono text-text-muted hover:text-teal transition-colors"
           >
             <ExternalLink className="h-3.5 w-3.5" />
             {project.live_url}
           </a>
         )}
 
-        <Separator className="my-8 bg-gitpm-border/20" />
-
-        {/* Stats */}
-        <ProjectStats project={project} />
-
-        {hasStats && <Separator className="my-8 bg-gitpm-border/20" />}
-
-        {/* Product context */}
+        {/* Product context sections */}
         <ProductContext project={project} />
+
+        {/* Footer rule */}
+        <div className="mt-12 pt-5" style={{ borderTop: "0.5px solid var(--border-light)" }} />
       </div>
     </main>
   );
