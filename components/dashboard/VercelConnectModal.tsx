@@ -1,14 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Eye, EyeOff, ExternalLink, Loader2, Lock, Triangle } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import { useEffect, useRef, useState } from "react";
+import { Eye, EyeOff, ExternalLink, Loader2, Lock, Triangle, X } from "lucide-react";
 
 interface VercelConnectModalProps {
   open: boolean;
@@ -25,6 +18,24 @@ export function VercelConnectModal({
   const [showToken, setShowToken] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Focus input when modal opens
+  useEffect(() => {
+    if (open) {
+      setTimeout(() => inputRef.current?.focus(), 50);
+    }
+  }, [open]);
+
+  // Escape key to close
+  useEffect(() => {
+    if (!open) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape" && !isConnecting) handleClose();
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [open, isConnecting]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleClose() {
     if (isConnecting) return;
@@ -71,72 +82,110 @@ export function VercelConnectModal({
     }
   }
 
+  if (!open) return null;
+
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent
-        showCloseButton={!isConnecting}
+    <>
+      <style>{`
+        @keyframes vcModalIn {
+          from { opacity: 0; transform: translate(-50%, -48%) scale(0.97); }
+          to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+        @keyframes vcFadeIn { from { opacity: 0; } to { opacity: 1; } }
+      `}</style>
+
+      {/* Backdrop — z-index above AddProjectModal (300) */}
+      <div
+        onClick={handleClose}
         style={{
-          background: "var(--surface-card)",
-          border: "0.5px solid var(--border-light)",
+          position: "fixed",
+          inset: 0,
+          zIndex: 400,
+          background: "rgba(13,27,42,0.55)",
+          backdropFilter: "blur(4px)",
+          animation: "vcFadeIn 0.15s ease",
+        }}
+      />
+
+      {/* Panel */}
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="vc-modal-title"
+        style={{
+          position: "fixed",
+          top: "50%",
+          left: "50%",
+          zIndex: 401,
+          width: "100%",
           maxWidth: "420px",
-          padding: "0",
-          gap: 0,
+          background: "var(--surface-card, #fff)",
+          border: "0.5px solid var(--border-light)",
+          borderRadius: "14px",
+          boxShadow: "0 24px 64px rgba(0,0,0,0.22)",
+          animation: "vcModalIn 0.18s cubic-bezier(0.16,1,0.3,1)",
+          overflow: "hidden",
         }}
       >
         {/* Header */}
-        <div style={{ padding: "24px 24px 0" }}>
-          <DialogHeader>
-            <div
+        <div style={{ padding: "22px 22px 0", display: "flex", alignItems: "flex-start", gap: "12px" }}>
+          <div
+            style={{
+              width: "32px",
+              height: "32px",
+              borderRadius: "8px",
+              background: "var(--navy, #0D1B2A)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+              marginTop: "1px",
+            }}
+          >
+            <Triangle style={{ width: "13px", height: "13px", fill: "white", color: "white" }} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <h2
+              id="vc-modal-title"
               style={{
+                fontSize: "15px",
+                fontWeight: 600,
+                color: "var(--text-primary)",
+                margin: "0 0 4px",
+                letterSpacing: "-0.2px",
+              }}
+            >
+              Connect Vercel
+            </h2>
+            <p style={{ fontSize: "13px", color: "var(--text-secondary)", margin: 0, lineHeight: 1.5 }}>
+              Use a personal access token to link your account. Projects will be auto-verified against your deployments.
+            </p>
+          </div>
+          {/* Close button */}
+          {!isConnecting && (
+            <button
+              type="button"
+              onClick={handleClose}
+              aria-label="Close"
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: "2px",
+                color: "var(--text-muted)",
                 display: "flex",
                 alignItems: "center",
-                gap: "10px",
-                marginBottom: "6px",
+                flexShrink: 0,
+                marginTop: "2px",
               }}
             >
-              <div
-                style={{
-                  width: "32px",
-                  height: "32px",
-                  borderRadius: "8px",
-                  background: "var(--navy)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
-                }}
-              >
-                <Triangle
-                  style={{ width: "14px", height: "14px", fill: "white", color: "white" }}
-                />
-              </div>
-              <DialogTitle
-                style={{
-                  fontSize: "15px",
-                  fontWeight: 500,
-                  color: "var(--text-primary)",
-                  margin: 0,
-                }}
-              >
-                Connect Vercel
-              </DialogTitle>
-            </div>
-            <DialogDescription
-              style={{
-                fontSize: "13px",
-                color: "var(--text-secondary)",
-                lineHeight: 1.5,
-                margin: 0,
-              }}
-            >
-              Use a personal access token to link your Vercel account. Your projects
-              will be auto-verified against your deployments.
-            </DialogDescription>
-          </DialogHeader>
+              <X style={{ width: "15px", height: "15px" }} />
+            </button>
+          )}
         </div>
 
         {/* Steps */}
-        <div style={{ padding: "20px 24px 0" }}>
+        <div style={{ padding: "20px 22px 0" }}>
           <Step number={1}>
             <span style={{ color: "var(--text-secondary)", fontSize: "13px" }}>
               Open your Vercel token settings
@@ -151,16 +200,12 @@ export function VercelConnectModal({
                 gap: "4px",
                 fontSize: "12px",
                 fontFamily: "var(--font-mono)",
-                color: "var(--purple)",
+                color: "var(--purple, #6C5CE7)",
                 textDecoration: "none",
-                marginTop: "4px",
+                marginTop: "3px",
               }}
-              onMouseEnter={(e) =>
-                ((e.currentTarget as HTMLAnchorElement).style.textDecoration = "underline")
-              }
-              onMouseLeave={(e) =>
-                ((e.currentTarget as HTMLAnchorElement).style.textDecoration = "none")
-              }
+              onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.textDecoration = "underline")}
+              onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.textDecoration = "none")}
             >
               vercel.com/account/tokens
               <ExternalLink style={{ width: "10px", height: "10px" }} />
@@ -170,31 +215,13 @@ export function VercelConnectModal({
           <Step number={2}>
             <span style={{ color: "var(--text-secondary)", fontSize: "13px" }}>
               Click{" "}
-              <span
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "12px",
-                  padding: "1px 5px",
-                  borderRadius: "3px",
-                  background: "var(--surface-light)",
-                  color: "var(--text-primary)",
-                }}
-              >
+              <code style={{ fontSize: "12px", padding: "1px 5px", borderRadius: "3px", background: "var(--surface-light)", color: "var(--text-primary)", fontFamily: "var(--font-mono)" }}>
                 Create
-              </span>{" "}
-              and set the scope to{" "}
-              <span
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "12px",
-                  padding: "1px 5px",
-                  borderRadius: "3px",
-                  background: "var(--surface-light)",
-                  color: "var(--text-primary)",
-                }}
-              >
+              </code>{" "}
+              and set scope to{" "}
+              <code style={{ fontSize: "12px", padding: "1px 5px", borderRadius: "3px", background: "var(--surface-light)", color: "var(--text-primary)", fontFamily: "var(--font-mono)" }}>
                 Full Account
-              </span>
+              </code>
             </span>
           </Step>
 
@@ -202,9 +229,11 @@ export function VercelConnectModal({
             <span style={{ color: "var(--text-secondary)", fontSize: "13px" }}>
               Paste your token below
             </span>
+
             {/* Token input */}
             <div style={{ marginTop: "8px", position: "relative" }}>
               <input
+                ref={inputRef}
                 type={showToken ? "text" : "password"}
                 value={token}
                 onChange={(e) => {
@@ -212,7 +241,7 @@ export function VercelConnectModal({
                   if (error) setError(null);
                 }}
                 onKeyDown={handleKeyDown}
-                placeholder="••••••••••••••••••••••••••••••"
+                placeholder="Paste your Vercel token here"
                 disabled={isConnecting}
                 autoComplete="off"
                 spellCheck={false}
@@ -222,9 +251,7 @@ export function VercelConnectModal({
                   fontSize: "13px",
                   padding: "9px 36px 9px 12px",
                   borderRadius: "7px",
-                  border: error
-                    ? "1px solid rgba(226,75,74,0.6)"
-                    : "0.5px solid var(--border-light)",
+                  border: error ? "1px solid rgba(226,75,74,0.7)" : "0.5px solid var(--border-light)",
                   background: "var(--surface-light)",
                   color: "var(--text-primary)",
                   outline: "none",
@@ -233,20 +260,17 @@ export function VercelConnectModal({
                   opacity: isConnecting ? 0.6 : 1,
                 }}
                 onFocus={(e) => {
-                  if (!error)
-                    (e.currentTarget as HTMLInputElement).style.borderColor =
-                      "var(--border)";
+                  if (!error) (e.currentTarget as HTMLInputElement).style.borderColor = "var(--border)";
                 }}
                 onBlur={(e) => {
-                  if (!error)
-                    (e.currentTarget as HTMLInputElement).style.borderColor =
-                      "var(--border-light)";
+                  if (!error) (e.currentTarget as HTMLInputElement).style.borderColor = "var(--border-light)";
                 }}
               />
               <button
                 type="button"
                 onClick={() => setShowToken((v) => !v)}
                 disabled={isConnecting}
+                tabIndex={-1}
                 aria-label={showToken ? "Hide token" : "Show token"}
                 style={{
                   position: "absolute",
@@ -272,27 +296,13 @@ export function VercelConnectModal({
 
             {/* Inline error */}
             {error && (
-              <p
-                style={{
-                  fontSize: "12px",
-                  color: "#E24B4A",
-                  marginTop: "6px",
-                  marginBottom: 0,
-                }}
-              >
+              <p style={{ fontSize: "12px", color: "#E24B4A", marginTop: "6px", marginBottom: 0 }}>
                 {error}
               </p>
             )}
 
             {/* Security note */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "5px",
-                marginTop: "8px",
-              }}
-            >
+            <div style={{ display: "flex", alignItems: "center", gap: "5px", marginTop: "8px" }}>
               <Lock style={{ width: "10px", height: "10px", color: "var(--text-muted)", flexShrink: 0 }} />
               <span style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>
                 Encrypted at rest. Never shared or logged.
@@ -308,9 +318,9 @@ export function VercelConnectModal({
             alignItems: "center",
             justifyContent: "flex-end",
             gap: "8px",
-            padding: "20px 24px",
+            padding: "18px 22px",
             borderTop: "0.5px solid var(--border-light)",
-            marginTop: "20px",
+            marginTop: "18px",
           }}
         >
           <button
@@ -341,7 +351,7 @@ export function VercelConnectModal({
               padding: "7px 16px",
               borderRadius: "6px",
               border: "none",
-              background: "var(--navy)",
+              background: "var(--navy, #0D1B2A)",
               color: "#fff",
               cursor: !token.trim() || isConnecting ? "not-allowed" : "pointer",
               fontFamily: "var(--font-body)",
@@ -357,8 +367,8 @@ export function VercelConnectModal({
             {isConnecting ? "Connecting…" : "Connect →"}
           </button>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </>
   );
 }
 
@@ -372,23 +382,8 @@ function Step({
   children: React.ReactNode;
 }) {
   return (
-    <div
-      style={{
-        display: "flex",
-        gap: "12px",
-        paddingBottom: isLast ? 0 : "16px",
-        position: "relative",
-      }}
-    >
-      {/* Number circle + connector line */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          flexShrink: 0,
-        }}
-      >
+    <div style={{ display: "flex", gap: "12px", paddingBottom: isLast ? 0 : "16px", position: "relative" }}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
         <div
           style={{
             width: "20px",
@@ -419,8 +414,6 @@ function Step({
           />
         )}
       </div>
-
-      {/* Content */}
       <div style={{ flex: 1, paddingTop: "1px", display: "flex", flexDirection: "column" }}>
         {children}
       </div>
