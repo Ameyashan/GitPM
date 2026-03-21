@@ -25,6 +25,7 @@ import {
 } from "@/lib/validators/project";
 import type { VercelProjectSummary } from "@/app/api/vercel/projects/route";
 import type { LovableProjectSummary } from "@/app/api/github/lovable-projects/route";
+import { VercelConnectModal } from "@/components/dashboard/VercelConnectModal";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -278,19 +279,29 @@ function VercelImportPhase({
 }) {
   const [projects, setProjects] = useState<VercelProjectSummary[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [fetchTrigger, setFetchTrigger] = useState(0);
+  const [connectModalOpen, setConnectModalOpen] = useState(false);
 
   useEffect(() => {
+    setLoading(true);
+    setErrorMsg(null);
+    setErrorCode(null);
     fetch("/api/vercel/projects")
       .then((r) => r.json())
-      .then((json: { data?: VercelProjectSummary[]; error?: string }) => {
-        if (json.data) setProjects(json.data);
-        else setError(json.error ?? "Failed to load Vercel projects.");
+      .then((json: { data?: VercelProjectSummary[]; error?: string; code?: string }) => {
+        if (json.data) {
+          setProjects(json.data);
+        } else {
+          setErrorMsg(json.error ?? "Failed to load Vercel projects.");
+          setErrorCode(json.code ?? null);
+        }
       })
-      .catch(() => setError("Network error. Please try again."))
+      .catch(() => setErrorMsg("Network error. Please try again."))
       .finally(() => setLoading(false));
-  }, []);
+  }, [fetchTrigger]);
 
   const handleSelect = (project: VercelProjectSummary) => {
     if (project.alreadyImported) return;
@@ -326,11 +337,70 @@ function VercelImportPhase({
     );
   }
 
-  if (error) {
+  if (errorCode === "vercel_not_connected") {
+    return (
+      <>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "48px 28px", gap: "14px" }}>
+          <div
+            style={{
+              width: "44px",
+              height: "44px",
+              borderRadius: "12px",
+              background: "var(--surface-light)",
+              border: "0.5px solid var(--border-light)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Triangle style={{ width: "20px", height: "20px", fill: "var(--text-muted)", color: "var(--text-muted)" }} />
+          </div>
+          <div style={{ textAlign: "center", maxWidth: "260px" }}>
+            <p style={{ fontSize: "14px", fontWeight: 500, color: "var(--text-primary)", marginBottom: "6px" }}>
+              Vercel isn&apos;t connected yet
+            </p>
+            <p style={{ fontSize: "12px", color: "var(--text-secondary)", lineHeight: 1.5 }}>
+              Connect your account to import projects with auto-verification.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setConnectModalOpen(true)}
+            style={{
+              fontSize: "13px",
+              padding: "8px 18px",
+              borderRadius: "7px",
+              border: "none",
+              background: "var(--navy)",
+              color: "#fff",
+              cursor: "pointer",
+              fontFamily: "var(--font-body)",
+              fontWeight: 500,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+            }}
+          >
+            Connect Vercel →
+          </button>
+        </div>
+        <VercelConnectModal
+          open={connectModalOpen}
+          onOpenChange={setConnectModalOpen}
+          onSuccess={() => {
+            setConnectModalOpen(false);
+            setFetchTrigger((n) => n + 1);
+          }}
+        />
+      </>
+    );
+  }
+
+  if (errorMsg) {
     return (
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "48px 28px", gap: "10px" }}>
         <TriangleAlert style={{ width: "20px", height: "20px", color: "#E24B4A" }} />
-        <p style={{ fontSize: "13px", color: "#E24B4A" }}>{error}</p>
+        <p style={{ fontSize: "13px", color: "#E24B4A" }}>{errorMsg}</p>
       </div>
     );
   }

@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import { ConnectionCard } from "./ConnectionCard";
+import { VercelConnectModal } from "./VercelConnectModal";
 
 interface VercelConnection {
   username: string | null;
@@ -23,37 +23,18 @@ export function ConnectionsManager({
   initialVercel,
   lovableCount,
 }: ConnectionsManagerProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
   const [vercelConnection, setVercelConnection] =
     useState<VercelConnection | null>(initialVercel);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
+  const [vercelModalOpen, setVercelModalOpen] = useState(false);
 
-  useEffect(() => {
-    const connected = searchParams.get("connected");
-    const error = searchParams.get("error");
-
-    if (connected === "vercel") {
-      toast.success("Vercel connected successfully", {
-        description:
-          "Your projects are being verified against your Vercel deployments.",
-      });
-      router.replace("/dashboard/connections");
-    } else if (error) {
-      const messages: Record<string, string> = {
-        access_denied: "You cancelled the Vercel connection.",
-        state_mismatch:
-          "Connection failed due to a security check. Please try again.",
-        connect_failed:
-          "Failed to start the Vercel connection. Please try again.",
-        callback_failed:
-          "Something went wrong during Vercel authorization.",
-        missing_params: "Invalid callback from Vercel. Please try again.",
-      };
-      toast.error(messages[error] ?? "Connection failed. Please try again.");
-      router.replace("/dashboard/connections");
-    }
-  }, [searchParams, router]);
+  const handleVercelConnectSuccess = useCallback((username: string) => {
+    setVercelConnection({ username, connectedAt: new Date().toISOString() });
+    toast.success("Vercel connected", {
+      description:
+        "Your projects are being verified against your Vercel deployments.",
+    });
+  }, []);
 
   const handleDisconnectVercel = useCallback(async () => {
     if (isDisconnecting) return;
@@ -83,7 +64,9 @@ export function ConnectionsManager({
   }, [isDisconnecting]);
 
   const lovableStatusText =
-    lovableCount > 0 ? `${lovableCount} project${lovableCount === 1 ? "" : "s"} detected` : "Connected";
+    lovableCount > 0
+      ? `${lovableCount} project${lovableCount === 1 ? "" : "s"} detected`
+      : "Connected";
 
   return (
     <>
@@ -110,7 +93,9 @@ export function ConnectionsManager({
           actionVariant="disconnect"
           actionLabel="Disconnect"
           onAction={() => {
-            toast.info("GitHub is connected via Supabase Auth and cannot be disconnected here.");
+            toast.info(
+              "GitHub is connected via Supabase Auth and cannot be disconnected here."
+            );
           }}
         />
 
@@ -122,8 +107,11 @@ export function ConnectionsManager({
           infoText={vercelConnection?.username ?? undefined}
           actionVariant={vercelConnection ? "disconnect" : "connect"}
           actionLabel={vercelConnection ? "Disconnect" : "Connect"}
-          connectHref={vercelConnection ? undefined : "/api/auth/vercel/connect"}
-          onAction={vercelConnection ? handleDisconnectVercel : undefined}
+          onAction={
+            vercelConnection
+              ? handleDisconnectVercel
+              : () => setVercelModalOpen(true)
+          }
           isLoading={isDisconnecting}
         />
 
@@ -149,6 +137,12 @@ export function ConnectionsManager({
           dimmed={true}
         />
       </div>
+
+      <VercelConnectModal
+        open={vercelModalOpen}
+        onOpenChange={setVercelModalOpen}
+        onSuccess={handleVercelConnectSuccess}
+      />
     </>
   );
 }

@@ -230,6 +230,37 @@ export function ConnectionCard({
       );
     }
 
+    if (onAction) {
+      return (
+        <button
+          onClick={onAction}
+          disabled={isLoading}
+          style={{
+            marginTop: "12px",
+            fontSize: "12px",
+            padding: "7px 14px",
+            borderRadius: "6px",
+            cursor: isLoading ? "not-allowed" : "pointer",
+            fontFamily: "var(--font-body)",
+            fontWeight: 500,
+            border: "none",
+            background: "var(--navy)",
+            color: "#fff",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
+            opacity: isLoading ? 0.6 : 1,
+          }}
+          aria-label={`Connect ${name}`}
+        >
+          {isLoading && (
+            <Loader2 width={12} height={12} className="animate-spin" />
+          )}
+          {actionLabel ?? "Connect"}
+        </button>
+      );
+    }
+
     return null;
   }
 

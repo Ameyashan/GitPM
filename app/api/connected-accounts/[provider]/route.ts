@@ -67,10 +67,10 @@ export async function DELETE(_request: Request, { params }: Context) {
     }
 
     // Reset verification on all projects that were verified via this provider
-    const verificationMethod =
-      provider === "vercel" ? "vercel_oauth" : null;
+    const verificationMethods: string[] | null =
+      provider === "vercel" ? ["vercel_oauth", "vercel_pat"] : null;
 
-    if (verificationMethod) {
+    if (verificationMethods) {
       const { error: resetError } = await supabase
         .from("projects")
         .update({
@@ -78,7 +78,7 @@ export async function DELETE(_request: Request, { params }: Context) {
           verification_method: null,
         })
         .eq("user_id", user.id)
-        .eq("verification_method", verificationMethod);
+        .in("verification_method", verificationMethods);
 
       if (resetError) {
         // Non-fatal: log but don't fail the disconnect
