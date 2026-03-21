@@ -46,6 +46,22 @@ function initials(displayName: string | null, username: string): string {
   return name.slice(0, 2).toUpperCase();
 }
 
+/** Treats null, undefined, and whitespace-only as empty. */
+function hasNonEmptyText(value: string | null | undefined): boolean {
+  return Boolean(value?.trim());
+}
+
+function hasProjectNarrativeContent(project: Project): boolean {
+  return (
+    hasNonEmptyText(project.problem_statement) ||
+    hasNonEmptyText(project.target_user) ||
+    hasNonEmptyText(project.key_decisions) ||
+    hasNonEmptyText(project.learnings) ||
+    hasNonEmptyText(project.metrics_text) ||
+    hasNonEmptyText(project.github_repo_url)
+  );
+}
+
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 function ModalPills({ project }: { project: Project }) {
@@ -322,42 +338,108 @@ function PMContext({ project }: { project: Project }) {
     color: "var(--text-primary)",
     lineHeight: 1.65,
     marginBottom: 20,
+    whiteSpace: "pre-wrap",
   };
+  const decisionsStyle: React.CSSProperties = {
+    fontSize: 13,
+    color: "var(--text-secondary)",
+    lineHeight: 1.6,
+    marginBottom: 20,
+    paddingLeft: 12,
+    borderLeft: "1.5px solid var(--border)",
+    whiteSpace: "pre-wrap",
+  };
+
+  const showProblem = hasNonEmptyText(project.problem_statement);
+  const showTargetUser = hasNonEmptyText(project.target_user);
+  const showKeyDecisions = hasNonEmptyText(project.key_decisions);
+  const showLearnings = hasNonEmptyText(project.learnings);
+  const showMetrics = hasNonEmptyText(project.metrics_text);
+  const showRepo = hasNonEmptyText(project.github_repo_url);
+
+  if (!hasProjectNarrativeContent(project)) {
+    return null;
+  }
 
   return (
     <div>
-      <div style={labelStyle}>Problem</div>
-      <p style={proseStyle}>{project.problem_statement}</p>
+      {showProblem && (
+        <>
+          <div style={labelStyle}>Problem</div>
+          <p style={proseStyle}>{project.problem_statement.trim()}</p>
+        </>
+      )}
 
-      {project.key_decisions && (
+      {showTargetUser && (
+        <>
+          <div style={labelStyle}>Target users</div>
+          <p style={proseStyle}>{project.target_user!.trim()}</p>
+        </>
+      )}
+
+      {showKeyDecisions && (
         <>
           <div style={labelStyle}>Key decisions</div>
-          <div
-            style={{
-              fontSize: 13,
-              color: "var(--text-secondary)",
-              lineHeight: 1.6,
-              marginBottom: 20,
-              paddingLeft: 12,
-              borderLeft: "1.5px solid var(--border)",
-            }}
-          >
-            {project.key_decisions}
-          </div>
+          <div style={decisionsStyle}>{project.key_decisions!.trim()}</div>
         </>
       )}
 
-      {project.target_user && (
-        <>
-          <div style={labelStyle}>Target user</div>
-          <p style={proseStyle}>{project.target_user}</p>
-        </>
-      )}
-
-      {project.learnings && (
+      {showLearnings && (
         <>
           <div style={labelStyle}>What I learned</div>
-          <p style={{ ...proseStyle, marginBottom: 0 }}>{project.learnings}</p>
+          <p
+            style={{
+              ...proseStyle,
+              marginBottom: showMetrics || showRepo ? 20 : 0,
+            }}
+          >
+            {project.learnings!.trim()}
+          </p>
+        </>
+      )}
+
+      {showMetrics && (
+        <>
+          <div style={labelStyle}>Metrics & impact</div>
+          <p
+            style={{
+              ...proseStyle,
+              marginBottom: showRepo ? 20 : 0,
+            }}
+          >
+            {project.metrics_text!.trim()}
+          </p>
+        </>
+      )}
+
+      {showRepo && (
+        <>
+          <div style={labelStyle}>Repository</div>
+          <a
+            href={project.github_repo_url!.trim()}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-[5px] text-teal no-underline font-mono transition-colors duration-150"
+            style={{
+              fontSize: 12,
+              padding: "5px 10px",
+              background: "var(--teal-bg)",
+              borderRadius: 5,
+              marginBottom: 0,
+              display: "inline-flex",
+              maxWidth: "100%",
+              wordBreak: "break-all",
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.background = "#0A755820")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.background = "var(--teal-bg)")
+            }
+          >
+            <ExternalLink style={{ width: 11, height: 11, flexShrink: 0 }} />
+            {project.github_repo_url!.trim()}
+          </a>
         </>
       )}
     </div>
@@ -655,17 +737,19 @@ export function ProjectModal({ project, user, onClose }: ProjectModalProps) {
             sparkline={sparkline}
           />
 
-          {/* Divider */}
-          <hr
-            style={{
-              border: "none",
-              borderTop: "0.5px solid var(--border-light)",
-              margin: "24px 0",
-            }}
-          />
-
-          {/* PM Context */}
-          <PMContext project={project} />
+          {/* Narrative (problem, product context, metrics, repo) */}
+          {hasProjectNarrativeContent(project) && (
+            <>
+              <hr
+                style={{
+                  border: "none",
+                  borderTop: "0.5px solid var(--border-light)",
+                  margin: "24px 0",
+                }}
+              />
+              <PMContext project={project} />
+            </>
+          )}
 
           {/* CTA buttons */}
           <div style={{ display: "flex", gap: 10, marginTop: 28 }}>
@@ -690,8 +774,12 @@ export function ProjectModal({ project, user, onClose }: ProjectModalProps) {
                 Visit live site
               </a>
             )}
-            {hasVideo && (
-              <button
+            {hasVideo && project.demo_video_url && (
+              <a
+                href={project.demo_video_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 no-underline"
                 style={{
                   background: "transparent",
                   color: "var(--text-primary)",
@@ -709,7 +797,7 @@ export function ProjectModal({ project, user, onClose }: ProjectModalProps) {
               >
                 <Play style={{ width: 13, height: 13 }} />
                 Watch demo
-              </button>
+              </a>
             )}
           </div>
         </div>

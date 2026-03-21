@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { verifyProjectsAgainstDeployments } from "@/lib/vercel";
-import { getUserRepos } from "@/lib/github";
+import { getGitHubToken, getUserRepos } from "@/lib/github";
 import { matchesLovableDeployment } from "@/lib/lovable";
 import { decrypt } from "@/lib/crypto";
 
@@ -16,17 +16,15 @@ export async function POST(_request: Request, { params }: Context) {
     const supabase = await createClient();
 
     const {
-      data: { session },
-    } = await supabase.auth.getSession();
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    if (!session) {
+    if (!user) {
       return NextResponse.json(
         { error: "Unauthorized", code: "unauthorized" },
         { status: 401 }
       );
     }
-
-    const user = session.user;
 
     // Fetch the project and verify ownership
     const { data: project, error: projectError } = await supabase
@@ -62,7 +60,7 @@ export async function POST(_request: Request, { params }: Context) {
     // If the live URL is a *.lovable.app domain, try to verify via GitHub repos
     // (no separate OAuth required — uses the token from sign-up)
     if (project.live_url.includes(".lovable.app")) {
-      const githubToken = session.provider_token;
+      const githubToken = await getGitHubToken(supabase);
 
       if (!githubToken) {
         return NextResponse.json(

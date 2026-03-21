@@ -66,14 +66,6 @@ export async function getGitHubToken(
   supabase: SupabaseClient<Database>
 ): Promise<string | null> {
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  if (session?.provider_token) {
-    return session.provider_token;
-  }
-
-  const {
     data: { user },
   } = await supabase.auth.getUser();
 
@@ -86,13 +78,19 @@ export async function getGitHubToken(
     .eq("provider", "github")
     .maybeSingle();
 
-  if (!account?.access_token) return null;
-
-  try {
-    return decrypt(account.access_token);
-  } catch {
-    return null;
+  if (account?.access_token) {
+    try {
+      return decrypt(account.access_token);
+    } catch {
+      // fall through to session provider_token
+    }
   }
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  return session?.provider_token ?? null;
 }
 
 function githubHeaders(token: string): HeadersInit {
