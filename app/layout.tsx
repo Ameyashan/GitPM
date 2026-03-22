@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DM_Sans, JetBrains_Mono, Instrument_Serif } from "next/font/google";
 import { GoogleAnalytics } from "@/components/shared/GoogleAnalytics";
+import { FeedbackWidget } from "@/components/shared/FeedbackWidget";
 import { Toaster } from "@/components/shared/Toaster";
 import { PostHogProvider } from "@/components/shared/PostHogProvider";
 import "./globals.css";
@@ -53,6 +54,7 @@ export default function RootLayout({
         <GoogleAnalytics />
         <PostHogProvider>
           {children}
+          <FeedbackWidget />
           <Toaster />
         </PostHogProvider>
       </body>

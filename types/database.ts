@@ -246,6 +246,36 @@ export interface Database {
           }
         ];
       };
+      feedback: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          emoji: string | null;
+          body: string | null;
+          page_label: string;
+          path: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          emoji?: string | null;
+          body?: string | null;
+          page_label: string;
+          path: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string | null;
+          emoji?: string | null;
+          body?: string | null;
+          page_label?: string;
+          path?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
