@@ -1,6 +1,7 @@
 "use client";
 
 import { Play } from "lucide-react";
+import { parseVideoUrl } from "@/lib/video";
 
 interface VideoEmbedProps {
   url: string;
@@ -9,20 +10,8 @@ interface VideoEmbedProps {
   cardOverlay?: boolean;
 }
 
-function getEmbedUrl(url: string): string | null {
-  const ytMatch = url.match(
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]{11})/
-  );
-  if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}`;
-
-  const loomMatch = url.match(/loom\.com\/share\/([a-f0-9]+)/);
-  if (loomMatch) return `https://www.loom.com/embed/${loomMatch[1]}`;
-
-  return null;
-}
-
 export function VideoEmbed({ url, title = "Demo video", cardOverlay = false }: VideoEmbedProps) {
-  const embedUrl = getEmbedUrl(url);
+  const embedUrl = parseVideoUrl(url)?.embedUrl ?? null;
 
   if (!embedUrl) {
     return (

@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { getUserRepos, getGitHubToken } from "@/lib/github";
+import {
+  getGitHubToken,
+  getUserRepos,
+  GitHubApiError,
+  GitHubRateLimitError,
+} from "@/lib/github";
 
 export async function GET() {
   try {
@@ -33,6 +38,18 @@ export async function GET() {
 
     return NextResponse.json({ data: repos });
   } catch (err) {
+    if (err instanceof GitHubRateLimitError) {
+      return NextResponse.json(
+        { error: "GitHub API rate limit exceeded", code: "github_rate_limit" },
+        { status: 429 }
+      );
+    }
+    if (err instanceof GitHubApiError && err.status === 503) {
+      return NextResponse.json(
+        { error: "GitHub is temporarily unavailable", code: "github_unavailable" },
+        { status: 503 }
+      );
+    }
     console.error("[GET /api/github/repos] Error:", err);
     return NextResponse.json(
       { error: "Failed to fetch GitHub repositories", code: "github_error" },

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isValidUsername } from "@/lib/validation";
 
 export async function GET(request: Request): Promise<NextResponse> {
   try {
@@ -13,7 +14,7 @@ export async function GET(request: Request): Promise<NextResponse> {
       );
     }
 
-    if (!/^[a-z0-9_-]{3,30}$/.test(username)) {
+    if (!isValidUsername(username)) {
       return NextResponse.json({ data: { available: false } });
     }
 

@@ -5,13 +5,12 @@ export const dynamic = "force-dynamic";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getPublishedProjects, getUserByUsername } from "@/lib/supabase/profile-queries";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { AggregateStats } from "@/components/profile/AggregateStats";
 import { TierCard } from "@/components/profile/TierCard";
 import { ToolsUsed } from "@/components/profile/ToolsUsed";
 import { ProjectGrid } from "@/components/profile/ProjectGrid";
-import type { User, Project } from "@/types/project";
-
 interface Props {
   params: Promise<{ username: string }>;
 }
@@ -20,13 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { username } = await params;
   const admin = createAdminClient();
 
-  const { data: userMeta } = await admin
-    .from("users")
-    .select("display_name, headline, avatar_url")
-    .eq("username", username)
-    .maybeSingle();
-
-  const user = userMeta as { display_name: string | null; headline: string | null; avatar_url: string | null } | null;
+  const user = await getUserByUsername(admin, username);
 
   if (!user) {
     return { title: "Profile not found — GitPM" };
@@ -54,28 +47,13 @@ export default async function PublicProfilePage({ params }: Props) {
   const { username } = await params;
   const admin = createAdminClient();
 
-  const { data: userRow } = await admin
-    .from("users")
-    .select(
-      "id, username, display_name, headline, bio, avatar_url, github_username, linkedin_url, website_url, medium_url, substack_url, youtube_url, twitter_url, github_contributions, github_contributions_synced_at, profile_view_count, created_at, updated_at"
-    )
-    .eq("username", username)
-    .maybeSingle();
-
-  const user = userRow as User | null;
+  const user = await getUserByUsername(admin, username);
 
   if (!user) {
     notFound();
   }
 
-  const { data: projectRows } = await admin
-    .from("projects")
-    .select("*")
-    .eq("user_id", user.id)
-    .eq("is_published", true)
-    .order("display_order", { ascending: true });
-
-  const publishedProjects = (projectRows ?? []) as Project[];
+  const publishedProjects = await getPublishedProjects(admin, user.id);
 
   // Increment view count — awaited so the serverless function doesn't exit before the DB write
   await admin.rpc("increment_profile_view", { p_user_id: user.id });

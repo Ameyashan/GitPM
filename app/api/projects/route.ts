@@ -5,14 +5,8 @@ import { generateAndStoreProjectThumbnail } from "@/lib/thumbnails";
 import { verifyProjectsAgainstDeployments } from "@/lib/vercel";
 import { decrypt } from "@/lib/crypto";
 import { projectCreateSchema } from "@/lib/validators/project";
+import { generateSlug } from "@/lib/validation";
 import type { Tables } from "@/types/database";
-
-function generateSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
 
 async function findUniqueSlug(
   supabase: Awaited<ReturnType<typeof createClient>>,

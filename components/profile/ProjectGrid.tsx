@@ -18,6 +18,7 @@ export function ProjectGrid({ projects, user }: ProjectGridProps) {
   if (projects.length === 0) {
     return (
       <div
+        data-testid="public-project-grid-empty"
         className="rounded-[14px] py-16 text-center"
         style={{ border: "1px dashed var(--border-light)" }}
       >
@@ -28,7 +29,10 @@ export function ProjectGrid({ projects, user }: ProjectGridProps) {
 
   return (
     <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-[14px] pb-12">
+      <div
+        data-testid="public-project-grid"
+        className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-[14px] pb-12"
+      >
         {projects.map((project) => (
           <ProjectCard
             key={project.id}

@@ -9,6 +9,45 @@ export interface ThumbnailResult {
   generatedAt: string;
 }
 
+/**
+ * Returns true only for public http(s) URLs that are safe to screenshot
+ * (rejects localhost, non-http schemes, and common private/reserved hosts).
+ */
+export function isValidLiveUrl(url: string): boolean {
+  let u: URL;
+  try {
+    u = new URL(url);
+  } catch {
+    return false;
+  }
+
+  if (u.protocol !== "http:" && u.protocol !== "https:") {
+    return false;
+  }
+
+  const host = u.hostname.toLowerCase();
+
+  if (host === "localhost" || host.endsWith(".localhost")) {
+    return false;
+  }
+
+  if (host === "127.0.0.1" || host === "[::1]" || host === "::1") {
+    return false;
+  }
+
+  const octets = host.split(".").map((p) => parseInt(p, 10));
+  if (octets.length === 4 && octets.every((n) => !Number.isNaN(n))) {
+    const [a, b] = octets;
+    if (a === 10) return false;
+    if (a === 127) return false;
+    if (a === 192 && b === 168) return false;
+    if (a === 172 && b !== undefined && b >= 16 && b <= 31) return false;
+    if (a === 100 && b !== undefined && b >= 64 && b <= 127) return false;
+  }
+
+  return true;
+}
+
 async function ensureThumbnailBucket(
   adminClient: SupabaseClient<Database>
 ): Promise<void> {
@@ -46,6 +85,10 @@ export async function generateThumbnail(
   projectId: string,
   adminClient: SupabaseClient<Database>
 ): Promise<ThumbnailResult> {
+  if (!isValidLiveUrl(liveUrl)) {
+    throw new Error("Invalid or non-public live URL for thumbnail capture");
+  }
+
   // Dynamic imports keep the heavy packages out of the default bundle
   const puppeteer = await import("puppeteer-core");
   const chromium = await import("@sparticuz/chromium-min");

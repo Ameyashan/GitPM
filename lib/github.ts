@@ -55,6 +55,32 @@ export class GitHubAuthError extends Error {
   }
 }
 
+/** Non-auth GitHub API failure (e.g. 5xx) — callers may map to HTTP status. */
+export class GitHubApiError extends Error {
+  constructor(public readonly status: number) {
+    super(`GitHub API error: ${status}`);
+    this.name = "GitHubApiError";
+  }
+}
+
+/**
+ * Maps package.json dependencies to recognized framework/tool names (same rules as
+ * {@link getPackageJsonTechStack}).
+ */
+export function parseTechStack(pkg: {
+  dependencies?: Record<string, string>;
+  devDependencies?: Record<string, string>;
+}): string[] {
+  const allDeps = [
+    ...Object.keys(pkg.dependencies ?? {}),
+    ...Object.keys(pkg.devDependencies ?? {}),
+  ];
+
+  return KNOWN_FRAMEWORKS.filter((fw) =>
+    allDeps.some((dep) => dep === fw || dep.startsWith(`@${fw}/`) || dep === `@${fw}`)
+  );
+}
+
 /**
  * Resolves the GitHub OAuth token for the authenticated user.
  * Tries session.provider_token first (available right after sign-in),
@@ -109,7 +135,7 @@ function assertOk(res: Response): void {
     const resetAt = resetHeader ? new Date(parseInt(resetHeader, 10) * 1000) : null;
     throw new GitHubRateLimitError(resetAt);
   }
-  throw new Error(`GitHub API error: ${res.status}`);
+  throw new GitHubApiError(res.status);
 }
 
 export async function getAuthenticatedUser(token: string): Promise<GitHubUser> {
@@ -225,14 +251,7 @@ export async function getPackageJsonTechStack(
       devDependencies?: Record<string, string>;
     };
 
-    const allDeps = [
-      ...Object.keys(pkg.dependencies ?? {}),
-      ...Object.keys(pkg.devDependencies ?? {}),
-    ];
-
-    return KNOWN_FRAMEWORKS.filter((fw) =>
-      allDeps.some((dep) => dep === fw || dep.startsWith(`@${fw}/`) || dep === `@${fw}`)
-    );
+    return parseTechStack(pkg);
   } catch {
     return [];
   }

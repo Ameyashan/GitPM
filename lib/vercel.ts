@@ -80,7 +80,7 @@ export async function getVercelUser(token: string): Promise<VercelUser> {
  * Extracts the hostname from a URL string.
  * e.g. "https://my-app.vercel.app" → "my-app.vercel.app"
  */
-function extractHostname(url: string): string {
+export function extractHostname(url: string): string {
   try {
     return new URL(url).hostname;
   } catch {
@@ -89,7 +89,7 @@ function extractHostname(url: string): string {
 }
 
 /** Hostnames that differ only by leading `www.` are treated as the same site. */
-function normalizeHostname(hostname: string): string {
+export function normalizeHostname(hostname: string): string {
   return hostname.toLowerCase().replace(/^www\./, "");
 }
 
@@ -116,6 +116,17 @@ function collectVercelProjectHostnames(vp: VercelProject): string[] {
     }
   }
   return hosts;
+}
+
+/**
+ * Returns true when the live URL and a deployment or alias URL refer to the same host
+ * (http/https, trailing slashes, and leading `www.` are normalized).
+ */
+export function matchLiveUrlToDeployment(liveUrl: string, deploymentUrl: string): boolean {
+  return (
+    normalizeHostname(extractHostname(liveUrl)) ===
+    normalizeHostname(extractHostname(deploymentUrl))
+  );
 }
 
 function deploymentTimestamp(d: VercelDeployment): number {
