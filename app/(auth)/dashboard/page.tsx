@@ -26,7 +26,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
 
   const { data: profile } = await supabase
     .from("users")
-    .select("username, display_name, headline, avatar_url, github_username")
+    .select("username, display_name, headline, avatar_url, github_username, profile_view_count")
     .eq("id", user.id)
     .single();
 
@@ -121,7 +121,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
           { value: totalProjects, label: "Projects", teal: false },
           { value: totalCommits, label: "Commits", teal: false },
           { value: verifiedCount, label: "Verified", teal: true },
-          { value: 0, label: "Views (7d)", teal: false },
+          { value: profile.profile_view_count ?? 0, label: "Profile views", teal: false },
         ].map(({ value, label, teal }) => (
           <div
             key={label}
