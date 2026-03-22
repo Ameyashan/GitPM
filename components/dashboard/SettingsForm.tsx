@@ -171,6 +171,7 @@ export function SettingsForm({
       }
 
       toast.success("Profile updated");
+      router.refresh();
     } catch (err) {
       console.error("Settings save error:", err);
       toast.error("Failed to save profile. Please try again.");

@@ -50,7 +50,7 @@ function SubstackIcon({ size = 14 }: { size?: number }) {
 }
 
 const LINK_CLASS =
-  "flex items-center gap-[5px] text-[12px] font-mono text-text-inverse-muted hover:text-teal-light transition-colors";
+  "flex items-center gap-[5px] text-[12px] font-mono text-text-inverse-muted hover:text-teal-light transition-colors min-w-0";
 
 export function ProfileHeader({ user }: ProfileHeaderProps) {
   const initials = getInitials(user.display_name ?? user.username);
@@ -62,6 +62,114 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
     user.substack_url ||
     user.youtube_url ||
     user.twitter_url;
+
+  const cells: JSX.Element[] = [];
+
+  if (user.github_username) {
+    cells.push(
+      <div key="github" className="min-w-0">
+        <Link
+          href={`https://github.com/${user.github_username}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={LINK_CLASS}
+        >
+          <Github className="h-[14px] w-[14px] opacity-70 shrink-0" />
+          <span className="truncate">github.com/{user.github_username}</span>
+        </Link>
+      </div>
+    );
+  }
+  if (user.linkedin_url) {
+    cells.push(
+      <div key="linkedin" className="min-w-0">
+        <Link
+          href={user.linkedin_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={LINK_CLASS}
+        >
+          <Linkedin className="h-[14px] w-[14px] opacity-70 shrink-0" />
+          <span className="truncate">{formatUrl(user.linkedin_url)}</span>
+        </Link>
+      </div>
+    );
+  }
+  if (user.website_url) {
+    cells.push(
+      <div key="website" className="min-w-0">
+        <Link
+          href={user.website_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={LINK_CLASS}
+        >
+          <Globe className="h-[14px] w-[14px] opacity-70 shrink-0" />
+          <span className="truncate">{formatUrl(user.website_url)}</span>
+        </Link>
+      </div>
+    );
+  }
+  if (user.medium_url) {
+    cells.push(
+      <div key="medium" className="min-w-0">
+        <Link
+          href={user.medium_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={LINK_CLASS}
+        >
+          <MediumIcon size={14} />
+          <span className="truncate">{formatUrl(user.medium_url)}</span>
+        </Link>
+      </div>
+    );
+  }
+  if (user.substack_url) {
+    cells.push(
+      <div key="substack" className="min-w-0">
+        <Link
+          href={user.substack_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={LINK_CLASS}
+        >
+          <SubstackIcon size={14} />
+          <span className="truncate">{formatUrl(user.substack_url)}</span>
+        </Link>
+      </div>
+    );
+  }
+  if (user.youtube_url) {
+    cells.push(
+      <div key="youtube" className="min-w-0">
+        <Link
+          href={user.youtube_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={LINK_CLASS}
+        >
+          <Youtube className="h-[14px] w-[14px] opacity-70 shrink-0" />
+          <span className="truncate">{formatUrl(user.youtube_url)}</span>
+        </Link>
+      </div>
+    );
+  }
+  if (user.twitter_url) {
+    cells.push(
+      <div key="twitter" className="min-w-0">
+        <Link
+          href={user.twitter_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={LINK_CLASS}
+        >
+          <Twitter className="h-[14px] w-[14px] opacity-70 shrink-0" />
+          <span className="truncate">{formatUrl(user.twitter_url)}</span>
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="flex gap-5 items-start">
@@ -106,84 +214,10 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
         )}
 
         {hasSocials && (
-          <div className="flex flex-wrap gap-x-4 gap-y-2 mt-[14px]">
-            {user.github_username && (
-              <Link
-                href={`https://github.com/${user.github_username}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={LINK_CLASS}
-              >
-                <Github className="h-[14px] w-[14px] opacity-70 shrink-0" />
-                github.com/{user.github_username}
-              </Link>
-            )}
-            {user.linkedin_url && (
-              <Link
-                href={user.linkedin_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={LINK_CLASS}
-              >
-                <Linkedin className="h-[14px] w-[14px] opacity-70 shrink-0" />
-                {formatUrl(user.linkedin_url)}
-              </Link>
-            )}
-            {user.website_url && (
-              <Link
-                href={user.website_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={LINK_CLASS}
-              >
-                <Globe className="h-[14px] w-[14px] opacity-70 shrink-0" />
-                {formatUrl(user.website_url)}
-              </Link>
-            )}
-            {user.medium_url && (
-              <Link
-                href={user.medium_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={LINK_CLASS}
-              >
-                <MediumIcon size={14} />
-                {formatUrl(user.medium_url)}
-              </Link>
-            )}
-            {user.substack_url && (
-              <Link
-                href={user.substack_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={LINK_CLASS}
-              >
-                <SubstackIcon size={14} />
-                {formatUrl(user.substack_url)}
-              </Link>
-            )}
-            {user.youtube_url && (
-              <Link
-                href={user.youtube_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={LINK_CLASS}
-              >
-                <Youtube className="h-[14px] w-[14px] opacity-70 shrink-0" />
-                {formatUrl(user.youtube_url)}
-              </Link>
-            )}
-            {user.twitter_url && (
-              <Link
-                href={user.twitter_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={LINK_CLASS}
-              >
-                <Twitter className="h-[14px] w-[14px] opacity-70 shrink-0" />
-                {formatUrl(user.twitter_url)}
-              </Link>
-            )}
+          <div
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2.5 mt-[14px] w-full max-w-[640px]"
+          >
+            {cells}
           </div>
         )}
       </div>

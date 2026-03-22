@@ -56,7 +56,9 @@ export default async function PublicProfilePage({ params }: Props) {
 
   const { data: userRow } = await admin
     .from("users")
-    .select("*")
+    .select(
+      "id, username, display_name, headline, bio, avatar_url, github_username, linkedin_url, website_url, medium_url, substack_url, youtube_url, twitter_url, github_contributions, github_contributions_synced_at, profile_view_count, created_at, updated_at"
+    )
     .eq("username", username)
     .maybeSingle();
 

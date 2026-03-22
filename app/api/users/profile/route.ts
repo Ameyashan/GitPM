@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 
@@ -49,6 +50,16 @@ export async function PATCH(req: Request) {
         { error: "Failed to update profile", code: "db_error" },
         { status: 500 }
       );
+    }
+
+    const { data: row } = await supabase
+      .from("users")
+      .select("username")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (row?.username) {
+      revalidatePath(`/${row.username}`);
     }
 
     return NextResponse.json({ data: { ok: true } });
