@@ -26,7 +26,7 @@ export function AggregateStats({
       {stats.map((stat, i) => (
         <div
           key={i}
-          className={`bg-white py-4 px-3 text-center${stat.mobileHide ? " hidden md:block" : ""}`}
+          className="bg-white py-4 px-3 text-center"
         >
           <div
             className="text-[22px] font-medium font-mono text-text-primary"
