@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { DM_Sans, JetBrains_Mono, Instrument_Serif } from "next/font/google";
+import { GoogleAnalytics } from "@/components/shared/GoogleAnalytics";
 import { Toaster } from "@/components/shared/Toaster";
 import { PostHogProvider } from "@/components/shared/PostHogProvider";
 import "./globals.css";
@@ -49,6 +50,7 @@ export default function RootLayout({
       className={`${dmSans.variable} ${jetbrainsMono.variable} ${instrumentSerif.variable}`}
     >
       <body className="antialiased">
+        <GoogleAnalytics />
         <PostHogProvider>
           {children}
           <Toaster />
