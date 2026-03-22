@@ -19,6 +19,7 @@ function formatToolLabel(tool: string): string {
 
 export interface FeaturedProfileForLanding {
   username: string;
+  avatarUrl: string | null;
   initials: string;
   gradientFrom: string;
   gradientTo: string;
@@ -32,7 +33,7 @@ export interface FeaturedProfileForLanding {
 }
 
 /**
- * Users with at least one published project, sorted by total commits (desc).
+ * Users with at least one published project, most recently signed up first.
  */
 export async function getFeaturedProfiles(limit = 9): Promise<FeaturedProfileForLanding[]> {
   const admin = createAdminClient();
@@ -68,7 +69,7 @@ export async function getFeaturedProfiles(limit = 9): Promise<FeaturedProfileFor
   const userIds = Array.from(agg.keys());
   const { data: users, error: usersError } = await admin
     .from("users")
-    .select("id, username, display_name, headline")
+    .select("id, username, display_name, headline, avatar_url, created_at")
     .in("id", userIds);
 
   if (usersError || !users?.length) return [];
@@ -80,7 +81,7 @@ export async function getFeaturedProfiles(limit = 9): Promise<FeaturedProfileFor
       return { user: u, stats };
     })
     .filter((row): row is NonNullable<typeof row> => row !== null)
-    .sort((a, b) => b.stats.commits - a.stats.commits)
+    .sort((a, b) => b.user.created_at.localeCompare(a.user.created_at))
     .slice(0, limit);
 
   return rows.map(({ user: u, stats }, i) => {
@@ -89,6 +90,7 @@ export async function getFeaturedProfiles(limit = 9): Promise<FeaturedProfileFor
     const g = GRADIENTS[i % GRADIENTS.length]!;
     return {
       username: u.username,
+      avatarUrl: u.avatar_url,
       initials: initialsFromName(name),
       gradientFrom: g.from,
       gradientTo: g.to,

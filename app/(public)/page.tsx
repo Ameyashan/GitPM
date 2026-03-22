@@ -1,6 +1,7 @@
+import Image from "next/image";
 import Link from "next/link";
 import { SignInButton } from "@/components/landing/SignInButton";
-import { getFeaturedProfiles } from "@/lib/featured-profiles";
+import { getFeaturedProfiles, type FeaturedProfileForLanding } from "@/lib/featured-profiles";
 
 // Always show up-to-date featured builders (requires SUPABASE_SERVICE_ROLE_KEY at runtime).
 export const dynamic = "force-dynamic";
@@ -8,20 +9,6 @@ export const dynamic = "force-dynamic";
 // ------------------------------------------------------------------
 // Featured profiles (server-fetched: users with published projects)
 // ------------------------------------------------------------------
-
-interface ExampleProfile {
-  username: string;
-  initials: string;
-  gradientFrom: string;
-  gradientTo: string;
-  name: string;
-  role: string;
-  projects: number;
-  commits: number;
-  verified: number;
-  tools: string[];
-  toolVariant: "tool" | "stack";
-}
 
 const HOW_IT_WORKS = [
   {
@@ -109,7 +96,7 @@ function ToolPill({
   return <span style={toolStyle}>{label}</span>;
 }
 
-function ExampleProfileCard({ profile }: { profile: ExampleProfile }) {
+function ExampleProfileCard({ profile }: { profile: FeaturedProfileForLanding }) {
   const isLastTool = (i: number) => i === profile.tools.length - 1;
   return (
     <div
@@ -123,23 +110,35 @@ function ExampleProfileCard({ profile }: { profile: ExampleProfile }) {
     >
       {/* Top: avatar + name */}
       <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "14px" }}>
-        <div
-          style={{
-            width: "44px",
-            height: "44px",
-            borderRadius: "50%",
-            background: `linear-gradient(135deg, ${profile.gradientFrom}, ${profile.gradientTo})`,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: "15px",
-            fontWeight: 500,
-            color: "var(--white)",
-            flexShrink: 0,
-          }}
-        >
-          {profile.initials}
-        </div>
+        {profile.avatarUrl ? (
+          <Image
+            src={profile.avatarUrl}
+            alt={profile.name}
+            width={44}
+            height={44}
+            sizes="44px"
+            className="shrink-0 rounded-full object-cover"
+            style={{ border: "0.5px solid var(--border-light)" }}
+          />
+        ) : (
+          <div
+            style={{
+              width: "44px",
+              height: "44px",
+              borderRadius: "50%",
+              background: `linear-gradient(135deg, ${profile.gradientFrom}, ${profile.gradientTo})`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "15px",
+              fontWeight: 500,
+              color: "var(--white)",
+              flexShrink: 0,
+            }}
+          >
+            {profile.initials}
+          </div>
+        )}
         <div>
           <div style={{ fontSize: "14px", fontWeight: 500 }}>{profile.name}</div>
           <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>{profile.role}</div>
