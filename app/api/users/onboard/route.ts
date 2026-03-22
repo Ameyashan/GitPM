@@ -23,6 +23,10 @@ const onboardSchema = z.object({
   bio: z.string().max(500, "Bio must be 500 characters or fewer").optional(),
   linkedin_url: z.string().url("Must be a valid URL").optional().or(z.literal("")),
   website_url: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+  medium_url: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+  substack_url: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+  youtube_url: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+  twitter_url: z.string().url("Must be a valid URL").optional().or(z.literal("")),
 });
 
 export async function POST(request: Request): Promise<NextResponse> {
@@ -54,8 +58,18 @@ export async function POST(request: Request): Promise<NextResponse> {
       );
     }
 
-    const { username, display_name, headline, bio, linkedin_url, website_url } =
-      parsed.data;
+    const {
+      username,
+      display_name,
+      headline,
+      bio,
+      linkedin_url,
+      website_url,
+      medium_url,
+      substack_url,
+      youtube_url,
+      twitter_url,
+    } = parsed.data;
 
     // Check username is not taken by a different user
     const { data: existing } = await supabase
@@ -81,6 +95,10 @@ export async function POST(request: Request): Promise<NextResponse> {
         bio: bio ?? null,
         linkedin_url: linkedin_url || null,
         website_url: website_url || null,
+        medium_url: medium_url || null,
+        substack_url: substack_url || null,
+        youtube_url: youtube_url || null,
+        twitter_url: twitter_url || null,
       })
       .eq("id", user.id);
 

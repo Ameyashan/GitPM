@@ -1,0 +1,5 @@
+ALTER TABLE public.users
+  ADD COLUMN IF NOT EXISTS medium_url   TEXT,
+  ADD COLUMN IF NOT EXISTS substack_url TEXT,
+  ADD COLUMN IF NOT EXISTS youtube_url  TEXT,
+  ADD COLUMN IF NOT EXISTS twitter_url  TEXT;

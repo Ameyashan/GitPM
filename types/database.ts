@@ -20,6 +20,10 @@ export interface Database {
           github_username: string | null;
           linkedin_url: string | null;
           website_url: string | null;
+          medium_url: string | null;
+          substack_url: string | null;
+          youtube_url: string | null;
+          twitter_url: string | null;
           github_contributions: Json | null;
           github_contributions_synced_at: string | null;
           profile_view_count: number;
@@ -36,6 +40,10 @@ export interface Database {
           github_username?: string | null;
           linkedin_url?: string | null;
           website_url?: string | null;
+          medium_url?: string | null;
+          substack_url?: string | null;
+          youtube_url?: string | null;
+          twitter_url?: string | null;
           github_contributions?: Json | null;
           github_contributions_synced_at?: string | null;
           profile_view_count?: number;
@@ -52,6 +60,10 @@ export interface Database {
           github_username?: string | null;
           linkedin_url?: string | null;
           website_url?: string | null;
+          medium_url?: string | null;
+          substack_url?: string | null;
+          youtube_url?: string | null;
+          twitter_url?: string | null;
           github_contributions?: Json | null;
           github_contributions_synced_at?: string | null;
           profile_view_count?: number;

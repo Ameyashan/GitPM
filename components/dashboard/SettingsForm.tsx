@@ -13,6 +13,10 @@ interface SettingsFormProps {
   bio: string;
   linkedinUrl: string;
   websiteUrl: string;
+  mediumUrl: string;
+  substackUrl: string;
+  youtubeUrl: string;
+  twitterUrl: string;
   avatarUrl: string | null;
 }
 
@@ -22,6 +26,10 @@ interface FormState {
   bio: string;
   linkedin_url: string;
   website_url: string;
+  medium_url: string;
+  substack_url: string;
+  youtube_url: string;
+  twitter_url: string;
 }
 
 const LABEL_STYLE: React.CSSProperties = {
@@ -75,6 +83,10 @@ export function SettingsForm({
   bio,
   linkedinUrl,
   websiteUrl,
+  mediumUrl,
+  substackUrl,
+  youtubeUrl,
+  twitterUrl,
   avatarUrl,
 }: SettingsFormProps) {
   const [form, setForm] = useState<FormState>({
@@ -83,6 +95,10 @@ export function SettingsForm({
     bio: bio,
     linkedin_url: linkedinUrl,
     website_url: websiteUrl,
+    medium_url: mediumUrl,
+    substack_url: substackUrl,
+    youtube_url: youtubeUrl,
+    twitter_url: twitterUrl,
   });
   const router = useRouter();
   const [saving, setSaving] = useState(false);
@@ -358,37 +374,108 @@ export function SettingsForm({
         />
       </Field>
 
-      {/* LinkedIn URL */}
-      <Field label="LinkedIn URL">
-        <input
-          type="url"
-          value={form.linkedin_url}
-          onChange={(e) => set("linkedin_url", e.target.value)}
-          onFocus={focusStyle}
-          onBlur={blurStyle}
-          placeholder="https://linkedin.com/in/yourname"
+      {/* Social links section */}
+      <div>
+        <div
           style={{
-            ...INPUT_STYLE,
-            fontFamily: "var(--font-mono)",
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            marginBottom: "14px",
           }}
-        />
-      </Field>
+        >
+          <span
+            style={{
+              fontSize: "11px",
+              fontFamily: "var(--font-mono)",
+              color: "var(--text-muted)",
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Social links
+          </span>
+          <div style={{ flex: 1, height: "0.5px", background: "var(--border-light)" }} />
+        </div>
 
-      {/* Personal website URL */}
-      <Field label="Personal website">
-        <input
-          type="url"
-          value={form.website_url}
-          onChange={(e) => set("website_url", e.target.value)}
-          onFocus={focusStyle}
-          onBlur={blurStyle}
-          placeholder="https://yourwebsite.com"
-          style={{
-            ...INPUT_STYLE,
-            fontFamily: "var(--font-mono)",
-          }}
-        />
-      </Field>
+        <div style={{ display: "grid", gap: "12px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+            <Field label="LinkedIn">
+              <input
+                type="url"
+                value={form.linkedin_url}
+                onChange={(e) => set("linkedin_url", e.target.value)}
+                onFocus={focusStyle}
+                onBlur={blurStyle}
+                placeholder="https://linkedin.com/in/you"
+                style={{ ...INPUT_STYLE, fontFamily: "var(--font-mono)", fontSize: "13px" }}
+              />
+            </Field>
+            <Field label="Personal website">
+              <input
+                type="url"
+                value={form.website_url}
+                onChange={(e) => set("website_url", e.target.value)}
+                onFocus={focusStyle}
+                onBlur={blurStyle}
+                placeholder="https://yourwebsite.com"
+                style={{ ...INPUT_STYLE, fontFamily: "var(--font-mono)", fontSize: "13px" }}
+              />
+            </Field>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+            <Field label="Medium">
+              <input
+                type="url"
+                value={form.medium_url}
+                onChange={(e) => set("medium_url", e.target.value)}
+                onFocus={focusStyle}
+                onBlur={blurStyle}
+                placeholder="https://medium.com/@you"
+                style={{ ...INPUT_STYLE, fontFamily: "var(--font-mono)", fontSize: "13px" }}
+              />
+            </Field>
+            <Field label="Substack">
+              <input
+                type="url"
+                value={form.substack_url}
+                onChange={(e) => set("substack_url", e.target.value)}
+                onFocus={focusStyle}
+                onBlur={blurStyle}
+                placeholder="https://you.substack.com"
+                style={{ ...INPUT_STYLE, fontFamily: "var(--font-mono)", fontSize: "13px" }}
+              />
+            </Field>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+            <Field label="YouTube">
+              <input
+                type="url"
+                value={form.youtube_url}
+                onChange={(e) => set("youtube_url", e.target.value)}
+                onFocus={focusStyle}
+                onBlur={blurStyle}
+                placeholder="https://youtube.com/@you"
+                style={{ ...INPUT_STYLE, fontFamily: "var(--font-mono)", fontSize: "13px" }}
+              />
+            </Field>
+            <Field label="X / Twitter">
+              <input
+                type="url"
+                value={form.twitter_url}
+                onChange={(e) => set("twitter_url", e.target.value)}
+                onFocus={focusStyle}
+                onBlur={blurStyle}
+                placeholder="https://x.com/you"
+                style={{ ...INPUT_STYLE, fontFamily: "var(--font-mono)", fontSize: "13px" }}
+              />
+            </Field>
+          </div>
+        </div>
+      </div>
 
       {/* Save button */}
       <div style={{ marginTop: "8px" }}>

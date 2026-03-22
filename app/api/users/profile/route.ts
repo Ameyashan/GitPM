@@ -8,6 +8,10 @@ const ProfileUpdateSchema = z.object({
   bio: z.string().max(1000).optional(),
   linkedin_url: z.string().url().or(z.literal("")).optional(),
   website_url: z.string().url().or(z.literal("")).optional(),
+  medium_url: z.string().url().or(z.literal("")).optional(),
+  substack_url: z.string().url().or(z.literal("")).optional(),
+  youtube_url: z.string().url().or(z.literal("")).optional(),
+  twitter_url: z.string().url().or(z.literal("")).optional(),
 });
 
 export async function PATCH(req: Request) {

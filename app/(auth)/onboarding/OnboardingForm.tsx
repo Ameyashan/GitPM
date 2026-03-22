@@ -57,6 +57,10 @@ export function OnboardingForm({
   const [bio, setBio] = useState("");
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
+  const [mediumUrl, setMediumUrl] = useState("");
+  const [substackUrl, setSubstackUrl] = useState("");
+  const [youtubeUrl, setYoutubeUrl] = useState("");
+  const [twitterUrl, setTwitterUrl] = useState("");
 
   const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>("idle");
   const [submitting, setSubmitting] = useState(false);
@@ -127,6 +131,10 @@ export function OnboardingForm({
           bio: bio || undefined,
           linkedin_url: linkedinUrl || undefined,
           website_url: websiteUrl || undefined,
+          medium_url: mediumUrl || undefined,
+          substack_url: substackUrl || undefined,
+          youtube_url: youtubeUrl || undefined,
+          twitter_url: twitterUrl || undefined,
         }),
       });
 
@@ -503,6 +511,62 @@ export function OnboardingForm({
             onFocus={focusInput}
             onBlur={blurInput}
             placeholder="yoursite.com"
+            style={{ ...INPUT_STYLE, fontFamily: "var(--font-mono)", fontSize: "13px" }}
+          />
+        </div>
+      </div>
+
+      {/* ── Medium + Substack ────────────────────────── */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+        <div>
+          <label style={LABEL_STYLE}>Medium</label>
+          <input
+            type="url"
+            value={mediumUrl}
+            onChange={(e) => setMediumUrl(e.target.value)}
+            onFocus={focusInput}
+            onBlur={blurInput}
+            placeholder="medium.com/@you"
+            style={{ ...INPUT_STYLE, fontFamily: "var(--font-mono)", fontSize: "13px" }}
+          />
+        </div>
+        <div>
+          <label style={LABEL_STYLE}>Substack</label>
+          <input
+            type="url"
+            value={substackUrl}
+            onChange={(e) => setSubstackUrl(e.target.value)}
+            onFocus={focusInput}
+            onBlur={blurInput}
+            placeholder="you.substack.com"
+            style={{ ...INPUT_STYLE, fontFamily: "var(--font-mono)", fontSize: "13px" }}
+          />
+        </div>
+      </div>
+
+      {/* ── YouTube + X ──────────────────────────────── */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+        <div>
+          <label style={LABEL_STYLE}>YouTube</label>
+          <input
+            type="url"
+            value={youtubeUrl}
+            onChange={(e) => setYoutubeUrl(e.target.value)}
+            onFocus={focusInput}
+            onBlur={blurInput}
+            placeholder="youtube.com/@you"
+            style={{ ...INPUT_STYLE, fontFamily: "var(--font-mono)", fontSize: "13px" }}
+          />
+        </div>
+        <div>
+          <label style={LABEL_STYLE}>X / Twitter</label>
+          <input
+            type="url"
+            value={twitterUrl}
+            onChange={(e) => setTwitterUrl(e.target.value)}
+            onFocus={focusInput}
+            onBlur={blurInput}
+            placeholder="x.com/you"
             style={{ ...INPUT_STYLE, fontFamily: "var(--font-mono)", fontSize: "13px" }}
           />
         </div>
