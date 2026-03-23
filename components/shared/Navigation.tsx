@@ -113,12 +113,8 @@ export function Navigation() {
     router.refresh();
   }
 
-  const ownProfilePath = navUser?.profile?.username
-    ? `/${navUser.profile.username.toLowerCase()}`
-    : null;
-  const normalizedPathname = pathname.replace(/\/$/, "") || "/";
-  const isViewingOwnPublicProfile =
-    !!ownProfilePath && normalizedPathname.toLowerCase() === ownProfilePath;
+  const isOnDashboard =
+    pathname === "/dashboard" || pathname.startsWith("/dashboard/");
 
   return (
     <>
@@ -182,27 +178,28 @@ export function Navigation() {
                 </Link>
               )}
 
-              {isViewingOwnPublicProfile && (
-                <Link
-                  href="/dashboard"
-                  className="hidden sm:flex items-center gap-1.5 transition-colors"
-                  style={{
-                    fontSize: "13px",
-                    color: "var(--text-inverse-muted)",
-                  }}
-                  onMouseEnter={(e) =>
-                    ((e.currentTarget as HTMLElement).style.color =
-                      "var(--white)")
-                  }
-                  onMouseLeave={(e) =>
-                    ((e.currentTarget as HTMLElement).style.color =
-                      "var(--text-inverse-muted)")
-                  }
-                >
-                  <LayoutDashboard className="h-3 w-3" />
-                  Dashboard
-                </Link>
-              )}
+              <Link
+                href="/dashboard"
+                className="hidden sm:flex items-center gap-1.5 transition-colors"
+                style={{
+                  fontSize: "13px",
+                  color: isOnDashboard
+                    ? "var(--white)"
+                    : "var(--text-inverse-muted)",
+                  fontWeight: isOnDashboard ? 500 : 400,
+                }}
+                onMouseEnter={(e) =>
+                  ((e.currentTarget as HTMLElement).style.color = "var(--white)")
+                }
+                onMouseLeave={(e) =>
+                  ((e.currentTarget as HTMLElement).style.color = isOnDashboard
+                    ? "var(--white)"
+                    : "var(--text-inverse-muted)")
+                }
+              >
+                <LayoutDashboard className="h-3 w-3" />
+                Dashboard
+              </Link>
 
               <button
                 onClick={handleSignOut}
