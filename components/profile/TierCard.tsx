@@ -6,21 +6,8 @@ const HEATMAP_COLORS = [
   "#0A7558", // level 4 – teal
 ];
 
-// Deterministic pseudo-random heatmap — 7 rows × 12 cols = 84 cells
-function generateHeatmap(): number[] {
-  const cells: number[] = [];
-  for (let i = 0; i < 84; i++) {
-    const v = Math.sin(i * 0.71 + 1.2) * 0.5 + Math.sin(i * 0.29 + 2.8) * 0.3 + 0.5;
-    if (v > 0.87) cells.push(4);
-    else if (v > 0.72) cells.push(3);
-    else if (v > 0.56) cells.push(2);
-    else if (v > 0.35) cells.push(1);
-    else cells.push(0);
-  }
-  return cells;
-}
-
-const HEATMAP_DATA = generateHeatmap();
+/** 7 rows × 12 cols — used when we have no synced GitHub activity yet */
+const EMPTY_HEATMAP: number[] = Array.from({ length: 84 }, () => 0);
 
 interface TierCardProps {
   verifiedCount: number;
@@ -43,7 +30,7 @@ export function TierCard({ verifiedCount, heatmapData }: TierCardProps) {
   const resolvedHeatmap =
     Array.isArray(heatmapData) && heatmapData.length === 84
       ? heatmapData
-      : HEATMAP_DATA;
+      : EMPTY_HEATMAP;
   const tierName =
     verifiedCount >= 5
       ? "Verified builder"

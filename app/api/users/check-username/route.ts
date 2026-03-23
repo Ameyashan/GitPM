@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import { isValidUsername } from "@/lib/validation";
 
 export async function GET(request: Request): Promise<NextResponse> {
@@ -18,6 +19,11 @@ export async function GET(request: Request): Promise<NextResponse> {
       return NextResponse.json({ data: { available: false } });
     }
 
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
     // Admin client bypasses RLS so we can check across all users
     const admin = createAdminClient();
     const { data } = await admin
@@ -26,7 +32,12 @@ export async function GET(request: Request): Promise<NextResponse> {
       .eq("username", username)
       .maybeSingle();
 
-    return NextResponse.json({ data: { available: !data } });
+    // New sign-ups get a users row from the DB trigger (GitHub handle as username)
+    // before onboarding completes — treat "taken by me" as still available.
+    const available =
+      !data || (user !== null && data.id === user.id);
+
+    return NextResponse.json({ data: { available } });
   } catch (err) {
     console.error("check-username error:", err);
     return NextResponse.json(
