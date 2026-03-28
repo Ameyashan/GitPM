@@ -1,9 +1,10 @@
-import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { NextResponse, type NextRequest } from "next/server";
+import { createServerClient } from "@supabase/ssr";
+import type { Database } from "@/types/database";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { encrypt } from "@/lib/crypto";
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
 
@@ -11,7 +12,31 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/?error=missing_code`);
   }
 
-  const supabase = await createClient();
+  // Capture cookies Supabase wants to set so we can attach them directly to
+  // the redirect response. Using `createClient()` from lib/supabase/server
+  // (which writes via next/headers) risks losing the session cookies when the
+  // handler returns a NextResponse — Next.js does not guarantee that cookies
+  // set via next/headers are forwarded to an explicit NextResponse object.
+  type CookieToSet = Parameters<
+    Parameters<typeof createServerClient>[2]["cookies"]["setAll"]
+  >[0][number];
+  const cookiesToSet: CookieToSet[] = [];
+
+  const supabase = createServerClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(incoming) {
+          cookiesToSet.push(...incoming);
+        },
+      },
+    }
+  );
+
   const { data: sessionData, error: sessionError } =
     await supabase.auth.exchangeCodeForSession(code);
 
@@ -54,24 +79,27 @@ export async function GET(request: Request) {
     }
   }
 
-  // Check whether this user has completed onboarding (has a username set).
+  // Check whether this user has completed onboarding (has a headline set).
   // The DB trigger auto-inserts the users row on first sign-up using GitHub
-  // metadata, but username may be a GitHub handle that could conflict, and
-  // the headline/bio are still empty — so we always send new users through
-  // onboarding to confirm their username and fill in their profile.
+  // metadata, but headline is always empty — so new users go to onboarding.
   const { data: profile } = await supabase
     .from("users")
     .select("username, headline")
     .eq("id", user.id)
     .single();
 
-  // A user is considered "new" if they have no headline yet (the DB trigger
-  // sets username from GitHub handle but leaves headline empty).
   const isNewUser = !profile?.headline;
+  const destination = isNewUser
+    ? `${origin}/onboarding`
+    : `${origin}/dashboard`;
 
-  if (isNewUser) {
-    return NextResponse.redirect(`${origin}/onboarding`);
-  }
+  const response = NextResponse.redirect(destination);
 
-  return NextResponse.redirect(`${origin}/dashboard`);
+  // Apply the session cookies directly to the redirect response so the browser
+  // receives them and the middleware can authenticate the next request.
+  cookiesToSet.forEach(({ name, value, options }) => {
+    response.cookies.set(name, value, options);
+  });
+
+  return response;
 }
