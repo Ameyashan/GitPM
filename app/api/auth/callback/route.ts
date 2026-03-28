@@ -17,10 +17,7 @@ export async function GET(request: NextRequest) {
   // (which writes via next/headers) risks losing the session cookies when the
   // handler returns a NextResponse — Next.js does not guarantee that cookies
   // set via next/headers are forwarded to an explicit NextResponse object.
-  type CookieToSet = Parameters<
-    Parameters<typeof createServerClient>[2]["cookies"]["setAll"]
-  >[0][number];
-  const cookiesToSet: CookieToSet[] = [];
+  const cookiesToSet: Array<{ name: string; value: string; options: Parameters<NextResponse["cookies"]["set"]>[2] }> = [];
 
   const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
