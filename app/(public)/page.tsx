@@ -1,7 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { SignInButton } from "@/components/landing/SignInButton";
 import { getProfilesWithHeadline, type PublicProfileForLanding } from "@/lib/featured-profiles";
+import { createClient } from "@/lib/supabase/server";
 
 // Always show up-to-date featured builders (requires SUPABASE_SERVICE_ROLE_KEY at runtime).
 export const dynamic = "force-dynamic";
@@ -148,6 +150,20 @@ function CommunityProfileCard({ profile }: { profile: PublicProfileForLanding })
 // ------------------------------------------------------------------
 
 export default async function LandingPage() {
+  // If a signed-in user has no headline yet, send them straight to onboarding.
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) {
+    const { data: profile } = await supabase
+      .from("users")
+      .select("headline")
+      .eq("id", user.id)
+      .single();
+    if (!profile?.headline) {
+      redirect("/onboarding");
+    }
+  }
+
   const communityProfiles = await getProfilesWithHeadline(12);
 
   return (
