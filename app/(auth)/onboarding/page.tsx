@@ -115,7 +115,7 @@ export default async function OnboardingPage() {
             margin: "0 0 6px",
           }}
         >
-          Set up your profile
+          One line to get started
         </h1>
         <p
           style={{
@@ -124,7 +124,7 @@ export default async function OnboardingPage() {
             margin: "0 0 32px",
           }}
         >
-          Your public portfolio — this is what other PMs and hiring managers will see.
+          Pick a username and write your headline. You&apos;ll appear on the homepage right away — bio and links can wait.
         </p>
       </div>
 

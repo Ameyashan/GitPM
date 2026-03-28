@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { SignInButton } from "@/components/landing/SignInButton";
-import { getFeaturedProfiles, type FeaturedProfileForLanding } from "@/lib/featured-profiles";
+import { getProfilesWithHeadline, type PublicProfileForLanding } from "@/lib/featured-profiles";
 
 // Always show up-to-date featured builders (requires SUPABASE_SERVICE_ROLE_KEY at runtime).
 export const dynamic = "force-dynamic";
@@ -68,111 +68,77 @@ const TOOL_NAMES = ["Cursor", "Lovable", "v0", "Bolt", "Replit", "Vercel"];
 // Subcomponents
 // ------------------------------------------------------------------
 
-function ToolPill({
-  label,
-  type,
-}: {
-  label: string;
-  type: "tool" | "stack";
-}) {
-  const toolStyle: React.CSSProperties =
-    type === "tool"
-      ? {
-          background: "var(--purple-bg)",
-          color: "var(--purple)",
-          fontSize: "10px",
-          padding: "2px 8px",
-          borderRadius: "4px",
-          fontWeight: 500,
-        }
-      : {
-          background: "var(--surface-light)",
-          color: "var(--text-secondary)",
-          fontSize: "10px",
-          padding: "2px 8px",
-          borderRadius: "4px",
-          fontWeight: 500,
-        };
-  return <span style={toolStyle}>{label}</span>;
-}
 
-function ExampleProfileCard({ profile }: { profile: FeaturedProfileForLanding }) {
-  const isLastTool = (i: number) => i === profile.tools.length - 1;
+function CommunityProfileCard({ profile }: { profile: PublicProfileForLanding }) {
   return (
     <div
-      className="eprofile-card"
       style={{
         background: "var(--white)",
         borderRadius: "14px",
         border: "0.5px solid var(--border-light)",
         padding: "20px",
+        display: "flex",
+        alignItems: "center",
+        gap: "14px",
+        transition: "border-color 0.15s, box-shadow 0.15s",
       }}
+      className="community-profile-card"
     >
-      {/* Top: avatar + name */}
-      <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "14px" }}>
-        {profile.avatarUrl ? (
-          <Image
-            src={profile.avatarUrl}
-            alt={profile.name}
-            width={44}
-            height={44}
-            sizes="44px"
-            className="shrink-0 rounded-full object-cover"
-            style={{ border: "0.5px solid var(--border-light)" }}
-          />
-        ) : (
-          <div
-            style={{
-              width: "44px",
-              height: "44px",
-              borderRadius: "50%",
-              background: `linear-gradient(135deg, ${profile.gradientFrom}, ${profile.gradientTo})`,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "15px",
-              fontWeight: 500,
-              color: "var(--white)",
-              flexShrink: 0,
-            }}
-          >
-            {profile.initials}
-          </div>
-        )}
-        <div>
-          <div style={{ fontSize: "14px", fontWeight: 500 }}>{profile.name}</div>
-          <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>{profile.role}</div>
-        </div>
-      </div>
-
-      {/* Stats */}
-      <div
-        style={{
-          display: "flex",
-          gap: "16px",
-          fontSize: "12px",
-          color: "var(--text-secondary)",
-          marginBottom: "12px",
-          fontFamily: "var(--font-mono)",
-        }}
-      >
-        <span>{profile.projects} projects</span>
-        <span>{profile.commits} commits</span>
-        <span style={{ color: "var(--teal)" }}>{profile.verified} verified</span>
-      </div>
-
-      {/* Tool pills */}
-      {profile.tools.length > 0 && (
-        <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
-          {profile.tools.map((tool, i) => (
-            <ToolPill
-              key={tool}
-              label={tool}
-              type={isLastTool(i) ? "stack" : "tool"}
-            />
-          ))}
+      {profile.avatarUrl ? (
+        <Image
+          src={profile.avatarUrl}
+          alt={profile.name}
+          width={44}
+          height={44}
+          sizes="44px"
+          className="shrink-0 rounded-full object-cover"
+          style={{ border: "0.5px solid var(--border-light)", flexShrink: 0 }}
+        />
+      ) : (
+        <div
+          style={{
+            width: "44px",
+            height: "44px",
+            borderRadius: "50%",
+            background: `linear-gradient(135deg, ${profile.gradientFrom}, ${profile.gradientTo})`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "15px",
+            fontWeight: 500,
+            color: "var(--white)",
+            flexShrink: 0,
+          }}
+        >
+          {profile.initials}
         </div>
       )}
+      <div style={{ minWidth: 0 }}>
+        <div
+          style={{
+            fontSize: "14px",
+            fontWeight: 500,
+            color: "var(--text-primary)",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {profile.name}
+        </div>
+        <div
+          style={{
+            fontSize: "12px",
+            color: "var(--text-muted)",
+            marginTop: "2px",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {profile.headline}
+        </div>
+      </div>
     </div>
   );
 }
@@ -182,7 +148,7 @@ function ExampleProfileCard({ profile }: { profile: FeaturedProfileForLanding })
 // ------------------------------------------------------------------
 
 export default async function LandingPage() {
-  const featuredProfiles = await getFeaturedProfiles(9);
+  const communityProfiles = await getProfilesWithHeadline(12);
 
   return (
     <main className="flex-1 flex flex-col bg-page-bg">
@@ -697,7 +663,7 @@ export default async function LandingPage() {
                   color: "var(--text-primary)",
                 }}
               >
-                PMs already building on GitPM
+                PMs on GitPM
               </h2>
               <p
                 style={{
@@ -706,13 +672,13 @@ export default async function LandingPage() {
                   marginTop: "4px",
                 }}
               >
-                Early builders who are shaping the platform.
+                Sign in to appear here.
               </p>
             </div>
           </div>
 
-          {/* Cards — real users with at least one published project */}
-          {featuredProfiles.length === 0 ? (
+          {/* Cards — any user who has set a headline */}
+          {communityProfiles.length === 0 ? (
             <p
               style={{
                 fontSize: "14px",
@@ -720,21 +686,20 @@ export default async function LandingPage() {
                 lineHeight: 1.6,
               }}
             >
-              Publish a project to appear here — you&apos;ll be among the first
-              builders on the platform.
+              Be the first — sign in with GitHub and set your headline to appear here.
             </p>
           ) : (
             <div
               className="grid grid-cols-1 md:grid-cols-3"
               style={{ gap: "16px" }}
             >
-              {featuredProfiles.map((profile) => (
+              {communityProfiles.map((profile) => (
                 <Link
                   key={profile.username}
                   href={`/${profile.username}`}
                   style={{ textDecoration: "none", color: "inherit" }}
                 >
-                  <ExampleProfileCard profile={profile} />
+                  <CommunityProfileCard profile={profile} />
                 </Link>
               ))}
             </div>

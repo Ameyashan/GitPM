@@ -37,12 +37,6 @@ const INPUT_STYLE: React.CSSProperties = {
   transition: "border-color 0.15s, box-shadow 0.15s",
 };
 
-const TEXTAREA_STYLE: React.CSSProperties = {
-  ...INPUT_STYLE,
-  resize: "vertical",
-  lineHeight: "1.5",
-};
-
 export function OnboardingForm({
   initialUsername,
   initialDisplayName,
@@ -52,15 +46,7 @@ export function OnboardingForm({
   const router = useRouter();
 
   const [username, setUsername] = useState(initialUsername);
-  const [displayName, setDisplayName] = useState(initialDisplayName);
   const [headline, setHeadline] = useState("");
-  const [bio, setBio] = useState("");
-  const [linkedinUrl, setLinkedinUrl] = useState("");
-  const [websiteUrl, setWebsiteUrl] = useState("");
-  const [mediumUrl, setMediumUrl] = useState("");
-  const [substackUrl, setSubstackUrl] = useState("");
-  const [youtubeUrl, setYoutubeUrl] = useState("");
-  const [twitterUrl, setTwitterUrl] = useState("");
 
   const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>("idle");
   const [submitting, setSubmitting] = useState(false);
@@ -113,10 +99,6 @@ export function OnboardingForm({
       toast.error("Headline is required.");
       return;
     }
-    if (!displayName.trim()) {
-      toast.error("Display name is required.");
-      return;
-    }
 
     setSubmitting(true);
 
@@ -126,15 +108,8 @@ export function OnboardingForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           username,
-          display_name: displayName,
+          display_name: initialDisplayName || initialGithubUsername || username,
           headline,
-          bio: bio || undefined,
-          linkedin_url: linkedinUrl || undefined,
-          website_url: websiteUrl || undefined,
-          medium_url: mediumUrl || undefined,
-          substack_url: substackUrl || undefined,
-          youtube_url: youtubeUrl || undefined,
-          twitter_url: twitterUrl || undefined,
         }),
       });
 
@@ -148,7 +123,7 @@ export function OnboardingForm({
         return;
       }
 
-      toast.success("Profile saved! Welcome to GitPM.");
+      toast.success("You're on the map. Welcome to GitPM.");
       router.push("/dashboard?welcome=1");
       router.refresh();
     } catch {
@@ -160,25 +135,21 @@ export function OnboardingForm({
 
   const canSubmit =
     usernameStatus === "available" &&
-    displayName.trim().length > 0 &&
     headline.trim().length > 0 &&
     !submitting;
 
-  function focusInput(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) {
+  function focusInput(e: React.FocusEvent<HTMLInputElement>) {
     e.currentTarget.style.borderColor = "var(--purple)";
     e.currentTarget.style.boxShadow = "0 0 0 3px var(--purple-bg)";
   }
 
-  function blurInput(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) {
+  function blurInput(e: React.FocusEvent<HTMLInputElement>) {
     e.currentTarget.style.borderColor = "var(--border-light)";
     e.currentTarget.style.boxShadow = "none";
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      style={{ display: "grid", gap: "18px" }}
-    >
+    <form onSubmit={handleSubmit} style={{ display: "grid", gap: "18px" }}>
       {/* GitHub identity card */}
       {(initialAvatarUrl || initialGithubUsername) && (
         <div
@@ -263,7 +234,7 @@ export function OnboardingForm({
         </div>
       )}
 
-      {/* ── Username ─────────────────────────────────── */}
+      {/* Username */}
       <div>
         <div
           style={{
@@ -286,7 +257,6 @@ export function OnboardingForm({
             {username.length}/30
           </span>
         </div>
-        {/* Prefix + input + status icon */}
         <div
           style={{
             display: "flex",
@@ -371,29 +341,12 @@ export function OnboardingForm({
           {usernameStatus === "invalid" &&
             "3–30 characters. Lowercase letters, numbers, hyphens, underscores only."}
           {usernameStatus === "available" && "Available!"}
-          {(usernameStatus === "idle") &&
+          {usernameStatus === "idle" &&
             "Lowercase letters, numbers, - and _ only."}
         </p>
       </div>
 
-      {/* ── Display name ─────────────────────────────── */}
-      <div>
-        <label style={LABEL_STYLE}>
-          Display name <span style={{ color: "var(--teal)" }}>*</span>
-        </label>
-        <input
-          type="text"
-          value={displayName}
-          onChange={(e) => setDisplayName(e.target.value)}
-          onFocus={focusInput}
-          onBlur={blurInput}
-          placeholder="Ada Lovelace"
-          maxLength={100}
-          style={INPUT_STYLE}
-        />
-      </div>
-
-      {/* ── Headline ─────────────────────────────────── */}
+      {/* Headline */}
       <div>
         <div
           style={{
@@ -424,155 +377,15 @@ export function OnboardingForm({
           onBlur={blurInput}
           placeholder="PM at Acme · Shipping with Cursor + v0"
           maxLength={160}
+          autoFocus
           style={INPUT_STYLE}
         />
         <p style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "5px" }}>
-          One punchy line about who you are and what you build.
+          One punchy line about who you are and what you build. You&apos;ll appear on the homepage instantly.
         </p>
       </div>
 
-      {/* ── Optional divider ─────────────────────────── */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "12px",
-          margin: "2px 0",
-        }}
-      >
-        <div style={{ flex: 1, height: "0.5px", background: "var(--border-light)" }} />
-        <span
-          style={{
-            fontSize: "11px",
-            fontFamily: "var(--font-mono)",
-            color: "var(--text-muted)",
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-          }}
-        >
-          Optional
-        </span>
-        <div style={{ flex: 1, height: "0.5px", background: "var(--border-light)" }} />
-      </div>
-
-      {/* ── Bio ──────────────────────────────────────── */}
-      <div>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "baseline",
-            marginBottom: "6px",
-          }}
-        >
-          <label style={{ ...LABEL_STYLE, marginBottom: 0 }}>Bio</label>
-          <span
-            style={{
-              fontSize: "11px",
-              fontFamily: "var(--font-mono)",
-              color: bio.length > 450 ? "#F59E0B" : "var(--text-muted)",
-            }}
-          >
-            {bio.length}/500
-          </span>
-        </div>
-        <textarea
-          value={bio}
-          onChange={(e) => setBio(e.target.value)}
-          onFocus={focusInput}
-          onBlur={blurInput}
-          placeholder="A bit more about what you build, your stack, or your PM background…"
-          rows={3}
-          maxLength={500}
-          style={TEXTAREA_STYLE}
-        />
-      </div>
-
-      {/* ── LinkedIn + Website ───────────────────────── */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-        <div>
-          <label style={LABEL_STYLE}>LinkedIn</label>
-          <input
-            type="url"
-            value={linkedinUrl}
-            onChange={(e) => setLinkedinUrl(e.target.value)}
-            onFocus={focusInput}
-            onBlur={blurInput}
-            placeholder="linkedin.com/in/you"
-            style={{ ...INPUT_STYLE, fontFamily: "var(--font-mono)", fontSize: "13px" }}
-          />
-        </div>
-        <div>
-          <label style={LABEL_STYLE}>Website</label>
-          <input
-            type="url"
-            value={websiteUrl}
-            onChange={(e) => setWebsiteUrl(e.target.value)}
-            onFocus={focusInput}
-            onBlur={blurInput}
-            placeholder="yoursite.com"
-            style={{ ...INPUT_STYLE, fontFamily: "var(--font-mono)", fontSize: "13px" }}
-          />
-        </div>
-      </div>
-
-      {/* ── Medium + Substack ────────────────────────── */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-        <div>
-          <label style={LABEL_STYLE}>Medium</label>
-          <input
-            type="url"
-            value={mediumUrl}
-            onChange={(e) => setMediumUrl(e.target.value)}
-            onFocus={focusInput}
-            onBlur={blurInput}
-            placeholder="medium.com/@you"
-            style={{ ...INPUT_STYLE, fontFamily: "var(--font-mono)", fontSize: "13px" }}
-          />
-        </div>
-        <div>
-          <label style={LABEL_STYLE}>Substack</label>
-          <input
-            type="url"
-            value={substackUrl}
-            onChange={(e) => setSubstackUrl(e.target.value)}
-            onFocus={focusInput}
-            onBlur={blurInput}
-            placeholder="you.substack.com"
-            style={{ ...INPUT_STYLE, fontFamily: "var(--font-mono)", fontSize: "13px" }}
-          />
-        </div>
-      </div>
-
-      {/* ── YouTube + X ──────────────────────────────── */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-        <div>
-          <label style={LABEL_STYLE}>YouTube</label>
-          <input
-            type="url"
-            value={youtubeUrl}
-            onChange={(e) => setYoutubeUrl(e.target.value)}
-            onFocus={focusInput}
-            onBlur={blurInput}
-            placeholder="youtube.com/@you"
-            style={{ ...INPUT_STYLE, fontFamily: "var(--font-mono)", fontSize: "13px" }}
-          />
-        </div>
-        <div>
-          <label style={LABEL_STYLE}>X / Twitter</label>
-          <input
-            type="url"
-            value={twitterUrl}
-            onChange={(e) => setTwitterUrl(e.target.value)}
-            onFocus={focusInput}
-            onBlur={blurInput}
-            placeholder="x.com/you"
-            style={{ ...INPUT_STYLE, fontFamily: "var(--font-mono)", fontSize: "13px" }}
-          />
-        </div>
-      </div>
-
-      {/* ── Submit ───────────────────────────────────── */}
+      {/* Submit */}
       <div style={{ marginTop: "6px" }}>
         <button
           type="submit"
@@ -597,8 +410,18 @@ export function OnboardingForm({
           }}
         >
           {submitting && <Loader2 size={14} className="animate-spin" />}
-          {submitting ? "Saving…" : "Save profile & continue →"}
+          {submitting ? "Saving…" : "Set headline & go to dashboard →"}
         </button>
+        <p
+          style={{
+            fontSize: "11px",
+            color: "var(--text-muted)",
+            textAlign: "center",
+            marginTop: "10px",
+          }}
+        >
+          Bio, social links, and more can be added from your dashboard settings.
+        </p>
       </div>
     </form>
   );

@@ -13,6 +13,48 @@ function initialsFromName(name: string): string {
   return (parts[0][0]! + parts[parts.length - 1]![0]!).toUpperCase();
 }
 
+export interface PublicProfileForLanding {
+  username: string;
+  avatarUrl: string | null;
+  initials: string;
+  gradientFrom: string;
+  gradientTo: string;
+  name: string;
+  headline: string;
+}
+
+/**
+ * All users who have set a headline, newest first.
+ * Used on the homepage to show anyone who has completed onboarding.
+ */
+export async function getProfilesWithHeadline(
+  limit = 12
+): Promise<PublicProfileForLanding[]> {
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from("users")
+    .select("username, display_name, headline, avatar_url, created_at")
+    .neq("headline", "")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error || !data?.length) return [];
+
+  return data.map((u, i) => {
+    const name = u.display_name?.trim() || u.username;
+    const g = GRADIENTS[i % GRADIENTS.length]!;
+    return {
+      username: u.username,
+      avatarUrl: u.avatar_url,
+      initials: initialsFromName(name),
+      gradientFrom: g.from,
+      gradientTo: g.to,
+      name,
+      headline: u.headline,
+    };
+  });
+}
+
 function formatToolLabel(tool: string): string {
   return tool.charAt(0).toUpperCase() + tool.slice(1);
 }
