@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// Subreddits to scan
 const SUBREDDITS = [
   "SideProject",
   "InternetIsBeautiful",
@@ -10,27 +9,26 @@ const SUBREDDITS = [
   "lovable",
   "cursor",
   "vibecoding",
-  "vibecoders_",
 ];
 
-// Keywords that suggest someone is showing off something they built
 const TRIGGER_KEYWORDS = [
   "built", "shipped", "launched", "made",
   "vibecoded", "cursor", "lovable", "v0", "bolt",
   "claude code", "replit", "ai-built",
 ];
 
-// Reddit-owned hosts we want to exclude (we only care about external links)
 const REDDIT_HOSTS = [
   "reddit.com", "www.reddit.com", "old.reddit.com",
   "i.redd.it", "v.redd.it", "imgur.com", "i.imgur.com",
 ];
 
+const USER_AGENT = "gitpm-lead-scout/1.0";
+
 type RedditPost = {
   permalink: string;
   url: string;          // external URL, if any
   title: string;
-  selftext: string;
+  selftext: string;     // always empty for RSS — kept for shape compatibility
   author: string;
   created_utc: number;
 };
@@ -45,18 +43,107 @@ type Candidate = {
   created_utc: number;
 };
 
-async function fetchSubreddit(sub: string): Promise<RedditPost[]> {
-  // Reddit requires a distinctive User-Agent or it returns 429
-  const res = await fetch(
-    `https://www.reddit.com/r/${sub}/new.json?limit=25`,
-    { headers: { "User-Agent": "gitpm-lead-scout/1.0" } }
-  );
-  if (!res.ok) {
-    console.error(`Reddit fetch failed for r/${sub}: ${res.status}`);
-    return [];
+type FetchResult = {
+  sub: string;
+  posts: RedditPost[];
+  error?: string;
+};
+
+// Pull a single tag's inner text from an XML string. Reddit RSS is Atom-flavoured
+// and simple enough that we don't need a full XML parser — these 2 helpers handle
+// everything we care about.
+function extractTag(xml: string, tag: string): string {
+  // Handle both <tag>value</tag> and <tag ...>value</tag>
+  const regex = new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)</${tag}>`, "i");
+  const match = xml.match(regex);
+  return match ? match[1].trim() : "";
+}
+
+function extractAttr(xml: string, tag: string, attr: string): string {
+  // Handle self-closing tags like <link href="..." />
+  const regex = new RegExp(`<${tag}[^>]*\\s${attr}="([^"]*)"`, "i");
+  const match = xml.match(regex);
+  return match ? match[1] : "";
+}
+
+// Decode HTML entities that commonly appear in Reddit RSS (they escape titles).
+function decodeHtml(str: string): string {
+  return str
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&#x27;/g, "'")
+    .replace(/&nbsp;/g, " ");
+}
+
+// Extract the external URL from a Reddit RSS content block. Reddit embeds the
+// post body as escaped HTML; the external link appears as [link] anchor text.
+function extractExternalUrlFromContent(content: string): string {
+  const decoded = decodeHtml(content);
+  // Reddit's RSS content has a "[link]" anchor that points to the external URL
+  const match = decoded.match(/<a href="([^"]+)">\[link\]<\/a>/);
+  return match ? match[1] : "";
+}
+
+function parseRedditRss(xml: string): RedditPost[] {
+  // Split into <entry>...</entry> blocks (Atom format)
+  const entryBlocks = xml.match(/<entry>[\s\S]*?<\/entry>/g) ?? [];
+
+  return entryBlocks.map((entry) => {
+    const title = decodeHtml(extractTag(entry, "title"));
+    const updated = extractTag(entry, "updated"); // ISO timestamp
+    const content = extractTag(entry, "content");
+    const externalUrl = extractExternalUrlFromContent(content);
+
+    // Author is nested: <author><name>/u/username</name></author>
+    const authorBlock = extractTag(entry, "author");
+    const authorRaw = extractTag(authorBlock, "name");
+    const author = authorRaw.replace(/^\/u\//, "");
+
+    // Permalink is in the <link> tag's href attribute
+    const permalinkFull = extractAttr(entry, "link", "href");
+    // Convert full URL back to path-only form to match JSON API shape
+    let permalink = "";
+    try {
+      permalink = new URL(permalinkFull).pathname;
+    } catch {
+      permalink = "";
+    }
+
+    const createdUtc = updated
+      ? Math.floor(new Date(updated).getTime() / 1000)
+      : 0;
+
+    return {
+      permalink,
+      url: externalUrl || permalinkFull,  // fall back to reddit link if no external
+      title,
+      selftext: "",  // RSS doesn't expose this
+      author,
+      created_utc: createdUtc,
+    };
+  }).filter(p => p.permalink && p.author);  // drop malformed entries
+}
+
+async function fetchSubreddit(sub: string): Promise<FetchResult> {
+  try {
+    const res = await fetch(
+      `https://www.reddit.com/r/${sub}/new.rss?limit=25`,
+      { headers: { "User-Agent": USER_AGENT } }
+    );
+    if (!res.ok) {
+      const errText = await res.text();
+      return { sub, posts: [], error: `${res.status}: ${errText.slice(0, 200)}` };
+    }
+    const xml = await res.text();
+    const posts = parseRedditRss(xml);
+    return { sub, posts };
+  } catch (err) {
+    return { sub, posts: [], error: `threw: ${String(err).slice(0, 200)}` };
   }
-  const json = await res.json() as { data?: { children?: { data: RedditPost }[] } };
-  return json?.data?.children?.map((c) => c.data) ?? [];
 }
 
 function hasExternalUrl(post: RedditPost): boolean {
@@ -70,21 +157,15 @@ function hasExternalUrl(post: RedditPost): boolean {
 }
 
 function qualifiesAsCandidate(post: RedditPost, threeHoursAgoUnix: number): boolean {
-  // Recency
   if (post.created_utc < threeHoursAgoUnix) return false;
-
-  // Must have an external URL
   if (!hasExternalUrl(post)) return false;
-
-  // Must mention a trigger keyword
+  // RSS gives us title only; selftext is always ""
   const text = `${post.title} ${post.selftext}`.toLowerCase();
   if (!TRIGGER_KEYWORDS.some(kw => text.includes(kw))) return false;
-
   return true;
 }
 
 export async function GET(req: NextRequest) {
-  // Auth check — Vercel Cron sends this header; manual testers send the secret
   const authHeader = req.headers.get("authorization");
   const expected = `Bearer ${process.env.SCOUT_CRON_SECRET}`;
   if (authHeader !== expected) {
@@ -94,11 +175,10 @@ export async function GET(req: NextRequest) {
   const debug = req.nextUrl.searchParams.get("debug") === "1";
   const threeHoursAgo = Math.floor(Date.now() / 1000) - 3 * 60 * 60;
 
-  // Fetch all subreddits in parallel
-  const allPosts = await Promise.all(SUBREDDITS.map(fetchSubreddit));
-  const flat = allPosts.flat();
+  const results = await Promise.all(SUBREDDITS.map(fetchSubreddit));
+  const flat = results.flatMap(r => r.posts);
+  const fetchErrors = results.filter(r => r.error).map(r => ({ sub: r.sub, error: r.error }));
 
-  // Qualify candidates
   const candidates: Candidate[] = flat
     .filter(p => qualifiesAsCandidate(p, threeHoursAgo))
     .map(p => ({
@@ -107,13 +187,12 @@ export async function GET(req: NextRequest) {
       handle: `u/${p.author}`,
       profile_url: `https://www.reddit.com/user/${p.author}`,
       external_url: p.url,
-      post_text: `${p.title}\n\n${p.selftext}`.slice(0, 1000),
+      post_text: p.title.slice(0, 1000),
       created_utc: p.created_utc,
     }));
 
   console.log(`Scout: found ${candidates.length} candidates across ${SUBREDDITS.length} subreddits`);
 
-  // Debug mode — return diagnostics instead of triggering the routine
   if (debug) {
     const recentPosts = flat.filter(p => p.created_utc >= threeHoursAgo);
     const recentWithExternalUrl = recentPosts.filter(hasExternalUrl);
@@ -123,8 +202,8 @@ export async function GET(req: NextRequest) {
       posts_in_last_3h: recentPosts.length,
       posts_in_last_3h_with_external_url: recentWithExternalUrl.length,
       qualified_candidates: candidates.length,
-      // Sample of posts that were recent + had an external URL but failed the keyword filter.
-      // Look at these titles to figure out what language you're missing.
+      fetch_errors: fetchErrors,
+      per_sub_counts: results.map(r => ({ sub: r.sub, count: r.posts.length })),
       almost_qualified_sample: recentWithExternalUrl.slice(0, 10).map(p => ({
         title: p.title,
         url: p.url,
@@ -133,12 +212,14 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  // If nothing found, don't burn a routine run
   if (candidates.length === 0) {
-    return NextResponse.json({ candidates_found: 0, routine_triggered: false });
+    return NextResponse.json({
+      candidates_found: 0,
+      routine_triggered: false,
+      fetch_errors: fetchErrors,
+    });
   }
 
-  // Fire the routine with the candidates as the prompt input
   const routineRes = await fetch(process.env.ROUTINE_API_URL!, {
     method: "POST",
     headers: {
