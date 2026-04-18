@@ -9,7 +9,8 @@ const SUBREDDITS = [
   "lovable",
   "cursor",
   "vibecoding",
-  "buildinpublic"
+  "vibecoders_",
+  "buildinpublic",
 ];
 
 const TRIGGER_KEYWORDS = [
@@ -27,9 +28,9 @@ const USER_AGENT = "gitpm-lead-scout/1.0";
 
 type RedditPost = {
   permalink: string;
-  url: string;          // external URL, if any
+  url: string;
   title: string;
-  selftext: string;     // always empty for RSS — kept for shape compatibility
+  selftext: string;
   author: string;
   created_utc: number;
 };
@@ -50,24 +51,18 @@ type FetchResult = {
   error?: string;
 };
 
-// Pull a single tag's inner text from an XML string. Reddit RSS is Atom-flavoured
-// and simple enough that we don't need a full XML parser — these 2 helpers handle
-// everything we care about.
 function extractTag(xml: string, tag: string): string {
-  // Handle both <tag>value</tag> and <tag ...>value</tag>
   const regex = new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)</${tag}>`, "i");
   const match = xml.match(regex);
   return match ? match[1].trim() : "";
 }
 
 function extractAttr(xml: string, tag: string, attr: string): string {
-  // Handle self-closing tags like <link href="..." />
   const regex = new RegExp(`<${tag}[^>]*\\s${attr}="([^"]*)"`, "i");
   const match = xml.match(regex);
   return match ? match[1] : "";
 }
 
-// Decode HTML entities that commonly appear in Reddit RSS (they escape titles).
 function decodeHtml(str: string): string {
   return str
     .replace(/&amp;/g, "&")
@@ -80,33 +75,26 @@ function decodeHtml(str: string): string {
     .replace(/&nbsp;/g, " ");
 }
 
-// Extract the external URL from a Reddit RSS content block. Reddit embeds the
-// post body as escaped HTML; the external link appears as [link] anchor text.
 function extractExternalUrlFromContent(content: string): string {
   const decoded = decodeHtml(content);
-  // Reddit's RSS content has a "[link]" anchor that points to the external URL
   const match = decoded.match(/<a href="([^"]+)">\[link\]<\/a>/);
   return match ? match[1] : "";
 }
 
 function parseRedditRss(xml: string): RedditPost[] {
-  // Split into <entry>...</entry> blocks (Atom format)
   const entryBlocks = xml.match(/<entry>[\s\S]*?<\/entry>/g) ?? [];
 
   return entryBlocks.map((entry) => {
     const title = decodeHtml(extractTag(entry, "title"));
-    const updated = extractTag(entry, "updated"); // ISO timestamp
+    const updated = extractTag(entry, "updated");
     const content = extractTag(entry, "content");
     const externalUrl = extractExternalUrlFromContent(content);
 
-    // Author is nested: <author><name>/u/username</name></author>
     const authorBlock = extractTag(entry, "author");
     const authorRaw = extractTag(authorBlock, "name");
     const author = authorRaw.replace(/^\/u\//, "");
 
-    // Permalink is in the <link> tag's href attribute
     const permalinkFull = extractAttr(entry, "link", "href");
-    // Convert full URL back to path-only form to match JSON API shape
     let permalink = "";
     try {
       permalink = new URL(permalinkFull).pathname;
@@ -120,21 +108,30 @@ function parseRedditRss(xml: string): RedditPost[] {
 
     return {
       permalink,
-      url: externalUrl || permalinkFull,  // fall back to reddit link if no external
+      url: externalUrl || permalinkFull,
       title,
-      selftext: "",  // RSS doesn't expose this
+      selftext: "",
       author,
       created_utc: createdUtc,
     };
-  }).filter(p => p.permalink && p.author);  // drop malformed entries
+  }).filter(p => p.permalink && p.author);
 }
 
 async function fetchSubreddit(sub: string): Promise<FetchResult> {
+  const apiKey = process.env.SCRAPERAPI_KEY;
+  if (!apiKey) {
+    return { sub, posts: [], error: "SCRAPERAPI_KEY not configured" };
+  }
+
+  // ScraperAPI: we pass the target URL as a query param; it fetches and returns
+  // the content from a non-blocked IP pool.
+  const redditUrl = `https://www.reddit.com/r/${sub}/new.rss?limit=25`;
+  const proxiedUrl = `https://api.scraperapi.com/?api_key=${apiKey}&url=${encodeURIComponent(redditUrl)}`;
+
   try {
-    const res = await fetch(
-      `https://www.reddit.com/r/${sub}/new.rss?limit=25`,
-      { headers: { "User-Agent": USER_AGENT } }
-    );
+    const res = await fetch(proxiedUrl, {
+      headers: { "User-Agent": USER_AGENT },
+    });
     if (!res.ok) {
       const errText = await res.text();
       return { sub, posts: [], error: `${res.status}: ${errText.slice(0, 200)}` };
@@ -160,7 +157,6 @@ function hasExternalUrl(post: RedditPost): boolean {
 function qualifiesAsCandidate(post: RedditPost, threeHoursAgoUnix: number): boolean {
   if (post.created_utc < threeHoursAgoUnix) return false;
   if (!hasExternalUrl(post)) return false;
-  // RSS gives us title only; selftext is always ""
   const text = `${post.title} ${post.selftext}`.toLowerCase();
   if (!TRIGGER_KEYWORDS.some(kw => text.includes(kw))) return false;
   return true;
