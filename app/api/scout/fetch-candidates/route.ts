@@ -9,6 +9,8 @@ const SUBREDDITS = [
   "indiehackers",
   "lovable",
   "cursor",
+  "vibecoding",
+  "vibecoders_",
 ];
 
 // Keywords that suggest someone is showing off something they built
@@ -57,18 +59,22 @@ async function fetchSubreddit(sub: string): Promise<RedditPost[]> {
   return json?.data?.children?.map((c) => c.data) ?? [];
 }
 
+function hasExternalUrl(post: RedditPost): boolean {
+  if (!post.url) return false;
+  try {
+    const host = new URL(post.url).hostname.toLowerCase();
+    return !REDDIT_HOSTS.some(h => host === h || host.endsWith("." + h));
+  } catch {
+    return false;
+  }
+}
+
 function qualifiesAsCandidate(post: RedditPost, threeHoursAgoUnix: number): boolean {
   // Recency
   if (post.created_utc < threeHoursAgoUnix) return false;
 
   // Must have an external URL
-  if (!post.url) return false;
-  try {
-    const host = new URL(post.url).hostname.toLowerCase();
-    if (REDDIT_HOSTS.some(h => host === h || host.endsWith("." + h))) return false;
-  } catch {
-    return false;
-  }
+  if (!hasExternalUrl(post)) return false;
 
   // Must mention a trigger keyword
   const text = `${post.title} ${post.selftext}`.toLowerCase();
@@ -85,14 +91,15 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const debug = req.nextUrl.searchParams.get("debug") === "1";
   const threeHoursAgo = Math.floor(Date.now() / 1000) - 3 * 60 * 60;
 
   // Fetch all subreddits in parallel
   const allPosts = await Promise.all(SUBREDDITS.map(fetchSubreddit));
+  const flat = allPosts.flat();
 
-  // Flatten + filter + shape into candidates
-  const candidates: Candidate[] = allPosts
-    .flat()
+  // Qualify candidates
+  const candidates: Candidate[] = flat
     .filter(p => qualifiesAsCandidate(p, threeHoursAgo))
     .map(p => ({
       source: "Reddit" as const,
@@ -105,6 +112,26 @@ export async function GET(req: NextRequest) {
     }));
 
   console.log(`Scout: found ${candidates.length} candidates across ${SUBREDDITS.length} subreddits`);
+
+  // Debug mode — return diagnostics instead of triggering the routine
+  if (debug) {
+    const recentPosts = flat.filter(p => p.created_utc >= threeHoursAgo);
+    const recentWithExternalUrl = recentPosts.filter(hasExternalUrl);
+
+    return NextResponse.json({
+      total_posts_fetched: flat.length,
+      posts_in_last_3h: recentPosts.length,
+      posts_in_last_3h_with_external_url: recentWithExternalUrl.length,
+      qualified_candidates: candidates.length,
+      // Sample of posts that were recent + had an external URL but failed the keyword filter.
+      // Look at these titles to figure out what language you're missing.
+      almost_qualified_sample: recentWithExternalUrl.slice(0, 10).map(p => ({
+        title: p.title,
+        url: p.url,
+        subreddit_hint: p.permalink.split("/")[2],
+      })),
+    });
+  }
 
   // If nothing found, don't burn a routine run
   if (candidates.length === 0) {
