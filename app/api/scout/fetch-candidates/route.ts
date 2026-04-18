@@ -53,8 +53,8 @@ async function fetchSubreddit(sub: string): Promise<RedditPost[]> {
     console.error(`Reddit fetch failed for r/${sub}: ${res.status}`);
     return [];
   }
-  const json = await res.json();
-  return json?.data?.children?.map((c: any) => c.data) ?? [];
+  const json = await res.json() as { data?: { children?: { data: RedditPost }[] } };
+  return json?.data?.children?.map((c) => c.data) ?? [];
 }
 
 function qualifiesAsCandidate(post: RedditPost, threeHoursAgoUnix: number): boolean {
