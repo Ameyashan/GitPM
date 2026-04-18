@@ -9,6 +9,7 @@ const SUBREDDITS = [
   "lovable",
   "cursor",
   "vibecoding",
+  "buildinpublic"
 ];
 
 const TRIGGER_KEYWORDS = [
