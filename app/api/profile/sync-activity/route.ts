@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { getWeeklyActivityGrid } from "@/lib/github";
+import { getGitHubToken, getWeeklyActivityGrid } from "@/lib/github";
 
 export async function POST(): Promise<NextResponse> {
   const supabase = await createClient();
@@ -37,8 +37,19 @@ export async function POST(): Promise<NextResponse> {
     );
   }
 
+  const token = await getGitHubToken(supabase);
+  if (!token) {
+    return NextResponse.json(
+      {
+        error: "GitHub token unavailable. Please sign out and sign in again.",
+        code: "github_not_connected",
+      },
+      { status: 401 }
+    );
+  }
+
   try {
-    const grid = await getWeeklyActivityGrid(userRow.github_username);
+    const grid = await getWeeklyActivityGrid(token, userRow.github_username);
 
     const { error: updateError } = await supabase
       .from("users")

@@ -3,6 +3,7 @@
 export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import type { Metadata } from "next";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getPublishedProjects, getUserByUsername } from "@/lib/supabase/profile-queries";
@@ -55,8 +56,12 @@ export default async function PublicProfilePage({ params }: Props) {
 
   const publishedProjects = await getPublishedProjects(admin, user.id);
 
-  // Increment view count — awaited so the serverless function doesn't exit before the DB write
+  // Increment view count — awaited so the serverless function doesn't exit before the DB write.
+  // Revalidate both this public page and the owner's dashboard so neither serves a stale count
+  // (the displayed value is read before the increment, so without revalidation it trails the DB).
   await admin.rpc("increment_profile_view", { p_user_id: user.id });
+  revalidatePath(`/${username}`);
+  revalidatePath("/dashboard");
 
   // Aggregate stats
   const totalCommits = publishedProjects.reduce(

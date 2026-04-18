@@ -198,6 +198,44 @@ export async function getRepoCommits(
   return res.json() as Promise<GitHubCommit[]>;
 }
 
+/**
+ * Returns the total number of commits on the repo's default branch via
+ * GitHub's GraphQL API — accurate for repos with >100 commits, unlike
+ * counting a paginated REST response.
+ * Throws {@link GitHubAuthError} / {@link GitHubApiError} on failures.
+ */
+export async function getRepoCommitCount(
+  token: string,
+  owner: string,
+  repo: string
+): Promise<number> {
+  const query = `
+    query($owner: String!, $repo: String!) {
+      repository(owner: $owner, name: $repo) {
+        defaultBranchRef {
+          target { ... on Commit { history { totalCount } } }
+        }
+      }
+    }
+  `;
+  const res = await fetch(`${GITHUB_API}/graphql`, {
+    method: "POST",
+    headers: { ...githubHeaders(token), "Content-Type": "application/json" },
+    body: JSON.stringify({ query, variables: { owner, repo } }),
+  });
+  assertOk(res);
+  const payload = (await res.json()) as {
+    data?: {
+      repository?: {
+        defaultBranchRef?: {
+          target?: { history?: { totalCount?: number } };
+        } | null;
+      } | null;
+    };
+  };
+  return payload.data?.repository?.defaultBranchRef?.target?.history?.totalCount ?? 0;
+}
+
 export async function getRepoLanguages(
   token: string,
   owner: string,
@@ -257,72 +295,109 @@ export async function getPackageJsonTechStack(
   }
 }
 
+const CONTRIBUTION_LEVELS: Record<string, number> = {
+  NONE: 0,
+  FIRST_QUARTILE: 1,
+  SECOND_QUARTILE: 2,
+  THIRD_QUARTILE: 3,
+  FOURTH_QUARTILE: 4,
+};
+
+function utcDateKey(ms: number): string {
+  return new Date(ms).toISOString().slice(0, 10);
+}
+
 /**
- * Fetches the user's recent push events from the public GitHub events API
- * and converts them into an 84-cell intensity grid (12 columns × 7 rows,
- * representing 12 weeks of daily commit activity, newest column on the right).
+ * Fetches the user's daily commit contributions for the past 12 weeks via
+ * GitHub's GraphQL contributionsCollection API and returns an 84-cell grid
+ * (12 columns × 7 rows, newest column on the right) with levels 0–4
+ * matching GitHub's own heatmap quantiles.
  *
- * Uses the unauthenticated endpoint so it works on public profile pages.
- * Rate limit: 60 req/hr per IP — always cache the result.
- *
- * Returns an array of 84 integers in range 0–4.
+ * Requires any user's OAuth token (does not need to match the queried user).
+ * Returns an all-zero grid on failure so callers can render a placeholder.
  */
-export async function getWeeklyActivityGrid(username: string): Promise<number[]> {
+export async function getWeeklyActivityGrid(
+  token: string,
+  username: string
+): Promise<number[]> {
   const WEEKS = 12;
   const DAYS = 7;
   const TOTAL_CELLS = WEEKS * DAYS; // 84
+  const DAY_MS = 24 * 60 * 60 * 1000;
 
-  // Build a map of ISO date string → commit count for the past 12 weeks
-  const commitsByDate = new Map<string, number>();
+  // Anchor the window to UTC midnight of "today" so the grid is stable
+  // regardless of the server's local timezone, and matches the UTC dates
+  // GitHub returns in the contributionCalendar.
+  const todayMs = Date.UTC(
+    new Date().getUTCFullYear(),
+    new Date().getUTCMonth(),
+    new Date().getUTCDate()
+  );
+  const fromMs = todayMs - (TOTAL_CELLS - 1) * DAY_MS;
 
-  // Seed all dates in range with 0
-  const now = new Date();
-  for (let d = 0; d < TOTAL_CELLS; d++) {
-    const date = new Date(now);
-    date.setDate(date.getDate() - (TOTAL_CELLS - 1 - d));
-    commitsByDate.set(date.toISOString().slice(0, 10), 0);
+  const byDate = new Map<string, number>();
+  for (let i = 0; i < TOTAL_CELLS; i++) {
+    byDate.set(utcDateKey(fromMs + i * DAY_MS), 0);
   }
 
   try {
-    const res = await fetch(
-      `${GITHUB_API}/users/${username}/events?per_page=100`,
-      {
-        headers: { Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" },
-        next: { revalidate: 0 },
+    const query = `
+      query($login: String!, $from: DateTime!, $to: DateTime!) {
+        user(login: $login) {
+          contributionsCollection(from: $from, to: $to) {
+            contributionCalendar {
+              weeks {
+                contributionDays {
+                  date
+                  contributionLevel
+                }
+              }
+            }
+          }
+        }
       }
-    );
+    `;
+    const res = await fetch(`${GITHUB_API}/graphql`, {
+      method: "POST",
+      headers: { ...githubHeaders(token), "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query,
+        variables: {
+          login: username,
+          from: new Date(fromMs).toISOString(),
+          to: new Date(todayMs + DAY_MS - 1).toISOString(),
+        },
+      }),
+    });
 
     if (res.ok) {
-      const events = (await res.json()) as Array<{
-        type: string;
-        created_at: string;
-        payload: { commits?: Array<unknown> };
-      }>;
-
-      for (const event of events) {
-        if (event.type !== "PushEvent") continue;
-        const dateKey = event.created_at.slice(0, 10);
-        if (!commitsByDate.has(dateKey)) continue;
-        const count = event.payload.commits?.length ?? 1;
-        commitsByDate.set(dateKey, (commitsByDate.get(dateKey) ?? 0) + count);
+      const payload = (await res.json()) as {
+        data?: {
+          user?: {
+            contributionsCollection?: {
+              contributionCalendar?: {
+                weeks?: Array<{
+                  contributionDays?: Array<{ date: string; contributionLevel: string }>;
+                }>;
+              };
+            };
+          } | null;
+        };
+      };
+      const weeks =
+        payload.data?.user?.contributionsCollection?.contributionCalendar?.weeks ?? [];
+      for (const week of weeks) {
+        for (const day of week.contributionDays ?? []) {
+          if (!byDate.has(day.date)) continue;
+          byDate.set(day.date, CONTRIBUTION_LEVELS[day.contributionLevel] ?? 0);
+        }
       }
     }
   } catch {
     // Non-fatal — return all zeros; caller will fall back to placeholder
   }
 
-  const dailyCounts = Array.from(commitsByDate.values());
-  const max = Math.max(...dailyCounts, 1);
-
-  // Quantise into 0–4 levels
-  return dailyCounts.map((count) => {
-    if (count === 0) return 0;
-    const ratio = count / max;
-    if (ratio > 0.75) return 4;
-    if (ratio > 0.5) return 3;
-    if (ratio > 0.25) return 2;
-    return 1;
-  });
+  return Array.from(byDate.values());
 }
 
 /**
@@ -334,13 +409,16 @@ export async function enrichRepoData(
   owner: string,
   repo: string
 ): Promise<RepoEnrichment> {
-  const [commits, languages, pkgStack] = await Promise.all([
+  const [commits, commitCount, languages, pkgStack] = await Promise.all([
     getRepoCommits(token, owner, repo).catch(() => [] as GitHubCommit[]),
+    getRepoCommitCount(token, owner, repo).catch(() => null),
     getRepoLanguages(token, owner, repo).catch(() => ({} as GitHubLanguages)),
     getPackageJsonTechStack(token, owner, repo),
   ]);
 
-  const commit_count = commits.length;
+  // Prefer the GraphQL total (accurate for >100 commits); fall back to the
+  // paginated REST length only if the GraphQL call failed.
+  const commit_count = commitCount ?? commits.length;
 
   // Oldest commit is last in the array (GitHub returns newest first)
   const oldestCommit = commits[commits.length - 1];
