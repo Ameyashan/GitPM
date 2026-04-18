@@ -2,22 +2,24 @@ import { NextRequest, NextResponse } from "next/server";
 
 const SUBREDDITS = [
   "SideProject",
-  "InternetIsBeautiful",
-  "webdev",
-  "SomebodyMakeThis",
+  "VibeCodeDevs",
   "indiehackers",
   "lovable",
   "cursor",
   "vibecoding",
-  "vibecoders_",
   "buildinpublic",
+  "VibeCodeDevs",
 ];
 
 const TRIGGER_KEYWORDS = [
-  "built", "shipped", "launched", "made",
-  "vibecoded", "cursor", "lovable", "v0", "bolt",
-  "claude code", "replit", "ai-built",
-];
+    "built", "shipped", "launched", "made",
+    "vibecoded", "vibe coded", "vibe-coded",  // variants
+    "cursor", "lovable", "v0", "bolt",
+    "claude code", "replit", "ai-built", "made by ai",  // variants
+    "showoff", "show off",  // Reddit's weekly show-off threads
+    "my app", "my project", "my site", "my site",  // first-person possessives
+    "created", "finished",  // common vibecoder phrasings
+  ];
 
 const REDDIT_HOSTS = [
   "reddit.com", "www.reddit.com", "old.reddit.com",
@@ -172,7 +174,14 @@ export async function GET(req: NextRequest) {
   const debug = req.nextUrl.searchParams.get("debug") === "1";
   const threeHoursAgo = Math.floor(Date.now() / 1000) - 3 * 60 * 60;
 
-  const results = await Promise.all(SUBREDDITS.map(fetchSubreddit));
+  const results: FetchResult[] = [];
+    for (const sub of SUBREDDITS) {
+        results.push(await fetchSubreddit(sub));
+        // Respect ScraperAPI free-tier concurrency limit: 1 in-flight request at a time
+        await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
+
   const flat = results.flatMap(r => r.posts);
   const fetchErrors = results.filter(r => r.error).map(r => ({ sub: r.sub, error: r.error }));
 
