@@ -230,10 +230,12 @@ export async function GET(req: NextRequest) {
     method: "POST",
     headers: {
       "Authorization": `Bearer ${process.env.ROUTINE_API_TOKEN}`,
+      "anthropic-version": "2023-06-01",
+      "anthropic-beta": "experimental-cc-routine-2026-04-01",
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      message: `Here are ${candidates.length} fresh candidates from Reddit. Run the qualification, enrichment, dedupe, and Notion-write steps for each one. Candidates:\n\n${JSON.stringify(candidates, null, 2)}`,
+      text: `Here are ${candidates.length} fresh candidates from Reddit. Run the qualification, enrichment, dedupe, and Notion-write steps for each one. Candidates:\n\n${JSON.stringify(candidates, null, 2)}`,
     }),
   });
 
@@ -247,9 +249,9 @@ export async function GET(req: NextRequest) {
   }
 
   const routineData = await routineRes.json();
-  return NextResponse.json({
+    return NextResponse.json({
     candidates_found: candidates.length,
     routine_triggered: true,
-    session_url: routineData.session_url ?? null,
-  });
+    session_url: routineData.claude_code_session_url ?? null,
+    });
 }
