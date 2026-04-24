@@ -55,6 +55,15 @@ export async function getProfilesWithHeadline(
   });
 }
 
+export async function getTotalUserCount(): Promise<number> {
+  const admin = createAdminClient();
+  const { count, error } = await admin
+    .from("users")
+    .select("id", { count: "exact", head: true })
+    .neq("headline", "");
+  return error || count === null ? 0 : count;
+}
+
 function formatToolLabel(tool: string): string {
   return tool.charAt(0).toUpperCase() + tool.slice(1);
 }

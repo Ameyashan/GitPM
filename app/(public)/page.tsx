@@ -5,7 +5,7 @@ import { SignInButton } from "@/components/landing/SignInButton";
 import { LandingHero } from "@/components/landing/LandingHero";
 import { ToolsBand } from "@/components/landing/ToolsBand";
 import { FeaturesGrid } from "@/components/landing/FeaturesGrid";
-import { getProfilesWithHeadline, type PublicProfileForLanding } from "@/lib/featured-profiles";
+import { getProfilesWithHeadline, getTotalUserCount, type PublicProfileForLanding } from "@/lib/featured-profiles";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -59,11 +59,15 @@ export default async function LandingPage() {
     }
   }
 
-  const communityProfiles = await getProfilesWithHeadline(12);
+  const [communityProfiles, totalUserCount] = await Promise.all([
+    getProfilesWithHeadline(12),
+    getTotalUserCount(),
+  ]);
+  const heroAvatars = communityProfiles.slice(0, 3);
 
   return (
     <main className="flex-1 flex flex-col bg-page-bg">
-      <LandingHero />
+      <LandingHero totalUsers={totalUserCount} avatars={heroAvatars} />
       <ToolsBand />
       <FeaturesGrid />
 

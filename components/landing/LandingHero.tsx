@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { SignInButton } from "./SignInButton";
+import type { PublicProfileForLanding } from "@/lib/featured-profiles";
 import { CommitGraphCard } from "./CommitGraphCard";
 import {
   useVerbCycle,
@@ -13,7 +15,6 @@ import {
 
 const VERBS = ["ship", "prove", "demo", "launch"];
 const NAMES = ["yourname", "priya", "ameyag", "malcolm", "sarah_pm", "nate"];
-const INITIAL_PM_COUNT = 15;
 
 function TypingHandle() {
   const reduced = usePrefersReducedMotion();
@@ -103,15 +104,21 @@ function MagneticWrap({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function LandingHero() {
+export function LandingHero({
+  totalUsers = 0,
+  avatars = [],
+}: {
+  totalUsers?: number;
+  avatars?: PublicProfileForLanding[];
+}) {
   const { word: verb, phase } = useVerbCycle(VERBS);
   const reduced = usePrefersReducedMotion();
-  const animatedCount = useCountUp(INITIAL_PM_COUNT, 1400, 1800);
+  const animatedCount = useCountUp(totalUsers, 1400, 1800);
   const [ticked, setTicked] = useState(0);
   const [flash, setFlash] = useState(false);
   const currentCount = animatedCount + ticked;
 
-  useLiveTicker(!reduced && animatedCount >= INITIAL_PM_COUNT, () => {
+  useLiveTicker(!reduced && animatedCount >= totalUsers, () => {
     setTicked((n) => n + 1);
     setFlash(true);
     setTimeout(() => setFlash(false), 700);
@@ -155,28 +162,32 @@ export function LandingHero() {
 
           <div className="gitpm-social-proof">
             <div className="gitpm-avatar-stack">
-              <span
-                className="gitpm-av"
-                style={{ background: "linear-gradient(135deg,#6C5CE7,#8B7EF0)" }}
-                title="Priya"
-              >
-                PK
-              </span>
-              <span
-                className="gitpm-av"
-                style={{ background: "linear-gradient(135deg,#0A7558,#0F9B72)" }}
-                title="Ameya"
-              >
-                AG
-              </span>
-              <span
-                className="gitpm-av"
-                style={{ background: "linear-gradient(135deg,#C68E17,#E0AE3D)" }}
-                title="Jordan"
-              >
-                JR
-              </span>
-              <span className="gitpm-av gitpm-av-more">+{currentCount}</span>
+              {avatars.map((p) =>
+                p.avatarUrl ? (
+                  <Image
+                    key={p.username}
+                    src={p.avatarUrl}
+                    alt={p.name}
+                    width={32}
+                    height={32}
+                    className="gitpm-av"
+                    style={{ objectFit: "cover" }}
+                    title={p.name}
+                  />
+                ) : (
+                  <span
+                    key={p.username}
+                    className="gitpm-av"
+                    style={{ background: `linear-gradient(135deg,${p.gradientFrom},${p.gradientTo})` }}
+                    title={p.name}
+                  >
+                    {p.initials}
+                  </span>
+                )
+              )}
+              {currentCount > avatars.length && (
+                <span className="gitpm-av gitpm-av-more">+{currentCount - avatars.length}</span>
+              )}
             </div>
             <span className="gitpm-live-dot" />
             <span className="gitpm-proof-caption">
