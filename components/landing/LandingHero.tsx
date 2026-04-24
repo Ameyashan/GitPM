@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+
 import Image from "next/image";
 import Link from "next/link";
 import { SignInButton } from "./SignInButton";
@@ -9,7 +10,6 @@ import { CommitGraphCard } from "./CommitGraphCard";
 import {
   useVerbCycle,
   useCountUp,
-  useLiveTicker,
   usePrefersReducedMotion,
 } from "./motion-hooks";
 
@@ -114,15 +114,8 @@ export function LandingHero({
   const { word: verb, phase } = useVerbCycle(VERBS);
   const reduced = usePrefersReducedMotion();
   const animatedCount = useCountUp(totalUsers, 1400, 1800);
-  const [ticked, setTicked] = useState(0);
-  const [flash, setFlash] = useState(false);
-  const currentCount = animatedCount + ticked;
-
-  useLiveTicker(!reduced && animatedCount >= totalUsers, () => {
-    setTicked((n) => n + 1);
-    setFlash(true);
-    setTimeout(() => setFlash(false), 700);
-  });
+  const currentCount = animatedCount;
+  const flash = false;
 
   return (
     <section className="gitpm-hero">

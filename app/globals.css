@@ -229,10 +229,7 @@
   letter-spacing: .01em;
 }
 .gitpm-proof-caption b {
-  color: #fff; font-weight: 600;
-  background: linear-gradient(90deg, var(--teal-light), #fff);
-  -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #22c55e; font-weight: 600;
   display: inline-block;
   transition: transform .3s;
 }
@@ -507,6 +504,7 @@
   cursor: pointer;
   text-decoration: none;
   color: inherit;
+  min-width: 0; overflow: hidden;
 }
 .gitpm-c-card:hover { transform: translateY(-2px); border-color: var(--border); }
 .gitpm-c-avatar {
@@ -515,8 +513,8 @@
   color: #fff; font-weight: 500; font-size: 13px;
   overflow: hidden;
 }
-.gitpm-c-nm { font-size: 13px; font-weight: 500; color: var(--text-primary); }
-.gitpm-c-hl { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.gitpm-c-nm { font-size: 13px; font-weight: 500; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gitpm-c-hl { font-size: 11px; color: var(--text-muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .gitpm-footer {
   padding: 22px 40px; text-align: center; font-size: 12px; color: var(--text-muted);
