@@ -9,9 +9,11 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getPublishedProjects, getUserByUsername } from "@/lib/supabase/profile-queries";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { AggregateStats } from "@/components/profile/AggregateStats";
-import { TierCard } from "@/components/profile/TierCard";
-import { ToolsUsed } from "@/components/profile/ToolsUsed";
+import { TrustTierCard } from "@/components/profile/TrustTierCard";
+import { ConnectedAccounts } from "@/components/profile/ConnectedAccounts";
+import { ActivityHeatmap } from "@/components/profile/ActivityHeatmap";
 import { ProjectGrid } from "@/components/profile/ProjectGrid";
+
 interface Props {
   params: Promise<{ username: string }>;
 }
@@ -44,6 +46,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+function tierFor(verifiedCount: number): string {
+  if (verifiedCount >= 5) return "Verified Builder";
+  if (verifiedCount >= 1) return "Active Builder";
+  return "Getting Started";
+}
+
 export default async function PublicProfilePage({ params }: Props) {
   const { username } = await params;
   const admin = createAdminClient();
@@ -56,9 +64,6 @@ export default async function PublicProfilePage({ params }: Props) {
 
   const publishedProjects = await getPublishedProjects(admin, user.id);
 
-  // Increment view count — awaited so the serverless function doesn't exit before the DB write.
-  // Revalidate both this public page and the owner's dashboard so neither serves a stale count
-  // (the displayed value is read before the increment, so without revalidation it trails the DB).
   await admin.rpc("increment_profile_view", { p_user_id: user.id });
   revalidatePath(`/${username}`);
   revalidatePath("/dashboard");
@@ -69,17 +74,34 @@ export default async function PublicProfilePage({ params }: Props) {
     0
   );
   const verifiedCount = publishedProjects.filter((p) => p.is_verified).length;
+  const tierLabel = tierFor(verifiedCount);
 
-  // Tools used with counts
-  const toolCounts: Record<string, number> = {};
+  // Projects added in the last 90 days
+  const ninetyDaysAgo = Date.now() - 90 * 24 * 60 * 60 * 1000;
+  const newProjectsThisQuarter = publishedProjects.filter(
+    (p) => new Date(p.created_at).getTime() >= ninetyDaysAgo
+  ).length;
+
+  // Skill pills aggregated from project category_tags (top 5 by frequency)
+  const tagCounts: Record<string, number> = {};
   for (const project of publishedProjects) {
-    for (const tool of project.build_tools) {
-      toolCounts[tool] = (toolCounts[tool] ?? 0) + 1;
+    for (const tag of project.category_tags) {
+      tagCounts[tag] = (tagCounts[tag] ?? 0) + 1;
     }
   }
-  const toolsUsed = Object.entries(toolCounts)
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count);
+  const skillPills = Object.entries(tagCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([name]) => name);
+
+  // Verification sources for hero ribbon
+  const hasVercelProjects = publishedProjects.some(
+    (p) =>
+      p.hosting_platform === "vercel" || p.verification_method === "vercel_oauth"
+  );
+  const verifiedSources: string[] = [];
+  if (user.github_username) verifiedSources.push("GitHub");
+  if (hasVercelProjects) verifiedSources.push("Vercel");
 
   const lastUpdated = user.updated_at
     ? new Date(user.updated_at)
@@ -99,91 +121,73 @@ export default async function PublicProfilePage({ params }: Props) {
     year: "numeric",
   }).format(new Date(user.created_at));
 
+  const heatmapData =
+    Array.isArray(user.github_contributions)
+      ? (user.github_contributions as number[])
+      : null;
+
   return (
     <main className="min-h-screen bg-page-bg">
       {/* ─── Profile Hero (dark navy) ─── */}
       <div className="bg-navy">
-        <div
-          className="mx-auto max-w-[880px] px-10 pt-9 pb-12 max-md:px-5 max-md:pt-7 max-md:pb-10"
-        >
-          <ProfileHeader user={user} />
+        <div className="mx-auto max-w-[1080px] px-10 pt-10 pb-16 max-md:px-5 max-md:pt-7 max-md:pb-12">
+          <ProfileHeader
+            user={user}
+            tierLabel={tierLabel}
+            skillPills={skillPills}
+            verifiedSources={verifiedSources}
+          />
         </div>
       </div>
 
-      {/* ─── Content area (pmain) ─── */}
-      <div className="mx-auto max-w-[880px] px-10 max-md:px-5">
-        {/* Floating stats bar — overlaps hero via negative margin */}
+      {/* ─── Content area ─── */}
+      <div className="mx-auto max-w-[1080px] px-10 max-md:px-5">
+        {/* Floating stats bar */}
         <AggregateStats
           totalProjects={publishedProjects.length}
           totalCommits={totalCommits}
           verifiedCount={verifiedCount}
           profileViews={user.profile_view_count}
+          newProjectsThisQuarter={newProjectsThisQuarter}
         />
 
-        {/* Tier card */}
-        <TierCard
-          verifiedCount={verifiedCount}
-          heatmapData={
-            Array.isArray(user.github_contributions)
-              ? (user.github_contributions as number[])
-              : null
-          }
-        />
+        {/* Two-column layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-7 mt-9">
+          {/* Left: projects */}
+          <div>
+            <div className="flex items-baseline gap-3 mb-[14px]">
+              <h2 className="text-[18px] font-medium text-text-primary" style={{ letterSpacing: "-0.3px" }}>
+                Projects
+              </h2>
+              <span className="text-[12px] text-text-muted font-mono">
+                {publishedProjects.length} · {verifiedCount} verified
+              </span>
+            </div>
+            <ProjectGrid projects={publishedProjects} user={user} />
+          </div>
 
-        {/* Tools section */}
-        {toolsUsed.length > 0 && (
-          <>
-            <SectionHead label="Tools used" />
-            <ToolsUsed tools={toolsUsed} />
-          </>
-        )}
+          {/* Right: sidebar */}
+          <aside className="flex flex-col gap-4">
+            <TrustTierCard
+              verifiedCount={verifiedCount}
+              totalProjects={publishedProjects.length}
+              tierLabel={tierLabel}
+            />
+            <ConnectedAccounts user={user} hasVercelProjects={hasVercelProjects} />
+          </aside>
+        </div>
 
-        {/* Projects section */}
-        <SectionHead
-          label="Projects"
-          right={
-            publishedProjects.length > 0
-              ? `${publishedProjects.length} project${publishedProjects.length !== 1 ? "s" : ""}`
-              : undefined
-          }
-        />
-        <ProjectGrid projects={publishedProjects} user={user} />
+        {/* Activity heatmap (full-width) */}
+        <ActivityHeatmap data={heatmapData} totalCommits={totalCommits} />
 
         {/* Footer */}
         <footer
-          className="text-center py-5 text-[12px] text-text-muted"
+          className="text-center py-6 mt-9 text-[12px] text-text-muted"
           style={{ borderTop: "0.5px solid var(--border-light)" }}
         >
           Profile last updated {lastUpdatedLabel} · Member since {memberSince}
         </footer>
       </div>
     </main>
-  );
-}
-
-// ─── Inline section head component ───────────────────────────────────────────
-
-function SectionHead({
-  label,
-  right,
-}: {
-  label: string;
-  right?: string;
-}) {
-  return (
-    <div className="flex items-center gap-3 mt-7 mb-[14px]">
-      <span
-        className="text-[12px] font-medium text-text-muted uppercase whitespace-nowrap"
-        style={{ letterSpacing: "0.07em" }}
-      >
-        {label}
-      </span>
-      <div className="flex-1 h-[0.5px] bg-gitpm-border-light" />
-      {right && (
-        <span className="text-[12px] text-text-muted whitespace-nowrap">
-          {right}
-        </span>
-      )}
-    </div>
   );
 }

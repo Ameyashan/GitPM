@@ -8,6 +8,7 @@ import {
   Plug,
   Settings,
   ExternalLink,
+  Briefcase,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -25,6 +26,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { label: "Projects", href: "/dashboard", icon: FolderOpen },
+  { label: "Jobs", href: "/jobs", icon: Briefcase },
   { label: "Connections", href: "/dashboard/connections", icon: Plug },
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
@@ -45,6 +47,7 @@ export function DashboardSidebar({ profile }: DashboardSidebarProps) {
 
   function isActive(href: string): boolean {
     if (href === "/dashboard") return pathname === "/dashboard";
+    if (href === "/jobs") return pathname === "/jobs" || pathname.startsWith("/jobs/");
     return pathname.startsWith(href);
   }
 

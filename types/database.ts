@@ -72,6 +72,66 @@ export interface Database {
         };
         Relationships: [];
       };
+      jobs: {
+        Row: {
+          id: string;
+          company_name: string;
+          company_logo_url: string | null;
+          role_title: string;
+          role_type: string;
+          location: string | null;
+          remote: boolean;
+          salary_min: number | null;
+          salary_max: number | null;
+          stack_tags: string[];
+          tools_tags: string[];
+          apply_url: string;
+          source: string;
+          source_id: string;
+          posted_at: string | null;
+          fetched_at: string;
+          is_active: boolean;
+        };
+        Insert: {
+          id?: string;
+          company_name: string;
+          company_logo_url?: string | null;
+          role_title: string;
+          role_type: string;
+          location?: string | null;
+          remote?: boolean;
+          salary_min?: number | null;
+          salary_max?: number | null;
+          stack_tags?: string[];
+          tools_tags?: string[];
+          apply_url: string;
+          source: string;
+          source_id: string;
+          posted_at?: string | null;
+          fetched_at?: string;
+          is_active?: boolean;
+        };
+        Update: {
+          id?: string;
+          company_name?: string;
+          company_logo_url?: string | null;
+          role_title?: string;
+          role_type?: string;
+          location?: string | null;
+          remote?: boolean;
+          salary_min?: number | null;
+          salary_max?: number | null;
+          stack_tags?: string[];
+          tools_tags?: string[];
+          apply_url?: string;
+          source?: string;
+          source_id?: string;
+          posted_at?: string | null;
+          fetched_at?: string;
+          is_active?: boolean;
+        };
+        Relationships: [];
+      };
       projects: {
         Row: {
           id: string;

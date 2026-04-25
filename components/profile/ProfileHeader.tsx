@@ -1,10 +1,15 @@
-import Link from "next/link";
+"use client";
+
 import Image from "next/image";
-import { Github, Linkedin, Youtube, Twitter, Globe } from "lucide-react";
+import { useState } from "react";
+import { Mail, Share2, Check } from "lucide-react";
 import type { User } from "@/types/project";
 
 interface ProfileHeaderProps {
   user: User;
+  tierLabel: string;
+  skillPills: string[];
+  verifiedSources: string[];
 }
 
 function getInitials(name: string | null): string {
@@ -17,209 +22,174 @@ function getInitials(name: string | null): string {
     .toUpperCase();
 }
 
-function formatUrl(url: string): string {
-  return url.replace(/^https?:\/\/(www\.)?/, "");
+function pickContactHref(user: User): string | null {
+  if (user.linkedin_url) return user.linkedin_url;
+  if (user.twitter_url) return user.twitter_url;
+  if (user.website_url) return user.website_url;
+  if (user.github_username) return `https://github.com/${user.github_username}`;
+  return null;
 }
 
-function MediumIcon({ size = 14 }: { size?: number }) {
+function ShareButton({ username }: { username: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const onShare = async () => {
+    if (typeof window === "undefined") return;
+    const url = `${window.location.origin}/${username}`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ url, title: `${username} on GitPM` });
+      } else {
+        await navigator.clipboard.writeText(url);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1600);
+      }
+    } catch {
+      /* user cancelled */
+    }
+  };
+
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      style={{ opacity: 0.7, flexShrink: 0 }}
+    <button
+      type="button"
+      onClick={onShare}
+      className="flex items-center gap-[6px] text-[12px] font-medium text-white/85 hover:text-white px-[14px] h-[34px] rounded-[8px] transition-colors"
+      style={{ border: "0.5px solid rgba(255,255,255,0.18)", background: "rgba(255,255,255,0.04)" }}
     >
-      <path d="M13.54 12a6.8 6.8 0 01-6.77 6.82A6.8 6.8 0 010 12a6.8 6.8 0 016.77-6.82A6.8 6.8 0 0113.54 12zm7.42 0c0 3.54-1.51 6.42-3.38 6.42-1.87 0-3.39-2.88-3.39-6.42s1.52-6.42 3.39-6.42 3.38 2.88 3.38 6.42M24 12c0 3.17-.53 5.75-1.19 5.75-.66 0-1.19-2.58-1.19-5.75s.53-5.75 1.19-5.75C23.47 6.25 24 8.83 24 12z" />
-    </svg>
+      {copied ? <Check className="h-[13px] w-[13px]" /> : <Share2 className="h-[13px] w-[13px]" />}
+      {copied ? "Copied" : "Share profile"}
+    </button>
   );
 }
 
-function SubstackIcon({ size = 14 }: { size?: number }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      style={{ opacity: 0.7, flexShrink: 0 }}
-    >
-      <path d="M22.539 8.242H1.46V5.406h21.08v2.836zM1.46 10.812V24L12 18.11 22.54 24V10.812H1.46zM22.54 0H1.46v2.836h21.08V0z" />
-    </svg>
-  );
-}
-
-const LINK_CLASS =
-  "flex items-center gap-[5px] text-[12px] font-mono text-text-inverse-muted hover:text-teal-light transition-colors min-w-0";
-
-export function ProfileHeader({ user }: ProfileHeaderProps) {
+export function ProfileHeader({ user, tierLabel, skillPills, verifiedSources }: ProfileHeaderProps) {
   const initials = getInitials(user.display_name ?? user.username);
-  const hasSocials =
-    user.github_username ||
-    user.linkedin_url ||
-    user.website_url ||
-    user.medium_url ||
-    user.substack_url ||
-    user.youtube_url ||
-    user.twitter_url;
-
-  const cells: JSX.Element[] = [];
-
-  if (user.github_username) {
-    cells.push(
-      <div key="github" className="min-w-0">
-        <Link
-          href={`https://github.com/${user.github_username}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={LINK_CLASS}
-        >
-          <Github className="h-[14px] w-[14px] opacity-70 shrink-0" />
-          <span className="truncate">github.com/{user.github_username}</span>
-        </Link>
-      </div>
-    );
-  }
-  if (user.linkedin_url) {
-    cells.push(
-      <div key="linkedin" className="min-w-0">
-        <Link
-          href={user.linkedin_url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={LINK_CLASS}
-        >
-          <Linkedin className="h-[14px] w-[14px] opacity-70 shrink-0" />
-          <span className="truncate">{formatUrl(user.linkedin_url)}</span>
-        </Link>
-      </div>
-    );
-  }
-  if (user.website_url) {
-    cells.push(
-      <div key="website" className="min-w-0">
-        <Link
-          href={user.website_url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={LINK_CLASS}
-        >
-          <Globe className="h-[14px] w-[14px] opacity-70 shrink-0" />
-          <span className="truncate">{formatUrl(user.website_url)}</span>
-        </Link>
-      </div>
-    );
-  }
-  if (user.medium_url) {
-    cells.push(
-      <div key="medium" className="min-w-0">
-        <Link
-          href={user.medium_url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={LINK_CLASS}
-        >
-          <MediumIcon size={14} />
-          <span className="truncate">{formatUrl(user.medium_url)}</span>
-        </Link>
-      </div>
-    );
-  }
-  if (user.substack_url) {
-    cells.push(
-      <div key="substack" className="min-w-0">
-        <Link
-          href={user.substack_url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={LINK_CLASS}
-        >
-          <SubstackIcon size={14} />
-          <span className="truncate">{formatUrl(user.substack_url)}</span>
-        </Link>
-      </div>
-    );
-  }
-  if (user.youtube_url) {
-    cells.push(
-      <div key="youtube" className="min-w-0">
-        <Link
-          href={user.youtube_url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={LINK_CLASS}
-        >
-          <Youtube className="h-[14px] w-[14px] opacity-70 shrink-0" />
-          <span className="truncate">{formatUrl(user.youtube_url)}</span>
-        </Link>
-      </div>
-    );
-  }
-  if (user.twitter_url) {
-    cells.push(
-      <div key="twitter" className="min-w-0">
-        <Link
-          href={user.twitter_url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={LINK_CLASS}
-        >
-          <Twitter className="h-[14px] w-[14px] opacity-70 shrink-0" />
-          <span className="truncate">{formatUrl(user.twitter_url)}</span>
-        </Link>
-      </div>
-    );
-  }
+  const contactHref = pickContactHref(user);
+  const handle = user.username;
+  const verifiedLine =
+    verifiedSources.length > 0 ? `verified via ${verifiedSources.join(" + ")}` : null;
 
   return (
-    <div className="flex gap-5 items-start">
-      {/* Avatar */}
-      {user.avatar_url ? (
-        <Image
-          src={user.avatar_url}
-          alt={user.display_name ?? user.username ?? "Avatar"}
-          width={64}
-          height={64}
-          className="shrink-0 rounded-full object-cover"
-          style={{ border: "1.5px solid rgba(255,255,255,0.1)" }}
+    <div className="flex gap-6 items-start max-md:flex-col max-md:gap-5">
+      {/* Avatar with status dot */}
+      <div className="relative shrink-0">
+        {user.avatar_url ? (
+          <Image
+            src={user.avatar_url}
+            alt={user.display_name ?? user.username ?? "Avatar"}
+            width={92}
+            height={92}
+            className="rounded-full object-cover"
+            style={{ border: "1.5px solid rgba(255,255,255,0.12)" }}
+          />
+        ) : (
+          <div
+            className="w-[92px] h-[92px] rounded-full flex items-center justify-center text-white text-[28px] font-medium"
+            style={{
+              background: "linear-gradient(135deg, var(--teal) 0%, var(--teal-light) 100%)",
+              border: "1.5px solid rgba(255,255,255,0.12)",
+              letterSpacing: "-0.5px",
+            }}
+          >
+            {initials}
+          </div>
+        )}
+        <span
+          className="absolute bottom-1 right-1 w-[14px] h-[14px] rounded-full"
+          style={{ background: "#22c55e", border: "2px solid var(--navy)" }}
+          aria-hidden
         />
-      ) : (
-        <div
-          className="w-16 h-16 shrink-0 rounded-full flex items-center justify-center text-white text-[22px] font-medium"
-          style={{
-            background: "linear-gradient(135deg, var(--purple) 0%, var(--teal) 100%)",
-            border: "1.5px solid rgba(255,255,255,0.1)",
-          }}
-        >
-          {initials}
-        </div>
-      )}
+      </div>
 
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <h1
-          className="text-2xl font-medium text-white"
-          style={{ letterSpacing: "-0.5px" }}
-        >
-          {user.display_name ?? user.username}
-        </h1>
+        <div className="flex items-start gap-4">
+          <div className="flex-1 min-w-0">
+            <div
+              className="font-mono text-[11px] uppercase text-white/55"
+              style={{ letterSpacing: "0.12em" }}
+            >
+              Product Manager · {tierLabel}
+            </div>
 
-        {user.headline && (
-          <p
-            className="text-sm font-light text-text-inverse-muted mt-1 max-w-[520px]"
-            style={{ lineHeight: 1.55 }}
-          >
-            {user.headline}
-          </p>
-        )}
+            <h1
+              className="text-[34px] leading-[1.12] font-medium text-white mt-[6px]"
+              style={{ letterSpacing: "-0.6px" }}
+            >
+              {user.display_name ?? user.username}{" "}
+              <span className="font-light italic text-white/85" style={{ fontFamily: "var(--font-serif, ui-serif, Georgia, serif)" }}>
+                ships
+              </span>{" "}
+              <span className="text-white/85">weekly.</span>
+            </h1>
 
-        {hasSocials && (
-          <div
-            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2.5 mt-[14px] w-full max-w-[640px]"
-          >
-            {cells}
+            <div className="flex items-center gap-[10px] mt-[10px] flex-wrap">
+              <span className="font-mono text-[12px] text-white/65">gitpm.dev/{handle}</span>
+              {verifiedLine && (
+                <span className="font-mono text-[11px] text-teal-light flex items-center gap-[5px]">
+                  <svg viewBox="0 0 16 16" fill="none" className="w-[11px] h-[11px]">
+                    <path d="M3 8.5L6.5 12L13 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  {verifiedLine}
+                </span>
+              )}
+            </div>
+
+            {(user.bio || user.headline) && (
+              <p
+                className="text-[14px] text-white/75 mt-[14px] max-w-[560px]"
+                style={{ lineHeight: 1.6 }}
+              >
+                {user.bio ?? user.headline}
+              </p>
+            )}
+
+            {skillPills.length > 0 && (
+              <div className="flex flex-wrap gap-[6px] mt-[14px]">
+                {skillPills.map((p) => (
+                  <span
+                    key={p}
+                    className="text-[11px] font-medium text-white/85 px-[10px] py-[4px] rounded-[999px]"
+                    style={{ border: "0.5px solid rgba(255,255,255,0.16)", background: "rgba(255,255,255,0.04)" }}
+                  >
+                    {p}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
-        )}
+
+          {/* Action column */}
+          <div className="flex flex-col items-end gap-[8px] shrink-0 max-md:hidden">
+            {contactHref && (
+              <a
+                href={contactHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-[6px] text-[12px] font-medium text-navy px-[14px] h-[34px] rounded-[8px] bg-white hover:bg-white/90 transition-colors"
+              >
+                <Mail className="h-[13px] w-[13px]" />
+                Contact
+              </a>
+            )}
+            <ShareButton username={handle} />
+          </div>
+        </div>
+
+        {/* Mobile actions */}
+        <div className="hidden max-md:flex gap-[8px] mt-[14px]">
+          {contactHref && (
+            <a
+              href={contactHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-[6px] text-[12px] font-medium text-navy px-[14px] h-[34px] rounded-[8px] bg-white"
+            >
+              <Mail className="h-[13px] w-[13px]" /> Contact
+            </a>
+          )}
+          <ShareButton username={handle} />
+        </div>
       </div>
     </div>
   );
