@@ -177,7 +177,7 @@ export default function ComponentShowcasePage() {
 
       <Section title="ProfileHeader">
         <div className="rounded-xl bg-navy/60 p-6">
-          <ProfileHeader user={MOCK_USER} />
+          <ProfileHeader user={MOCK_USER} tierLabel="Builder" skillPills={["React", "TypeScript", "Next.js"]} verifiedSources={["vercel_oauth"]} />
         </div>
       </Section>
 
@@ -190,6 +190,7 @@ export default function ComponentShowcasePage() {
             totalCommits={342}
             verifiedCount={4}
             profileViews={128}
+            newProjectsThisQuarter={2}
           />
         </div>
       </Section>
