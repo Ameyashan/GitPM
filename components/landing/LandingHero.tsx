@@ -112,7 +112,7 @@ export function LandingHero({
   avatars?: PublicProfileForLanding[];
 }) {
   const { word: verb, phase } = useVerbCycle(VERBS);
-  const reduced = usePrefersReducedMotion();
+  const _reduced = usePrefersReducedMotion();
   const animatedCount = useCountUp(totalUsers, 1400, 1800);
   const currentCount = animatedCount;
   const flash = false;

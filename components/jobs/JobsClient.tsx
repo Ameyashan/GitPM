@@ -413,7 +413,7 @@ export function JobsClient({ userStack }: JobsClientProps) {
               fontWeight: 500,
             }}
           >
-            Your stack — filter by what you've built
+            Your stack &mdash; filter by what you&apos;ve built
           </p>
           <div className="flex flex-wrap gap-1.5">
             {userStack.map((tag) => {
