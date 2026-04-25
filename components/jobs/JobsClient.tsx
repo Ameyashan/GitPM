@@ -346,7 +346,6 @@ export function JobsClient({ userStack, isAuthed }: JobsClientProps) {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("All");
-  const [stackFilter, setStackFilter] = useState<string[]>([]);
   const [companyFilter, setCompanyFilter] = useState<string[]>([]);
   const supabaseRef = useRef(isAuthed ? null : createClient());
 
@@ -400,12 +399,6 @@ export function JobsClient({ userStack, isAuthed }: JobsClientProps) {
         return bt - at;
       });
   }, [jobsWithScore, roleFilter, search, companyFilter]);
-
-  function toggleStack(tag: string) {
-    setStackFilter((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
-    );
-  }
 
   function toggleCompany(name: string) {
     setCompanyFilter((prev) =>
