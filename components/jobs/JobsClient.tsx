@@ -347,6 +347,7 @@ export function JobsClient({ userStack, isAuthed }: JobsClientProps) {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("All");
   const [stackFilter, setStackFilter] = useState<string[]>([]);
+  const [companyFilter, setCompanyFilter] = useState<string[]>([]);
   const supabaseRef = useRef(isAuthed ? null : createClient());
 
   async function handleSignIn() {
@@ -389,10 +390,7 @@ export function JobsClient({ userStack, isAuthed }: JobsClientProps) {
           )
             return false;
         }
-        if (stackFilter.length > 0) {
-          const jobSet = new Set(j.stack_tags.map((t) => t.toLowerCase()));
-          if (!stackFilter.some((f) => jobSet.has(f.toLowerCase()))) return false;
-        }
+        if (companyFilter.length > 0 && !companyFilter.includes(j.company_name)) return false;
         return true;
       })
       .sort((a, b) => {
@@ -401,13 +399,30 @@ export function JobsClient({ userStack, isAuthed }: JobsClientProps) {
         const bt = b.posted_at ? new Date(b.posted_at).getTime() : 0;
         return bt - at;
       });
-  }, [jobsWithScore, roleFilter, search, stackFilter]);
+  }, [jobsWithScore, roleFilter, search, companyFilter]);
 
   function toggleStack(tag: string) {
     setStackFilter((prev) =>
       prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
     );
   }
+
+  function toggleCompany(name: string) {
+    setCompanyFilter((prev) =>
+      prev.includes(name) ? prev.filter((c) => c !== name) : [...prev, name]
+    );
+  }
+
+  const topCompanies = useMemo<string[]>(() => {
+    const counts = new Map<string, number>();
+    for (const j of jobs) {
+      counts.set(j.company_name, (counts.get(j.company_name) ?? 0) + 1);
+    }
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([name]) => name);
+  }, [jobs]);
 
   const stats = useMemo(() => {
     const dayAgo = Date.now() - 86400000;
@@ -589,8 +604,8 @@ export function JobsClient({ userStack, isAuthed }: JobsClientProps) {
         </span>
       </div>
 
-      {/* User stack chips */}
-      {userStack.length > 0 && (
+      {/* Company filter chips */}
+      {topCompanies.length > 0 && (
         <div style={{ marginBottom: 20 }}>
           <p
             style={{
@@ -602,15 +617,15 @@ export function JobsClient({ userStack, isAuthed }: JobsClientProps) {
               fontWeight: 500,
             }}
           >
-            Your stack &mdash; filter by what you&apos;ve built
+            Top companies &mdash; filter by employer
           </p>
           <div className="flex flex-wrap gap-1.5">
-            {userStack.map((tag) => {
-              const active = stackFilter.includes(tag);
+            {topCompanies.map((name) => {
+              const active = companyFilter.includes(name);
               return (
                 <button
-                  key={tag}
-                  onClick={() => toggleStack(tag)}
+                  key={name}
+                  onClick={() => toggleCompany(name)}
                   style={{
                     padding: "3px 10px",
                     borderRadius: 999,
@@ -623,7 +638,7 @@ export function JobsClient({ userStack, isAuthed }: JobsClientProps) {
                     transition: "all 0.1s",
                   }}
                 >
-                  {tag}
+                  {name}
                 </button>
               );
             })}

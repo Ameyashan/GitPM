@@ -75,9 +75,9 @@ export function extractStackTags(text: string): string[] {
 export function parseGreenhouseSalary(
   content: string
 ): { min: number | null; max: number | null } {
-  // Matches "$180k-$240k", "$180,000 - $240,000", "180000-240000"
+  // Requires leading $ to avoid matching non-salary ranges (e.g. "12–20 years")
   const m = content.match(
-    /\$?([\d,]+)k?\s*[-–]\s*\$?([\d,]+)k?/i
+    /\$([\d,]+)k?\s*[-–]\s*\$?([\d,]+)k?/i
   );
   if (!m) return { min: null, max: null };
   const parse = (s: string, isK: boolean) => {
