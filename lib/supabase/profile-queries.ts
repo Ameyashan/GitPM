@@ -33,3 +33,62 @@ export async function getPublishedProjects(
   if (error) return [];
   return (data as Project[]) ?? [];
 }
+
+export interface ExploreProjectRow {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  thumbnail_url: string | null;
+  tech_stack: string[];
+  build_tools: string[];
+  commit_count: number | null;
+  latest_deploy_at: string | null;
+  updated_at: string;
+  is_verified: boolean;
+  builder: {
+    username: string;
+    display_name: string;
+    avatar_url: string | null;
+  };
+}
+
+export async function getAllPublishedProjects(
+  admin: SupabaseClient<Database>
+): Promise<ExploreProjectRow[]> {
+  const { data, error } = await admin
+    .from("projects")
+    .select(
+      "id, slug, name, description, thumbnail_url, tech_stack, build_tools, commit_count, latest_deploy_at, updated_at, is_verified, users!inner(username, display_name, avatar_url)"
+    )
+    .eq("is_published", true)
+    .order("latest_deploy_at", { ascending: false, nullsFirst: false });
+
+  if (error || !data) return [];
+
+  return data.map((row) => {
+    const userRel = row.users as unknown as {
+      username: string;
+      display_name: string;
+      avatar_url: string | null;
+    };
+    return {
+      id: row.id,
+      slug: row.slug,
+      name: row.name,
+      description: row.description,
+      thumbnail_url: row.thumbnail_url,
+      tech_stack: row.tech_stack ?? [],
+      build_tools: row.build_tools ?? [],
+      commit_count: row.commit_count,
+      latest_deploy_at: row.latest_deploy_at,
+      updated_at: row.updated_at,
+      is_verified: row.is_verified,
+      builder: {
+        username: userRel.username,
+        display_name: userRel.display_name,
+        avatar_url: userRel.avatar_url,
+      },
+    };
+  });
+}

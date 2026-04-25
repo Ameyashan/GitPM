@@ -32,5 +32,5 @@ export default async function JobsPage() {
 
   const userStack = user ? await getUserStack(user.id) : [];
 
-  return <JobsClient userStack={userStack} />;
+  return <JobsClient userStack={userStack} isAuthed={Boolean(user)} />;
 }

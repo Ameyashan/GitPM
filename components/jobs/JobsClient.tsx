@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import Image from "next/image";
-import { Search, Briefcase, MapPin, ExternalLink } from "lucide-react";
+import { Search, Briefcase, MapPin, ExternalLink, Lock } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 interface Job {
   id: string;
@@ -25,7 +26,14 @@ interface JobWithScore extends Job {
   matchCount: number;
 }
 
-const ROLE_FILTERS = ["All", "APM", "PM", "Senior PM", "Staff", "FDE"] as const;
+const ROLE_FILTERS = [
+  { value: "All", label: "All" },
+  { value: "APM", label: "APM" },
+  { value: "PM", label: "PM" },
+  { value: "Senior PM", label: "Senior" },
+  { value: "Staff", label: "Staff+" },
+  { value: "FDE", label: "FDE" },
+] as const;
 
 function formatSalary(min: number | null, max: number | null): string | null {
   if (!min && !max) return null;
@@ -96,6 +104,65 @@ function CompanyLogo({
       style={{ background: "var(--surface-light)" }}
       onError={() => setErrored(true)}
     />
+  );
+}
+
+function StatCard({
+  label,
+  value,
+  subtext,
+  accent,
+}: {
+  label: string;
+  value: number;
+  subtext: string;
+  accent: string;
+}) {
+  return (
+    <div
+      style={{
+        background: "var(--surface-card)",
+        border: "0.5px solid var(--border-light)",
+        borderRadius: 12,
+        padding: "16px 20px",
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 3,
+          background: accent,
+        }}
+      />
+      <div
+        style={{
+          fontSize: 11,
+          fontWeight: 600,
+          letterSpacing: "0.08em",
+          color: "var(--text-muted)",
+          marginBottom: 6,
+        }}
+      >
+        {label}
+      </div>
+      <div
+        style={{
+          fontSize: 32,
+          fontWeight: 700,
+          color: "var(--text-primary)",
+          lineHeight: 1,
+          marginBottom: 6,
+        }}
+      >
+        {value}
+      </div>
+      <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{subtext}</div>
+    </div>
   );
 }
 
@@ -268,14 +335,30 @@ function JobCard({ job, userStack }: { job: JobWithScore; userStack: string[] })
 
 interface JobsClientProps {
   userStack: string[];
+  isAuthed: boolean;
 }
 
-export function JobsClient({ userStack }: JobsClientProps) {
+const ANON_VISIBLE_LIMIT = 5;
+const ANON_BLURRED_PREVIEW = 3;
+
+export function JobsClient({ userStack, isAuthed }: JobsClientProps) {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("All");
   const [stackFilter, setStackFilter] = useState<string[]>([]);
+  const supabaseRef = useRef(isAuthed ? null : createClient());
+
+  async function handleSignIn() {
+    const supabase = supabaseRef.current ?? createClient();
+    await supabase.auth.signInWithOAuth({
+      provider: "github",
+      options: {
+        redirectTo: `${window.location.origin}/api/auth/callback`,
+        scopes: "read:user repo",
+      },
+    });
+  }
 
   useEffect(() => {
     setLoading(true);
@@ -326,76 +409,182 @@ export function JobsClient({ userStack }: JobsClientProps) {
     );
   }
 
+  const stats = useMemo(() => {
+    const dayAgo = Date.now() - 86400000;
+    const newToday = jobsWithScore.filter(
+      (j) => j.posted_at && new Date(j.posted_at).getTime() >= dayAgo
+    ).length;
+    const matched = jobsWithScore.filter((j) => j.matchScore > 0).length;
+    const remote = jobsWithScore.filter((j) => j.remote).length;
+    const total = jobsWithScore.length;
+    const remotePct = total > 0 ? Math.round((remote / total) * 100) : 0;
+    return { newToday, matched, remote, remotePct };
+  }, [jobsWithScore]);
+
   return (
-    <div style={{ maxWidth: 860, margin: "0 auto", padding: "32px 24px" }}>
+    <div style={{ maxWidth: 1120, margin: "0 auto", padding: "32px 24px" }}>
       {/* Header */}
-      <div style={{ marginBottom: 24 }}>
-        <h1
-          style={{
-            fontSize: 24,
-            fontWeight: 700,
-            color: "var(--text-primary)",
-            marginBottom: 4,
-          }}
-        >
-          PM Jobs
-        </h1>
-        <p style={{ fontSize: 14, color: "var(--text-muted)" }}>
-          Roles matched to your project stack — sorted by fit
-        </p>
+      <div
+        className="flex items-start justify-between flex-wrap gap-4"
+        style={{ marginBottom: 24 }}
+      >
+        <div>
+          <h1
+            style={{
+              fontSize: 36,
+              fontWeight: 700,
+              color: "var(--text-primary)",
+              marginBottom: 6,
+              letterSpacing: "-0.02em",
+              lineHeight: 1.15,
+            }}
+          >
+            PM jobs,{" "}
+            <span
+              style={{
+                fontFamily: "var(--font-serif, Georgia, serif)",
+                fontStyle: "italic",
+                fontWeight: 500,
+                color: "var(--forest, #0A7558)",
+              }}
+            >
+              fresh
+            </span>{" "}
+            from the last 24 hours.
+          </h1>
+          <div className="flex items-center gap-2 flex-wrap" style={{ fontSize: 14, color: "var(--text-muted)" }}>
+            <span>Posted since yesterday · matched to your profile</span>
+            <span
+              className="inline-flex items-center gap-1.5"
+              style={{
+                fontSize: 11,
+                fontWeight: 500,
+                padding: "2px 8px",
+                borderRadius: 999,
+                background: "rgba(10,117,88,0.12)",
+                color: "var(--forest, #0A7558)",
+              }}
+            >
+              <span
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: 999,
+                  background: "var(--forest, #0A7558)",
+                }}
+              />
+              live
+            </span>
+          </div>
+        </div>
       </div>
 
-      {/* Search */}
+      {/* Stat cards */}
       <div
-        className="flex items-center gap-2"
+        className="grid gap-4"
         style={{
-          padding: "10px 16px",
-          background: "var(--surface-card)",
-          border: "0.5px solid var(--border-light)",
-          borderRadius: 10,
-          marginBottom: 16,
+          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          marginBottom: 24,
         }}
       >
-        <Search style={{ width: 16, height: 16, color: "var(--text-muted)" }} />
-        <input
-          type="text"
-          placeholder="Search title, company, stack…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{
-            flex: 1,
-            background: "transparent",
-            border: "none",
-            outline: "none",
-            fontSize: 14,
-            color: "var(--text-primary)",
-          }}
+        <StatCard
+          label="NEW TODAY"
+          value={stats.newToday}
+          subtext="posted in the last 24h"
+          accent="var(--forest, #0A7558)"
+        />
+        <StatCard
+          label="MATCHED TO YOU"
+          value={stats.matched}
+          subtext="based on your stack · skills"
+          accent="var(--purple, #7C5CFF)"
+        />
+        <StatCard
+          label="REMOTE-FRIENDLY"
+          value={stats.remote}
+          subtext={`${stats.remotePct}% of today's roles`}
+          accent="#E0A800"
         />
       </div>
 
-      {/* Role type filters */}
-      <div className="flex items-center gap-2 flex-wrap" style={{ marginBottom: 16 }}>
-        {ROLE_FILTERS.map((f) => (
-          <button
-            key={f}
-            onClick={() => setRoleFilter(f)}
+      {/* Search + role filters row */}
+      <div
+        className="flex items-center gap-3 flex-wrap"
+        style={{ marginBottom: 16 }}
+      >
+        <div
+          className="flex items-center gap-2"
+          style={{
+            flex: 1,
+            minWidth: 240,
+            padding: "10px 16px",
+            background: "var(--surface-card)",
+            border: "0.5px solid var(--border-light)",
+            borderRadius: 10,
+          }}
+        >
+          <Search style={{ width: 16, height: 16, color: "var(--text-muted)" }} />
+          <input
+            type="text"
+            placeholder="Search title, company, stack…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
             style={{
-              padding: "6px 14px",
-              borderRadius: 999,
-              fontSize: 13,
-              fontWeight: roleFilter === f ? 600 : 400,
+              flex: 1,
+              background: "transparent",
               border: "none",
-              cursor: "pointer",
-              background:
-                roleFilter === f ? "var(--text-primary)" : "var(--surface-card)",
-              color: roleFilter === f ? "var(--white)" : "var(--text-secondary)",
-              transition: "all 0.1s",
+              outline: "none",
+              fontSize: 14,
+              color: "var(--text-primary)",
+            }}
+          />
+          <span
+            style={{
+              fontSize: 11,
+              color: "var(--text-muted)",
+              border: "0.5px solid var(--border-light)",
+              padding: "1px 6px",
+              borderRadius: 4,
             }}
           >
-            {f}
-          </button>
-        ))}
-        <span style={{ fontSize: 13, color: "var(--text-muted)", marginLeft: "auto" }}>
+            ⌘K
+          </span>
+        </div>
+
+        <div
+          className="flex items-center"
+          style={{
+            background: "var(--surface-card)",
+            border: "0.5px solid var(--border-light)",
+            borderRadius: 999,
+            padding: 4,
+          }}
+        >
+          {ROLE_FILTERS.map((f) => {
+            const active = roleFilter === f.value;
+            return (
+              <button
+                key={f.value}
+                onClick={() => setRoleFilter(f.value)}
+                style={{
+                  padding: "6px 14px",
+                  borderRadius: 999,
+                  fontSize: 13,
+                  fontWeight: active ? 600 : 400,
+                  border: "none",
+                  cursor: "pointer",
+                  background: active ? "var(--text-primary)" : "transparent",
+                  color: active ? "var(--white)" : "var(--text-secondary)",
+                  transition: "all 0.1s",
+                }}
+              >
+                {f.label}
+              </button>
+            );
+          })}
+        </div>
+
+        <span style={{ fontSize: 13, color: "var(--text-muted)" }}>
           {filtered.length} role{filtered.length !== 1 ? "s" : ""}
         </span>
       </div>
@@ -471,12 +660,121 @@ export function JobsClient({ userStack }: JobsClientProps) {
               : "No roles match your filters."}
           </p>
         </div>
-      ) : (
+      ) : isAuthed ? (
         <div className="flex flex-col gap-3">
           {filtered.map((job) => (
             <JobCard key={job.id} job={job} userStack={userStack} />
           ))}
         </div>
+      ) : (
+        <>
+          <div className="flex flex-col gap-3">
+            {filtered.slice(0, ANON_VISIBLE_LIMIT).map((job) => (
+              <JobCard key={job.id} job={job} userStack={userStack} />
+            ))}
+          </div>
+
+          {filtered.length > ANON_VISIBLE_LIMIT && (
+            <div style={{ position: "relative", marginTop: 12 }}>
+              <div
+                aria-hidden
+                style={{
+                  filter: "blur(6px)",
+                  pointerEvents: "none",
+                  userSelect: "none",
+                }}
+                className="flex flex-col gap-3"
+              >
+                {filtered
+                  .slice(
+                    ANON_VISIBLE_LIMIT,
+                    ANON_VISIBLE_LIMIT + ANON_BLURRED_PREVIEW
+                  )
+                  .map((job) => (
+                    <JobCard key={job.id} job={job} userStack={userStack} />
+                  ))}
+              </div>
+
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background:
+                    "linear-gradient(180deg, rgba(255,255,255,0) 0%, var(--page-bg, #fff) 70%)",
+                }}
+              >
+                <div
+                  style={{
+                    background: "var(--surface-card)",
+                    border: "0.5px solid var(--border-light)",
+                    borderRadius: 12,
+                    padding: "20px 24px",
+                    textAlign: "center",
+                    maxWidth: 360,
+                    boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+                  }}
+                >
+                  <Lock
+                    style={{
+                      width: 22,
+                      height: 22,
+                      color: "var(--text-muted)",
+                      margin: "0 auto 8px",
+                    }}
+                  />
+                  <p
+                    style={{
+                      fontSize: 15,
+                      fontWeight: 600,
+                      color: "var(--text-primary)",
+                      marginBottom: 4,
+                    }}
+                  >
+                    {filtered.length - ANON_VISIBLE_LIMIT} more roles waiting
+                  </p>
+                  <p
+                    style={{
+                      fontSize: 13,
+                      color: "var(--text-secondary)",
+                      marginBottom: 14,
+                    }}
+                  >
+                    Sign in with GitHub to see all PM jobs and match scores.
+                  </p>
+                  <button
+                    onClick={handleSignIn}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 8,
+                      background: "var(--text-primary)",
+                      color: "var(--white)",
+                      border: "none",
+                      borderRadius: 8,
+                      fontSize: 13,
+                      fontWeight: 600,
+                      padding: "8px 16px",
+                      cursor: "pointer",
+                      fontFamily: "var(--font-body)",
+                    }}
+                  >
+                    <svg
+                      viewBox="0 0 16 16"
+                      fill="currentColor"
+                      style={{ width: 14, height: 14 }}
+                    >
+                      <path d="M8 1C4.13 1 1 4.13 1 8c0 3.1 2 5.7 4.8 6.6.35.07.48-.15.48-.34v-1.2c-1.96.43-2.37-.94-2.37-.94-.32-.82-.78-1.04-.78-1.04-.64-.43.05-.42.05-.42.7.05 1.07.72 1.07.72.63 1.07 1.64.76 2.04.58.06-.45.24-.76.44-.94-1.56-.18-3.2-.78-3.2-3.48 0-.77.28-1.4.72-1.89-.07-.18-.31-.9.07-1.87 0 0 .59-.19 1.92.72a6.6 6.6 0 013.5 0c1.33-.91 1.92-.72 1.92-.72.38.97.14 1.69.07 1.87.45.49.72 1.12.72 1.89 0 2.71-1.65 3.3-3.22 3.48.25.22.48.65.48 1.31v1.94c0 .19.13.41.48.34C13 13.7 15 11.1 15 8c0-3.87-3.13-7-7-7z" />
+                    </svg>
+                    Sign in with GitHub
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

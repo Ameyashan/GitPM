@@ -6,7 +6,7 @@ export default function PublicLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-navy flex flex-col">
+    <div className="min-h-screen flex flex-col" style={{ background: "var(--page-bg)" }}>
       <Navigation />
       <div className="flex-1 flex flex-col">{children}</div>
     </div>
