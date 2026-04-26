@@ -197,6 +197,21 @@ export function LandingHero({
             <TypingHandle />
             <span className="gitpm-caret" aria-hidden />
           </div>
+
+          <a
+            href="https://www.producthunt.com/products/gitpm-the-portfolio-for-pms-who-ship?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-gitpm-the-portfolio-for-pms-who-ship"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ display: "inline-block", marginTop: 20 }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              alt="GitPM: The portfolio for PMs who ship - Your GitHub profile, but for product managers | Product Hunt"
+              width={250}
+              height={54}
+              src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1132399&theme=light&t=1777218039019"
+            />
+          </a>
         </div>
 
         <CommitGraphCard />
