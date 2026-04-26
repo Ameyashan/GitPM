@@ -59,8 +59,7 @@ export async function getTotalUserCount(): Promise<number> {
   const admin = createAdminClient();
   const { count, error } = await admin
     .from("users")
-    .select("id", { count: "exact", head: true })
-    .neq("headline", "");
+    .select("id", { count: "exact", head: true });
   return error || count === null ? 0 : count;
 }
 
