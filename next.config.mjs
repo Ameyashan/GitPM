@@ -55,7 +55,7 @@ const nextConfig = {
               // Fonts: self + Google Fonts
               "font-src 'self' https://fonts.gstatic.com",
               // Images: self, Supabase Storage, GitHub avatars, data URIs (Next.js image optimizer)
-              "img-src 'self' data: blob: https://*.supabase.co https://avatars.githubusercontent.com",
+              "img-src 'self' data: blob: https://*.supabase.co https://avatars.githubusercontent.com https://api.producthunt.com",
               // Connections: self, Supabase, PostHog, Sentry, GitHub API
               "connect-src 'self' https://*.supabase.co https://app.posthog.com https://us.posthog.com https://us.i.posthog.com https://eu.i.posthog.com https://o*.ingest.sentry.io https://api.github.com https://api.vercel.com",
               // Frames: allow Loom and YouTube embeds
