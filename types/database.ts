@@ -154,6 +154,8 @@ export interface Database {
           metrics_text: string | null;
           commit_count: number | null;
           first_commit_at: string | null;
+          latest_commit_at: string | null;
+          commit_activity: number[] | null;
           latest_deploy_at: string | null;
           is_solo: boolean;
           is_verified: boolean;
@@ -184,6 +186,8 @@ export interface Database {
           metrics_text?: string | null;
           commit_count?: number | null;
           first_commit_at?: string | null;
+          latest_commit_at?: string | null;
+          commit_activity?: number[] | null;
           latest_deploy_at?: string | null;
           is_solo?: boolean;
           is_verified?: boolean;
@@ -214,6 +218,8 @@ export interface Database {
           metrics_text?: string | null;
           commit_count?: number | null;
           first_commit_at?: string | null;
+          latest_commit_at?: string | null;
+          commit_activity?: number[] | null;
           latest_deploy_at?: string | null;
           is_solo?: boolean;
           is_verified?: boolean;

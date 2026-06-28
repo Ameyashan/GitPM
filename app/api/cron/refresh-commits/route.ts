@@ -3,10 +3,13 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { decrypt } from "@/lib/crypto";
 import {
   getRepoCommitCount,
+  getRepoCommits,
+  weeklyCommitCounts,
   parseRepoFromUrl,
   GitHubAuthError,
   GitHubRateLimitError,
 } from "@/lib/github";
+import type { GitHubCommit } from "@/types/github";
 
 // Vercel cron: refreshes commit counts for published projects with a linked
 // GitHub repo. Uses the project owner's encrypted OAuth token.
@@ -88,9 +91,25 @@ export async function GET(request: Request) {
 
     try {
       const commit_count = await getRepoCommitCount(token, parsed.owner, parsed.repo);
+      // Recent commits drive latest_commit_at + the profile-card sparkline.
+      // Non-fatal: fall back to leaving those fields unchanged if it fails.
+      const commits = await getRepoCommits(token, parsed.owner, parsed.repo).catch(
+        () => [] as GitHubCommit[]
+      );
+      const latest_commit_at = commits[0]?.commit?.author?.date ?? null;
+      const update: {
+        commit_count: number;
+        updated_at: string;
+        latest_commit_at?: string | null;
+        commit_activity?: number[];
+      } = { commit_count, updated_at: new Date().toISOString() };
+      if (commits.length > 0) {
+        update.latest_commit_at = latest_commit_at;
+        update.commit_activity = weeklyCommitCounts(commits);
+      }
       const { error: updateError } = await admin
         .from("projects")
-        .update({ commit_count, updated_at: new Date().toISOString() })
+        .update(update)
         .eq("id", project.id);
       if (updateError) {
         errors++;

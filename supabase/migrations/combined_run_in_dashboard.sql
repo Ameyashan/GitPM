@@ -104,6 +104,8 @@ CREATE TABLE IF NOT EXISTS public.projects (
   metrics_text         TEXT,
   commit_count         INTEGER,
   first_commit_at      TIMESTAMPTZ,
+  latest_commit_at     TIMESTAMPTZ,
+  commit_activity      JSONB,
   latest_deploy_at     TIMESTAMPTZ,
   is_solo              BOOLEAN     NOT NULL DEFAULT TRUE,
   is_verified          BOOLEAN     NOT NULL DEFAULT FALSE,
