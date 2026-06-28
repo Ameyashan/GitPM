@@ -42,7 +42,7 @@ export function RefreshGitHubButton({ projectId }: RefreshGitHubButtonProps) {
       onClick={handleRefresh}
       disabled={loading}
       className={cn(
-        "inline-flex items-center gap-1.5 text-xs font-mono text-white/35 hover:text-teal transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        "inline-flex items-center gap-1.5 text-xs font-mono text-text-muted hover:text-teal transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
       )}
       title="Re-fetch commit count, tech stack, and collaborator info from GitHub"
     >
