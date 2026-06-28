@@ -271,8 +271,28 @@ export async function getRepoCommitCount(
         } | null;
       } | null;
     };
+    errors?: Array<{ type?: string; message?: string }>;
   };
-  return payload.data?.repository?.defaultBranchRef?.target?.history?.totalCount ?? 0;
+
+  // GraphQL reports failures (rate limits, internal errors) in a 200-OK body
+  // rather than via HTTP status. Surface them instead of silently treating the
+  // repo as having 0 commits.
+  if (payload.errors?.length) {
+    if (payload.errors.some((e) => e.type === "RATE_LIMITED")) {
+      throw new GitHubRateLimitError(null);
+    }
+    throw new GitHubApiError(502);
+  }
+
+  // `repository: null` means the repo doesn't exist or this token can't see it
+  // (e.g. a private repo the token lacks scope for) — distinct from an
+  // accessible repo that genuinely has no commits.
+  const repository = payload.data?.repository;
+  if (!repository) throw new GitHubApiError(404);
+
+  // An accessible repo whose default branch has no history is legitimately
+  // empty → 0 commits.
+  return repository.defaultBranchRef?.target?.history?.totalCount ?? 0;
 }
 
 export async function getRepoLanguages(
@@ -440,24 +460,46 @@ export async function getWeeklyActivityGrid(
 }
 
 /**
- * Fetches commits, languages, and package.json in parallel and returns
- * enrichment data for a project. Commit count is capped at 100 (MVP).
+ * Fetches commits, languages, and package.json and returns enrichment data for
+ * a project. The commit count comes from GitHub's GraphQL API, so it is
+ * accurate for repos with more than 100 commits.
+ *
+ * Commit metrics are the critical signal: failures fetching them (invalid
+ * token, rate limit, inaccessible repo) are propagated to the caller rather
+ * than swallowed, so a transient error is never silently persisted as a bogus
+ * "0 commits". Language and package.json lookups remain best-effort.
  */
 export async function enrichRepoData(
   token: string,
   owner: string,
   repo: string
 ): Promise<RepoEnrichment> {
-  const [commits, commitCount, languages, pkgStack] = await Promise.all([
-    getRepoCommits(token, owner, repo).catch(() => [] as GitHubCommit[]),
-    getRepoCommitCount(token, owner, repo).catch(() => null),
+  let commits: GitHubCommit[];
+  let commit_count: number;
+  try {
+    const [fetchedCommits, fetchedCount] = await Promise.all([
+      getRepoCommits(token, owner, repo),
+      getRepoCommitCount(token, owner, repo),
+    ]);
+    commits = fetchedCommits;
+    commit_count = fetchedCount;
+  } catch (err) {
+    // A brand-new repository with no commits returns 409 — that's a legitimate
+    // zero, not a failure. Any other error (auth, rate limit, 5xx) propagates.
+    if (err instanceof GitHubApiError && err.status === 409) {
+      commits = [];
+      commit_count = 0;
+    } else {
+      throw err;
+    }
+  }
+
+  // Languages + package.json are best-effort: their failure must not block or
+  // zero out the commit metrics above.
+  const [languages, pkgStack] = await Promise.all([
     getRepoLanguages(token, owner, repo).catch(() => ({} as GitHubLanguages)),
     getPackageJsonTechStack(token, owner, repo),
   ]);
-
-  // Prefer the GraphQL total (accurate for >100 commits); fall back to the
-  // paginated REST length only if the GraphQL call failed.
-  const commit_count = commitCount ?? commits.length;
 
   // GitHub returns commits newest first: first element is the most recent,
   // last element is the oldest of the fetched page.

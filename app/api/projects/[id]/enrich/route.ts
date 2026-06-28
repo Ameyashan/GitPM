@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { enrichRepoData, parseRepoFromUrl, getGitHubToken, GitHubRateLimitError, GitHubAuthError } from "@/lib/github";
+import { enrichRepoData, parseRepoFromUrl, getGitHubToken, GitHubRateLimitError, GitHubAuthError, GitHubApiError } from "@/lib/github";
 
 interface Context {
   params: Promise<{ id: string }>;
@@ -98,6 +98,16 @@ export async function POST(_request: Request, { params }: Context) {
             code: "github_auth_error",
           },
           { status: 401 }
+        );
+      }
+      if (err instanceof GitHubApiError && err.status === 404) {
+        return NextResponse.json(
+          {
+            error:
+              "GitHub repository not found or not accessible. Check the repo link and that your GitHub connection can access it.",
+            code: "github_repo_unavailable",
+          },
+          { status: 404 }
         );
       }
       throw err;
