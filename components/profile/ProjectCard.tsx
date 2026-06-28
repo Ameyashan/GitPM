@@ -47,7 +47,11 @@ export function ProjectCard({ project, onClick }: ProjectCardProps) {
       : []),
   ];
 
-  const commits = project.commit_count ?? 0;
+  // Only show the commit stat when we actually have a count. A project that was
+  // never enriched (null) or whose enrichment couldn't reach GitHub shouldn't
+  // render a misleading "0 commits".
+  const commits = project.commit_count;
+  const hasCommits = typeof commits === "number" && commits > 0;
   const deploysIndicator = project.latest_deploy_at ? "Deployed" : null;
   const firstCommit = formatMonthYear(project.first_commit_at);
   const latestCommit = formatMonthYear(project.latest_commit_at);
@@ -129,10 +133,12 @@ export function ProjectCard({ project, onClick }: ProjectCardProps) {
 
         {/* Meta row */}
         <div className="flex items-center gap-[14px] text-[11px] text-text-muted font-mono mt-[12px]">
-          <span className="flex items-center gap-[5px]">
-            <span className="font-medium text-text-secondary">{commits}</span>
-            commits
-          </span>
+          {hasCommits && (
+            <span className="flex items-center gap-[5px]">
+              <span className="font-medium text-text-secondary">{commits}</span>
+              commits
+            </span>
+          )}
           <span className="flex items-center gap-[5px]">
             {project.is_solo ? (
               <>
