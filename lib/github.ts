@@ -37,8 +37,47 @@ const KNOWN_FRAMEWORKS = [
 export interface RepoEnrichment {
   commit_count: number;
   first_commit_at: string | null;
+  latest_commit_at: string | null;
+  /** Weekly commit counts, most recent week last; drives the profile card sparkline. */
+  commit_activity: number[];
   is_solo: boolean;
   tech_stack: string[];
+}
+
+/** Number of trailing weeks summarized in {@link weeklyCommitCounts}. */
+export const COMMIT_ACTIVITY_WEEKS = 16;
+
+/**
+ * Buckets commit dates into the trailing {@link COMMIT_ACTIVITY_WEEKS} weeks,
+ * anchored to UTC "today", and returns the per-week commit counts oldest-first
+ * (most recent week last). Commits older than the window are ignored. Used to
+ * drive the profile project-card sparkline from real activity.
+ */
+export function weeklyCommitCounts(
+  commits: GitHubCommit[],
+  weeks = COMMIT_ACTIVITY_WEEKS
+): number[] {
+  const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+  // Anchor to UTC midnight "today" so buckets are stable regardless of server TZ.
+  const todayMs = Date.UTC(
+    new Date().getUTCFullYear(),
+    new Date().getUTCMonth(),
+    new Date().getUTCDate()
+  );
+  // End of the current week bucket (exclusive upper bound).
+  const endMs = todayMs + 24 * 60 * 60 * 1000;
+  const startMs = endMs - weeks * WEEK_MS;
+
+  const buckets = new Array<number>(weeks).fill(0);
+  for (const c of commits) {
+    const dateStr = c.commit?.author?.date;
+    if (!dateStr) continue;
+    const t = new Date(dateStr).getTime();
+    if (Number.isNaN(t) || t < startMs || t >= endMs) continue;
+    const idx = Math.floor((t - startMs) / WEEK_MS);
+    if (idx >= 0 && idx < weeks) buckets[idx]++;
+  }
+  return buckets;
 }
 
 export class GitHubRateLimitError extends Error {
@@ -420,9 +459,12 @@ export async function enrichRepoData(
   // paginated REST length only if the GraphQL call failed.
   const commit_count = commitCount ?? commits.length;
 
-  // Oldest commit is last in the array (GitHub returns newest first)
+  // GitHub returns commits newest first: first element is the most recent,
+  // last element is the oldest of the fetched page.
+  const latest_commit_at = commits[0]?.commit?.author?.date ?? null;
   const oldestCommit = commits[commits.length - 1];
   const first_commit_at = oldestCommit?.commit?.author?.date ?? null;
+  const commit_activity = weeklyCommitCounts(commits);
 
   // Solo if every commit with a known author login shares the same login
   const authorLogins = commits
@@ -435,5 +477,5 @@ export async function enrichRepoData(
   const languageNames = Object.keys(languages).slice(0, 5);
   const tech_stack = Array.from(new Set([...languageNames, ...pkgStack]));
 
-  return { commit_count, first_commit_at, is_solo, tech_stack };
+  return { commit_count, first_commit_at, latest_commit_at, commit_activity, is_solo, tech_stack };
 }

@@ -63,6 +63,8 @@ const MOCK_PROJECT: Project = {
   metrics_text: "50 beta users, 120 projects created",
   commit_count: 87,
   first_commit_at: "2024-03-01T09:00:00Z",
+  latest_commit_at: "2024-05-28T16:00:00Z",
+  commit_activity: [2, 5, 3, 8, 4, 6, 1, 0, 3, 7, 5, 9, 4, 6, 2, 8],
   latest_deploy_at: "2024-06-01T14:30:00Z",
   is_solo: true,
   is_verified: true,

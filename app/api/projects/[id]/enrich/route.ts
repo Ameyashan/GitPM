@@ -108,6 +108,8 @@ export async function POST(_request: Request, { params }: Context) {
       .update({
         commit_count: enrichment.commit_count,
         first_commit_at: enrichment.first_commit_at,
+        latest_commit_at: enrichment.latest_commit_at,
+        commit_activity: enrichment.commit_activity,
         is_solo: enrichment.is_solo,
         tech_stack: enrichment.tech_stack,
         updated_at: new Date().toISOString(),

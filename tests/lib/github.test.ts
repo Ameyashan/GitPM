@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { parseTechStack } from "@/lib/github";
+import { COMMIT_ACTIVITY_WEEKS, parseTechStack, weeklyCommitCounts } from "@/lib/github";
+import type { GitHubCommit } from "@/types/github";
+
+function commitAt(date: string): GitHubCommit {
+  return {
+    sha: date,
+    commit: { author: { name: "x", email: "x@x.dev", date }, message: "m" },
+    author: { login: "x" },
+  } as GitHubCommit;
+}
 
 describe("parseTechStack", () => {
   it("returns recognized frameworks from dependencies and devDependencies", () => {
@@ -34,5 +43,40 @@ describe("parseTechStack", () => {
         dependencies: { "my-private-package": "1.0.0" },
       })
     ).toEqual([]);
+  });
+});
+
+describe("weeklyCommitCounts", () => {
+  const now = Date.now();
+  const DAY = 24 * 60 * 60 * 1000;
+
+  it("returns one bucket per trailing week, most recent last", () => {
+    const result = weeklyCommitCounts([]);
+    expect(result).toHaveLength(COMMIT_ACTIVITY_WEEKS);
+    expect(result.every((c) => c === 0)).toBe(true);
+  });
+
+  it("counts a recent commit in the most recent bucket", () => {
+    const result = weeklyCommitCounts([commitAt(new Date(now - DAY).toISOString())]);
+    expect(result).toHaveLength(COMMIT_ACTIVITY_WEEKS);
+    expect(result[result.length - 1]).toBe(1);
+    expect(result.slice(0, -1).every((c) => c === 0)).toBe(true);
+  });
+
+  it("buckets an older commit into an earlier week", () => {
+    // ~3 weeks ago lands in an earlier (not the last) bucket.
+    const result = weeklyCommitCounts([commitAt(new Date(now - 21 * DAY).toISOString())]);
+    expect(result.reduce((a, c) => a + c, 0)).toBe(1);
+    expect(result[result.length - 1]).toBe(0);
+  });
+
+  it("ignores commits older than the window", () => {
+    const result = weeklyCommitCounts([commitAt(new Date(now - 400 * DAY).toISOString())]);
+    expect(result.every((c) => c === 0)).toBe(true);
+  });
+
+  it("ignores commits with missing or invalid dates", () => {
+    const bad = { sha: "x", commit: { author: { date: "" }, message: "" }, author: null } as unknown as GitHubCommit;
+    expect(weeklyCommitCounts([bad]).every((c) => c === 0)).toBe(true);
   });
 });
